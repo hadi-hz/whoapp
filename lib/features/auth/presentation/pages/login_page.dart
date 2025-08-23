@@ -4,9 +4,8 @@ import 'package:test3/core/const/const.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/pages/register_page.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
-import 'package:test3/features/auth/presentation/pages/widgets/checkbox.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
-import 'package:test3/features/home/presentation/pages/home.dart';
+import 'package:test3/shared/change_lang.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,13 +20,13 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isChecked = false;
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    controller.runAnimations();
-  });
-}
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.runAnimations();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,18 +76,16 @@ void initState() {
                           horizontal: 16,
                         ),
                         child: Row(
-                          children: [
-                            checkboxRememberMe(),
-                            const Spacer(),
-                            forgotPassword(),
-                          ],
+                          children: [const Spacer(), forgotPassword()],
                         ),
                       ),
-                      ConstantSpace.xLargeVerticalSpacer,
+                      ConstantSpace.mediumVerticalSpacer,
                       buttonLogin(),
-                      ConstantSpace.xLargeVerticalSpacer,
+                      ConstantSpace.mediumVerticalSpacer,
                       secondSection(),
-                      ConstantSpace.largeVerticalSpacer,
+                      ConstantSpace.mediumVerticalSpacer,
+                      buttonLoginGoogle(),
+                      ConstantSpace.mediumVerticalSpacer,
                       registerUserButton(),
                     ],
                   ),
@@ -106,7 +103,7 @@ void initState() {
       opacity: show ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 200),
       child: AnimatedSlide(
-        offset: show ? Offset(0, 0) : Offset(0, 0.3),
+        offset: show ? const Offset(0, 0) : const Offset(0, 0.3),
         duration: const Duration(milliseconds: 200),
         child: child,
       ),
@@ -146,7 +143,7 @@ void initState() {
                   ),
                 ],
               ),
-              Spacer(),
+              const Spacer(),
               Obx(() {
                 return AnimatedOpacity(
                   opacity: controller.showHello.value ? 1.0 : 0.0,
@@ -178,7 +175,7 @@ void initState() {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Hello!",
+          'hello'.tr + "!", 
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -194,7 +191,7 @@ void initState() {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Welcome to WHO",
+          'welcome'.tr, 
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -210,7 +207,7 @@ void initState() {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Sign in to your Account",
+          'sign_in'.tr, 
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -225,15 +222,14 @@ void initState() {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "Email",
+      hintText: 'email'.tr, 
       prefixIcon: const Icon(Icons.email),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "Email is required";
+          return 'email_required'.tr; 
         }
         if (!GetUtils.isEmail(value)) {
-          return "Enter a valid email";
+          return 'email_invalid'.tr; 
         }
         return null;
       },
@@ -245,14 +241,12 @@ void initState() {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "Password",
+      hintText: 'password'.tr, 
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "Password is required";
+          return 'password_required'.tr; 
         }
-
         return null;
       },
       width: MediaQuery.sizeOf(context).width * 0.82,
@@ -260,19 +254,72 @@ void initState() {
   }
 
   Widget loginInformation() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Enter your Login Information",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+          'enter_login_info'.tr, 
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
         ),
+        const SizedBox(width: 8),
+        const ChangeLang(),
       ],
+    );
+  }
+
+  Widget buttonLoginGoogle() {
+    return BoxNeumorphysm(
+      onTap: controller.isLoadingGoogle.value
+          ? () {}
+          : () {
+              print(controller.token.value);
+              print(controller.userEmail.value);
+
+              controller.loginWithGoogle();
+            },
+      borderRadius: 12,
+      borderWidth: 5,
+      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
+      topLeftShadowColor: Colors.white,
+      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      height: 60,
+      width: context.width * 0.82,
+      bottomRightOffset: const Offset(4, 4),
+      topLeftOffset: const Offset(-4, -4),
+      child: Center(
+        child: Obx(() {
+          return controller.isLoadingGoogle.value
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: AppColors.primaryColor),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/google_icon.png',
+                      height: 20,
+                      width: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'login_google'.tr, 
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                );
+        }),
+      ),
     );
   }
 
   Widget buttonLogin() {
     return BoxNeumorphysm(
+      borderColor: Colors.white,
       onTap: controller.isLoadingLogin.value
           ? () {}
           : () {
@@ -281,92 +328,61 @@ void initState() {
 
               if (formKey.currentState!.validate()) {
                 controller.loginUser(
-                  email: controller.emailLogin.text,
-                  password: controller.passwordLogin.text,
+                  email: controller.emailLogin.text.trim(),
+                  password: controller.passwordLogin.text.trim(),
                 );
               }
-              controller.emailLogin.text = ''; 
-              controller.passwordLogin.text = ''; 
-
+              controller.emailLogin.text = '';
+              controller.passwordLogin.text = '';
             },
       borderRadius: 12,
       borderWidth: 5,
-      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
+      backgroundColor: AppColors.primaryColor,
       topLeftShadowColor: Colors.white,
       bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
       height: 60,
-      width: 200,
+      width: context.width * 0.82,
       bottomRightOffset: const Offset(4, 4),
       topLeftOffset: const Offset(-4, -4),
       child: Center(
         child: Obx(() {
           return controller.isLoadingLogin.value
-              ? CircularProgressIndicator(color: AppColors.primaryColor)
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: AppColors.background),
+                )
               : Text(
-                  "LOGIN",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  'login'.tr, 
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.background,
+                  ),
                 );
         }),
       ),
     );
   }
 
-  Widget forgotPassword() {
-    return TextButton(
-      onPressed: () {},
-      child: Text(
-        "Forgot Password",
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          color: AppColors.primaryColor,
-        ),
-      ),
-    );
-  }
-
-  Widget checkboxRememberMe() {
-    return Row(
-      children: [
-        CheckBoxInnerShadow(
-          width: 48,
-          height: 48,
-          borderRadius: 24,
-          value: isChecked,
-          onChanged: (val) {
-            setState(() {
-              isChecked = val!;
-              print(isChecked);
-            });
-          },
-        ),
-        ConstantSpace.smallHorizontalSpacer,
-        const Text(
-          "Remember me",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-        ),
-      ],
-    );
-  }
-
   Widget secondSection() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
-              "Or",
-              style: TextStyle(
+              'or'.tr, 
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
         ],
       ),
     );
@@ -377,7 +393,7 @@ void initState() {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Don't have an account?",
+          'no_account'.tr, 
           style: TextStyle(
             fontSize: 16,
             color: AppColors.textSecondryColor,
@@ -387,10 +403,14 @@ void initState() {
         ConstantSpace.tinyHorizontalSpacer,
         TextButton(
           onPressed: () {
-            Get.to(RegisterPage());
+            Get.to(
+              () => const RegisterPage(),
+              transition: Transition.downToUp,
+              duration: const Duration(milliseconds: 400),
+            );
           },
           child: Text(
-            "Sign Up",
+            'sign_up'.tr, 
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -399,6 +419,22 @@ void initState() {
           ),
         ),
       ],
+    );
+  }
+
+  Widget forgotPassword() {
+    return TextButton(
+      onPressed: () {
+        
+      },
+      child: Text(
+        'forgot_password'.tr, 
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: AppColors.primaryColor,
+        ),
+      ),
     );
   }
 }

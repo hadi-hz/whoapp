@@ -5,6 +5,7 @@ import 'package:test3/features/auth/presentation/controller/auth_controller.dart
 import 'package:test3/features/auth/presentation/pages/login_page.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
+import 'package:test3/shared/change_lang.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -44,7 +45,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 alignment: Alignment.bottomCenter,
                 child: SingleChildScrollView(
                   child: Container(
-                    width: double.infinity,
+                    width: screenWidth,
+                    height: screenHeight * 0.72,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 24,
@@ -162,7 +164,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Hello!",
+          'hello'.tr + "!", 
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -178,7 +180,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Welcome to WHO",
+          'welcome'.tr, 
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -194,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "Sign Up Account",
+          'signup_account'.tr, 
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -209,12 +211,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "name",
+      hintText: 'name'.tr, 
       prefixIcon: const Icon(Icons.person),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "First name is required";
+          return 'firstname_required'.tr; 
         }
         return null;
       },
@@ -226,12 +227,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "lastname",
+      hintText: 'lastname'.tr,
       prefixIcon: const Icon(Icons.person),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "Last name is required";
+          return 'lastname_required'.tr; 
         }
         return null;
       },
@@ -243,12 +243,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "Email",
+      hintText: 'email'.tr,
       prefixIcon: const Icon(Icons.email),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "Email is required";
+          return 'email_required'.tr;
         }
         return null;
       },
@@ -260,12 +259,11 @@ class _RegisterPageState extends State<RegisterPage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      height: 60,
-      hintText: "Password",
+      hintText: 'password'.tr, 
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return "Password is required";
+          return 'password_required'.tr; 
         }
         return null;
       },
@@ -274,13 +272,15 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget loginInformation() {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Enter your Information for Register",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+          'enter_register_info'.tr,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
         ),
+        const SizedBox(width: 8),
+        const ChangeLang(),
       ],
     );
   }
@@ -292,11 +292,11 @@ class _RegisterPageState extends State<RegisterPage> {
           : () {
               if (formKey.currentState!.validate()) {
                 controller.registerUser(
-                  name: controller.name.text,
-                  lastname: controller.lastName.text,
-                  phoneNumber: 'phoneController.text',
-                  email: controller.email.text,
-                  password: controller.password.text,
+                  name: controller.name.text.trim(),
+                  lastname: controller.lastName.text.trim(),
+                  phoneNumber: '',
+                  email: controller.email.text.trim(),
+                  password: controller.password.text.trim(),
                 );
               }
               controller.name.text = '';
@@ -305,8 +305,9 @@ class _RegisterPageState extends State<RegisterPage> {
               controller.password.text = '';
             },
       borderRadius: 12,
+      borderColor: AppColors.background,
       borderWidth: 5,
-      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
+      backgroundColor: AppColors.primaryColor,
       topLeftShadowColor: Colors.white,
       bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
       height: 60,
@@ -316,10 +317,18 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Center(
         child: Obx(() {
           return controller.isLoading.value
-              ? CircularProgressIndicator(color: AppColors.primaryColor)
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: AppColors.background),
+                )
               : Text(
-                  "Register Account",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  'register_account'.tr, 
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.background,
+                  ),
                 );
         }),
       ),
@@ -327,23 +336,23 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget secondSection() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
-              "Or",
-              style: TextStyle(
+              'or'.tr, 
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
         ],
       ),
     );
@@ -354,7 +363,7 @@ class _RegisterPageState extends State<RegisterPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "have an account?",
+          'have_account'.tr, 
           style: TextStyle(
             fontSize: 16,
             color: AppColors.textColor,
@@ -364,10 +373,14 @@ class _RegisterPageState extends State<RegisterPage> {
         ConstantSpace.tinyHorizontalSpacer,
         TextButton(
           onPressed: () {
-            Get.to(const LoginPage());
+            Get.to(
+              () => const LoginPage(),
+              transition: Transition.downToUp,
+              duration: const Duration(milliseconds: 400),
+            );
           },
           child: Text(
-            "Sign In",
+            'sign_in_short'.tr, 
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

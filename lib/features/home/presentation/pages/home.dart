@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:test3/features/add_report/presentation/pages/add_report.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/widgets/navigationbar.dart';
 import 'package:test3/features/home/presentation/pages/widgets/reports.dart';
@@ -15,14 +14,14 @@ class HomePage extends StatelessWidget {
   final pages = [
     const ProfilePage(),
      ReportsPage(),
-     AddReportPage(),
+     
   ];
 
   @override
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
           body: pages[homeController.selectedIndex.value],
-          bottomNavigationBar: CrystalBottomNav(),
+          bottomNavigationBar: AnimatedBottomNav(),
         ));
   }
 }

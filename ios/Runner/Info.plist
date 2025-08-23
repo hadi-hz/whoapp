@@ -45,5 +45,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<key>CFBundleURLTypes</key>
+	<array>
+	  <dict>
+	    <key>CFBundleTypeRole</key>
+	    <string>Editor</string>
+	    <key>CFBundleURLSchemes</key>
+	    <array>
+	      <string>com.googleusercontent.apps.xxxxxxxx-xxxxxxxxxxxxxxxx</string>
+	    </array>
+	  </dict>
+	</array>
+
+	<!-- Google Maps API Key -->
+	<key>GMSApiKey</key>
+	<string>AIzaSyCH3ePY_mDaspjB60kDfSxwC0HSn8NMwD0</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to submit accurate reports.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to submit accurate reports.</string>
 </dict>
 </plist>

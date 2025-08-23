@@ -1,8 +1,11 @@
+import 'package:dartz/dartz.dart';
 import 'package:test3/features/auth/data/datasource/auth_remote_datasource.dart';
 import 'package:test3/features/auth/data/model/approved_request.dart';
 import 'package:test3/features/auth/data/model/login_request.dart';
 import 'package:test3/features/auth/data/model/register_request.dart';
 import 'package:test3/features/auth/domain/entities/approved.dart';
+import 'package:test3/features/auth/domain/entities/auth_by_google.dart';
+import 'package:test3/features/auth/domain/entities/enum.dart';
 import 'package:test3/features/auth/domain/entities/login.dart';
 import 'package:test3/features/auth/domain/entities/user.dart';
 import 'package:test3/features/auth/domain/repositories/auth_repository.dart';
@@ -39,6 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
       isUserApproved: data['isUserApproved'] ?? false,
       roles: List<String>.from(data['roles'] ?? []),
       message: data['message'] ?? '',
+      profileImageUrl: data['profileImageUrl'] ?? ''
     );
   }
 
@@ -63,5 +67,40 @@ class AuthRepositoryImpl implements AuthRepository {
       roles: List<String>.from(data['roles'] ?? []),
       message: data['message'] ?? '',
     );
+  }
+
+
+
+
+
+
+
+
+  @override
+  Future<AuthEntity> loginWithGoogle({
+    required String idToken,
+    required String deviceTokenId,
+    required int platform,
+  }) async {
+    final body = {
+      "idToken": idToken,
+      "deviceTokenId": deviceTokenId,
+      "platform": platform,
+    };
+
+    final result = await remoteDataSource.loginWithGoogle(body);
+    return result;
+  }
+
+
+
+   @override
+  Future<Either<String, EnumsResponse>> getAllEnums() async {
+    try {
+      final result = await remoteDataSource.getAllEnums();
+      return Right(result);
+    } catch (e) {
+      return Left(e.toString());
+    }
   }
 }

@@ -6,7 +6,6 @@ import 'package:test3/features/add_report/presentation/controller/add_report_con
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/pages/login_page.dart';
 
-
 class SplashScreenPage extends StatefulWidget {
   const SplashScreenPage({super.key});
 
@@ -15,15 +14,17 @@ class SplashScreenPage extends StatefulWidget {
 }
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
-  final controller = Get.put(AuthController());
-  
+  final AddReportController controller = Get.find<AddReportController>();
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 2000), () {
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return LoginPage();
-      },)); 
+      controller.getCurrentLocation();
+      Get.off(
+        () => LoginPage(),
+        transition: Transition.downToUp,
+        duration: const Duration(milliseconds: 400),
+      );
     });
   }
 
@@ -31,10 +32,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SizedBox.expand(
-        child: Image.asset( 
-          'assets/images/splashscreen.png',
-          fit: BoxFit.cover,
-        ),
+        child: Image.asset('assets/images/splashscreen.png', fit: BoxFit.cover),
       ),
     );
   }

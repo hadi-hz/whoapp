@@ -6,6 +6,7 @@ class LoginEntity {
   final bool isUserApproved;
   final List<String> roles;
   final String message;
+  final String profileImageUrl;
 
   LoginEntity({
     required this.id,
@@ -15,5 +16,6 @@ class LoginEntity {
     required this.isUserApproved,
     required this.roles,
     required this.message,
+    required this.profileImageUrl
   });
 }
