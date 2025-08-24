@@ -32,7 +32,6 @@ class AuthController extends GetxController {
   late final LoginUseCase _loginUseCase;
   late final ApprovedUseCase _approvedUseCase;
   late final LoginWithGoogleUseCase _loginWithGoogleUseCase;
-  
 
   final TextEditingController name = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -73,7 +72,6 @@ class AuthController extends GetxController {
     _loginUseCase = LoginUseCase(repository);
     _approvedUseCase = ApprovedUseCase(repository);
     _loginWithGoogleUseCase = LoginWithGoogleUseCase(repository);
-
   }
 
   void runAnimations() {
@@ -91,6 +89,12 @@ class AuthController extends GetxController {
     });
   }
 
+  void _clearRegistrationFields() {
+    name.clear();
+    lastName.clear();
+    email.clear();
+    password.clear();
+  }
 
   Future<void> registerUser({
     required String name,
@@ -101,7 +105,6 @@ class AuthController extends GetxController {
   }) async {
     if (name.isEmpty ||
         lastname.isEmpty ||
-        phoneNumber.isEmpty ||
         email.isEmpty ||
         password.isEmpty) {
       Get.snackbar('error'.tr, 'all_fields_required'.tr);
@@ -135,6 +138,7 @@ class AuthController extends GetxController {
         borderRadius: 8,
         duration: const Duration(seconds: 3),
       );
+      _clearRegistrationFields();
       Get.to(
         () => ApprovedUserPage(),
         transition: Transition.downToUp,
@@ -166,17 +170,15 @@ class AuthController extends GetxController {
   }
 
   Future<void> quickLogout() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.clear(); 
-  
- 
-  currentLoginUser.value = null;
-  
-  
-  Get.offAll(() => LoginPage());
-  
-  Get.snackbar('logged_out'.tr, 'logged_out_successfully'.tr);
-}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    currentLoginUser.value = null;
+
+    Get.offAll(() => LoginPage());
+
+    Get.snackbar('logged_out'.tr, 'logged_out_successfully'.tr);
+  }
 
   Future<void> loginUser({
     required String email,
@@ -202,8 +204,8 @@ class AuthController extends GetxController {
 
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('userId', loginUser.id);
-      prefs.setString('userName' , loginUser.name);
-      
+      prefs.setString('userName', loginUser.name);
+
       print("currentLoginUser ID: ${currentLoginUser.value?.id}");
 
       if (loginUser.isUserApproved) {

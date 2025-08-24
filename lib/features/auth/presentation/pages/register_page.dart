@@ -208,68 +208,93 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget inputName(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'name'.tr, 
-      prefixIcon: const Icon(Icons.person),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'firstname_required'.tr; 
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'name'.tr,
+    prefixIcon: const Icon(Icons.person),
+    validator: (value) {
+  
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'firstname_required'.tr;
+      }
+      if (trimmedValue.length < 2) {
+        return 'name_too_short'.tr; 
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
 
-  Widget inputLastName(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'lastname'.tr,
-      prefixIcon: const Icon(Icons.person),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'lastname_required'.tr; 
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+Widget inputLastName(BuildContext context, controller) {
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'lastname'.tr,
+    prefixIcon: const Icon(Icons.person),
+    validator: (value) {
+     
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'lastname_required'.tr;
+      }
+      if (trimmedValue.length < 2) {
+        return 'lastname_too_short'.tr; 
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
 
-  Widget inputEmail(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'email'.tr,
-      prefixIcon: const Icon(Icons.email),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'email_required'.tr;
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+Widget inputEmail(BuildContext context, controller) {
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'email'.tr,
+    prefixIcon: const Icon(Icons.email),
+    validator: (value) {
+      
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'email_required'.tr;
+      }
+      if (!GetUtils.isEmail(trimmedValue)) {
+        return 'email_invalid'.tr;
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
 
-  Widget inputPassword(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'password'.tr, 
-      prefixIcon: const Icon(Icons.lock),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'password_required'.tr; 
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+Widget inputPassword(BuildContext context, controller) {
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'password'.tr,
+    prefixIcon: const Icon(Icons.lock),
+    validator: (value) {
+     
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'password_required'.tr;
+      }
+      if (trimmedValue.length < 6) {
+        return 'password_min_length'.tr;
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
+
 
   Widget loginInformation() {
     return Row(
@@ -299,10 +324,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   password: controller.password.text.trim(),
                 );
               }
-              controller.name.text = '';
-              controller.lastName.text = '';
-              controller.email.text = '';
-              controller.password.text = '';
+           
             },
       borderRadius: 12,
       borderColor: AppColors.background,
@@ -366,7 +388,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'have_account'.tr, 
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.textColor,
+            color: AppColors.borderColor,
             fontWeight: FontWeight.w600,
           ),
         ),
