@@ -373,7 +373,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ConstantSpace.tinyHorizontalSpacer,
         TextButton(
           onPressed: () {
-            Get.to(
+            Get.off(
               () => const LoginPage(),
               transition: Transition.downToUp,
               duration: const Duration(milliseconds: 400),

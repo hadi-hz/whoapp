@@ -22,8 +22,8 @@ class AddReportController extends GetxController {
   var currentLngGps = 0.0.obs;
   var isOfflineMode = false.obs;
 
-  var selectedLat = 48.8566.obs;
-  var selectedLng = 2.3522.obs;
+  var selectedLat = 0.0.obs;
+  var selectedLng = 0.0.obs;
 
   final TextEditingController description = TextEditingController();
   final TextEditingController patientName = TextEditingController();
@@ -115,6 +115,7 @@ class AddReportController extends GetxController {
         );
 
         responseData.value = response;
+        
 
         Get.snackbar(
           'success'.tr, 

@@ -8,6 +8,7 @@ import 'package:test3/features/auth/presentation/controller/auth_controller.dart
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
 import 'package:test3/features/profile/presentation/controller/profile_controller.dart';
+import 'package:test3/shared/change_lang.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,9 +27,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      await controller.fetchUserProfile(
-        authController.currentLoginUser.value!.id,
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final savedUserId = prefs.getString('userId') ?? '';
+      await controller.fetchUserProfile(savedUserId);
     });
   }
 
@@ -47,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Container(
               width: screenWidth,
               height: screenHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(20),
@@ -62,7 +63,11 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ConstantSpace.x3LargeVerticalSpacer,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [ChangeLang()],
+                  ),
+                  ConstantSpace.mediumVerticalSpacer,
                   userNameBox(),
                   ConstantSpace.largeVerticalSpacer,
                   fullNameBox(),
@@ -70,6 +75,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   emailBox(),
                   ConstantSpace.largeVerticalSpacer,
                   roleBox(),
+                  ConstantSpace.largeVerticalSpacer,
+                  changePasswordButton(),
+                  ConstantSpace.largeVerticalSpacer,
+                  Row(
+                    children: [
+                      logoutButton(),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -92,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'name'.tr.toUpperCase(), 
+                'name'.tr.toUpperCase(),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -125,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'lastname'.tr.toUpperCase(), 
+                    'lastname'.tr.toUpperCase(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -160,7 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'email'.tr.toUpperCase(), 
+                    'email'.tr.toUpperCase(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -168,13 +181,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
 
-                  Text(
-                    '${controller.userInfo.value?.email ?? ''}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.primaryColor,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        '${controller.userInfo.value?.email ?? ''}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      ConstantSpace.smallHorizontalSpacer,
+                      controller.userInfo.value?.emailConfirmed == true
+                          ? Icon(Icons.check_circle, color: Colors.green)
+                          : Icon(Icons.error, color: Colors.red),
+                    ],
                   ),
                 ],
               ),
@@ -195,7 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'role'.tr.toUpperCase(), 
+                    'role'.tr.toUpperCase(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -360,8 +381,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               inputName(context, controller.name),
                               ConstantSpace.mediumVerticalSpacer,
                               inputLastName(context, controller.lastName),
-                              ConstantSpace.mediumVerticalSpacer,
-                              changePasswordButton(),
+
                               ConstantSpace.largeVerticalSpacer,
                               buttonSaveProfile(),
                             ],
@@ -446,7 +466,7 @@ class _ProfilePageState extends State<ProfilePage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "world_health_organization".tr.split(' ').first, 
+          "world_health_organization".tr.split(' ').first,
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -462,7 +482,7 @@ class _ProfilePageState extends State<ProfilePage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          "world_health_organization".tr.split(' ').last, 
+          "world_health_organization".tr.split(' ').last,
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -477,7 +497,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      hintText: 'name'.tr, 
+      hintText: 'name'.tr,
       prefixIcon: const Icon(Icons.person),
       validator: (p0) {
         return null;
@@ -490,7 +510,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      hintText: 'email'.tr, 
+      hintText: 'email'.tr,
       prefixIcon: const Icon(Icons.email),
       validator: (p0) {
         return null;
@@ -503,7 +523,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      hintText: 'lastname'.tr, 
+      hintText: 'lastname'.tr,
       prefixIcon: const Icon(Icons.person),
       validator: (p0) {
         return null;
@@ -561,11 +581,11 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          ConstantSpace.mediumHorizontalSpacer,
+        
           Icon(Icons.lock, color: AppColors.primaryColor),
           ConstantSpace.smallHorizontalSpacer,
           Text(
-            'change_password'.tr, 
+            'change_password'.tr,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -581,11 +601,11 @@ class _ProfilePageState extends State<ProfilePage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      hintText: 'current_password'.tr, 
+      hintText: 'current_password'.tr,
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'current_password_required'.tr; 
+          return 'current_password_required'.tr;
         }
         return null;
       },
@@ -597,11 +617,11 @@ class _ProfilePageState extends State<ProfilePage> {
     return TextFieldInnerShadow(
       borderRadius: 16,
       controller: controller,
-      hintText: 'new_password'.tr, 
+      hintText: 'new_password'.tr,
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'new_password_required'.tr; 
+          return 'new_password_required'.tr;
         }
         return null;
       },
@@ -614,7 +634,7 @@ class _ProfilePageState extends State<ProfilePage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'enter_new_password'.tr, 
+          'enter_new_password'.tr,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
         ),
         const SizedBox(width: 8),
@@ -654,7 +674,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: CircularProgressIndicator(color: AppColors.background),
                 )
               : Text(
-                  'change_password'.tr, 
+                  'change_password'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -682,8 +702,8 @@ class _ProfilePageState extends State<ProfilePage> {
             controller.fetchUserProfile(userId);
           } else {
             Get.snackbar(
-              'error'.tr, 
-              'user_id_not_found'.tr, 
+              'error'.tr,
+              'user_id_not_found'.tr,
               snackPosition: SnackPosition.TOP,
               backgroundColor: Colors.redAccent,
               colorText: Colors.white,
@@ -691,8 +711,8 @@ class _ProfilePageState extends State<ProfilePage> {
           }
         } else {
           Get.snackbar(
-            'validation_error'.tr, 
-            'check_required_fields'.tr, 
+            'validation_error'.tr,
+            'check_required_fields'.tr,
             snackPosition: SnackPosition.TOP,
             backgroundColor: Colors.orange,
             colorText: Colors.white,
@@ -718,7 +738,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: CircularProgressIndicator(color: AppColors.background),
                 )
               : Text(
-                  'save_profile'.tr, 
+                  'save_profile'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -727,6 +747,41 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
         }),
       ),
+    );
+  }
+
+  Widget logoutButton() {
+    return
+      ElevatedButton.icon(
+        onPressed: () => _showLogoutDialog(),
+        icon: Icon(Icons.logout),
+        label: Text('logout'.tr),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+        ),
+      );
+ 
+  }
+
+  void _showLogoutDialog() {
+    Get.dialog(
+      AlertDialog(
+        title: Text('confirm_logout'.tr),
+        content: Text('are_you_sure_logout'.tr),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              authController.quickLogout();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('logout'.tr, style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
     );
   }
 }

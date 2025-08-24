@@ -31,70 +31,76 @@ class AnimatedBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Obx(() {
         return IndexedStack(
           index: homeController.selectedIndex.value,
           children: [ProfilePage(), ReportsPage()],
         );
       }),
-      floatingActionButton: FloatingActionButton(
-        shape: CircleBorder(),
-        backgroundColor: AppColors.primaryColor,
-        onPressed: () {
-          Get.bottomSheet(
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-              ),
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(
-                  bottom: 40,
-                  start: 20,
-                  end: 20,
-                  top: 12,
-                ),
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: context.width * 0.28,
-                          child: Divider(
-                            color: AppColors.textColor,
-                            thickness: 4,
-                            radius: BorderRadius.all(Radius.circular(22)),
-                          ),
-                        ),
-                        ConstantSpace.largeVerticalSpacer,
-                        pickerImage(context),
+      floatingActionButton: SizedBox(
+        width: 65,
+        height: 65,
+        child: FloatingActionButton(
+          shape: CircleBorder(),
+          backgroundColor: AppColors.primaryColor,
 
-                        ConstantSpace.mediumVerticalSpacer,
-                        dropDownHealth(context),
-                        ConstantSpace.smallVerticalSpacer,
-                        patientName(context, controller.patientName),
-                        ConstantSpace.smallVerticalSpacer,
-                        description(context, controller.description),
-                        ConstantSpace.xLargeVerticalSpacer,
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            buttonSubmitReport(),
-                            buttonPickLocation(context),
-                          ],
-                        ),
-                      ],
+          onPressed: () {
+            Get.bottomSheet(
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                ),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: 40,
+                    start: 20,
+                    end: 20,
+                    top: 12,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: context.width * 0.28,
+                            child: Divider(
+                              color: AppColors.textColor,
+                              thickness: 4,
+                              radius: BorderRadius.all(Radius.circular(22)),
+                            ),
+                          ),
+                          ConstantSpace.largeVerticalSpacer,
+                          pickerImage(context),
+
+                          ConstantSpace.mediumVerticalSpacer,
+                          dropDownHealth(context),
+                          ConstantSpace.smallVerticalSpacer,
+                          patientName(context, controller.patientName),
+                          ConstantSpace.smallVerticalSpacer,
+                          description(context, controller.description),
+                          ConstantSpace.xLargeVerticalSpacer,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              buttonSubmitReport(),
+                              buttonPickLocation(context),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-          );
-        },
-        child: const Icon(Icons.add_circle, size: 32, color: Colors.white),
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+            );
+          },
+          child: const Icon(Icons.add_circle, size: 42, color: Colors.white),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Obx(
@@ -124,7 +130,7 @@ class AnimatedBottomNav extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: Text('take_photo'.tr), 
+              title: Text('take_photo'.tr),
               onTap: () {
                 Navigator.of(context).pop();
                 controller.pickImage(ImageSource.camera);
@@ -132,7 +138,7 @@ class AnimatedBottomNav extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.photo),
-              title: Text('choose_from_gallery'.tr), 
+              title: Text('choose_from_gallery'.tr),
               onTap: () {
                 Navigator.of(context).pop();
                 controller.pickImage(ImageSource.gallery);
@@ -149,10 +155,10 @@ class AnimatedBottomNav extends StatelessWidget {
       borderRadius: 16,
       controller: controller,
       maxLine: 5,
-      hintText: 'description'.tr, 
+      hintText: 'description'.tr,
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'enter_description'.tr; 
+          return 'enter_description'.tr;
         }
         return null;
       },
@@ -243,6 +249,13 @@ class AnimatedBottomNav extends StatelessWidget {
   }
 
   Widget dropDownHealth(BuildContext context) {
+    final List<Map<String, dynamic>> healthServices = [
+      {'value': 0, 'name': 'healthcare_cleaning'.tr},
+      {'value': 1, 'name': 'household_cleaning'.tr},
+      {'value': 2, 'name': 'patient_referral'.tr},
+      {'value': 3, 'name': 'safe_burial'.tr},
+    ];
+
     return FormField<int>(
       validator: (value) {
         if (authController.selectedAlertIndex.value == -1) {
@@ -278,13 +291,11 @@ class AnimatedBottomNav extends StatelessWidget {
                           field.didChange(index);
                         },
                         itemBuilder: (context) {
-                          return authController.alertTypes
-                              .asMap()
-                              .entries
+                          return healthServices
                               .map(
-                                (entry) => PopupMenuItem<int>(
-                                  value: entry.key,
-                                  child: Text(entry.value.name),
+                                (service) => PopupMenuItem<int>(
+                                  value: service['value'],
+                                  child: Text(service['name']),
                                 ),
                               )
                               .toList();
@@ -295,12 +306,15 @@ class AnimatedBottomNav extends StatelessWidget {
                           children: [
                             Text(
                               authController.selectedAlertIndex.value == -1
-                                  ? 'select_health_service_label'.tr 
-                                  : authController
-                                        .alertTypes[authController
-                                            .selectedAlertIndex
-                                            .value]
-                                        .name,
+                                  ? 'select_health_service_label'.tr
+                                  : healthServices.firstWhere(
+                                      (service) =>
+                                          service['value'] ==
+                                          authController
+                                              .selectedAlertIndex
+                                              .value,
+                                      orElse: () => {'name': 'unknown'.tr},
+                                    )['name'],
                               style: const TextStyle(fontSize: 16),
                             ),
                             const Icon(Icons.arrow_drop_down),
@@ -331,18 +345,11 @@ class AnimatedBottomNav extends StatelessWidget {
       onTap: () async {
         final prefs = await SharedPreferences.getInstance();
         final savedUserId = prefs.getString('userId') ?? '';
-
         if (_formKey.currentState!.validate()) {
           await controller.submitReport(
             authController.selectedAlertIndex.value,
           );
         }
-
-        authController.selectedAlertIndex.value = -1;
-        controller.description.text = '';
-        controller.patientName.text = '';
-        controller.pickedImages.value = [];
-
         homeController.fetchAlerts(
           userId: savedUserId,
           sortDescending: true,
@@ -360,64 +367,78 @@ class AnimatedBottomNav extends StatelessWidget {
       bottomRightOffset: const Offset(4, 4),
       topLeftOffset: const Offset(-4, -4),
       child: Center(
-        child: controller.isLoading.value
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(color: AppColors.background),
-              )
-            : Text(
-                'submit_report'.tr, 
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.background,
+        child: Obx(
+          () => controller.isLoading.value
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: AppColors.background,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  'submit_report'.tr,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.background,
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }
 
   Widget buttonPickLocation(BuildContext context) {
-    return BoxNeumorphysm(
-      onTap: () async {
-        final LatLng? result = await Get.to<LatLng>(
-          () => const MapPickerPage(),
-        );
-
-        if (result != null) {
-          controller.selectedLat.value = result.latitude;
-          controller.selectedLng.value = result.longitude;
-        } else {
-          print('no_location_selected'.tr); 
-        }
-      },
-      borderRadius: 12,
-      borderWidth: 5,
-      backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
-      bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
-      height: 60,
-      width: 150,
-      bottomRightOffset: const Offset(4, 4),
-      topLeftOffset: const Offset(-4, -4),
-      child: Center(
-        child: Row(
-          children: [
-            Icon(Icons.location_on, color: AppColors.background),
-            SizedBox(width: 8),
-            Text(
-              'location'.tr, 
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+    return Obx(() {
+      return BoxNeumorphysm(
+        onTap: () async {
+          final LatLng? result = await Get.to<LatLng>(
+            () => MapPickerPage(
+              userLat: controller.currentLatGps.value,
+              userLng: controller.currentLngGps.value,
             ),
-          ],
+          );
+
+          if (result != null) {
+            controller.selectedLat.value = result.latitude;
+            controller.selectedLng.value = result.longitude;
+          } else {
+            print('no_location_selected'.tr);
+          }
+        },
+        borderRadius: 12,
+        borderWidth: 5,
+        backgroundColor: controller.selectedLat.value != 0.0
+            ? Colors.green
+            : AppColors.primaryColor,
+        topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
+        bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
+        height: 60,
+        width: 150,
+        bottomRightOffset: const Offset(4, 4),
+        topLeftOffset: const Offset(-4, -4),
+        child: Center(
+          child: Row(
+            children: [
+              controller.selectedLat.value != 0.0
+                  ? Icon(Icons.check_circle, color: AppColors.background)
+                  : Icon(Icons.location_on, color: AppColors.background),
+              SizedBox(width: 8),
+              Text(
+                'location'.tr,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget patientName(BuildContext context, TextEditingController controller) {
@@ -425,13 +446,8 @@ class AnimatedBottomNav extends StatelessWidget {
       borderRadius: 16,
       controller: controller,
       maxLine: 1,
-      hintText: 'patient_name'.tr, 
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'enter_patient_name'.tr; 
-        }
-        return null;
-      },
+      hintText: 'patient_name'.tr,
+      validator: (value) {},
       width: MediaQuery.sizeOf(context).width,
     );
   }

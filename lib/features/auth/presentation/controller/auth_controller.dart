@@ -19,6 +19,7 @@ import 'package:test3/features/auth/domain/usecase/login_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/login_with_google_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/register_usecase.dart';
 import 'package:test3/features/auth/presentation/pages/check_user_is_approved.dart';
+import 'package:test3/features/auth/presentation/pages/login_page.dart';
 import 'package:test3/features/home/presentation/pages/home.dart';
 
 class AuthController extends GetxController {
@@ -31,8 +32,7 @@ class AuthController extends GetxController {
   late final LoginUseCase _loginUseCase;
   late final ApprovedUseCase _approvedUseCase;
   late final LoginWithGoogleUseCase _loginWithGoogleUseCase;
-  late final GetAllEnums _getAllEnums;
-
+  
 
   final TextEditingController name = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -41,7 +41,7 @@ class AuthController extends GetxController {
 
   var userEmail = "".obs;
   var token = "".obs;
-
+  RxString? userName = "".obs;
 
   final TextEditingController emailLogin = TextEditingController();
   final TextEditingController passwordLogin = TextEditingController();
@@ -73,8 +73,7 @@ class AuthController extends GetxController {
     _loginUseCase = LoginUseCase(repository);
     _approvedUseCase = ApprovedUseCase(repository);
     _loginWithGoogleUseCase = LoginWithGoogleUseCase(repository);
-    _getAllEnums = GetAllEnums(repository);
-    fetchAllEnums();
+
   }
 
   void runAnimations() {
@@ -92,16 +91,6 @@ class AuthController extends GetxController {
     });
   }
 
-  Future<void> fetchAllEnums() async {
-    isLoading.value = true;
-    final result = await _getAllEnums();
-    print('result : ${result}');
-    result.fold((failure) => errorMessage.value = failure, (data) {
-      enumsResponse.value = data;
-      alertTypes.assignAll(data.alertType);
-    });
-    isLoading.value = false;
-  }
 
   Future<void> registerUser({
     required String name,
@@ -115,7 +104,7 @@ class AuthController extends GetxController {
         phoneNumber.isEmpty ||
         email.isEmpty ||
         password.isEmpty) {
-      Get.snackbar('error'.tr, 'all_fields_required'.tr); 
+      Get.snackbar('error'.tr, 'all_fields_required'.tr);
       return;
     }
 
@@ -127,7 +116,7 @@ class AuthController extends GetxController {
       phoneNumber: phoneNumber,
       email: email,
       password: password,
-      deviceTokenId: "string", 
+      deviceTokenId: "string",
       platform: 0,
       preferredLanguage: 0,
     );
@@ -137,8 +126,8 @@ class AuthController extends GetxController {
       currentUser.value = user;
 
       Get.snackbar(
-        'success'.tr, 
-        '${'register_success_for'.tr} ${user.email}', 
+        'success'.tr,
+        '${'register_success_for'.tr} ${user.email}',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -151,167 +140,8 @@ class AuthController extends GetxController {
         transition: Transition.downToUp,
         duration: const Duration(milliseconds: 400),
       );
-
-     
     } catch (e) {
       String errorMessage = 'register_failed'.tr;
-
-      if (e is DioError && e.response != null) {
-        final data = e.response!.data;
-        if (data != null && data['message'] != null) {
-          errorMessage = data['message'];
-        }
-      }
-
-      Get.snackbar(
-        'error'.tr, 
-        errorMessage,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        duration: const Duration(seconds: 3),
-      );
-
-     
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> loginUser({
-    required String email,
-    required String password,
-  }) async {
-    if (emailLogin.text.isEmpty || passwordLogin.text.isEmpty) {
-      Get.snackbar('error'.tr, 'all_fields_required'.tr); 
-      return;
-    }
-
-    isLoadingLogin.value = true;
-
-    final request = LoginRequest(
-      email: email,
-      password: password,
-      deviceTokenId: "string", 
-      platform: 0,
-    );
-
-    try {
-      final loginUser = await _loginUseCase(request);
-      currentLoginUser.value = loginUser;
-
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setString('userId', loginUser.id);
-      print("currentLoginUser ID: ${currentLoginUser.value?.id}");
-
-      if (loginUser.isUserApproved) {
-        Get.snackbar(
-          'success'.tr, 
-          '${'welcome_back'.tr}, ${loginUser.name}!', 
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
-          duration: const Duration(seconds: 3),
-        );
-
-        Get.off(
-          () => HomePage(),
-          transition: Transition.downToUp,
-          duration: const Duration(milliseconds: 400),
-        );
-
-        print("✅ Login Success: ${loginUser.name} (${loginUser.email})");
-      } else {
-        Get.snackbar(
-          'not_approved'.tr, 
-          '${'not_approved_yet'.tr}, ${loginUser.name}.', 
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orangeAccent,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
-          duration: const Duration(seconds: 3),
-        );
-
-        print("⚠️ Not Approved: ${loginUser.name} (${loginUser.email})");
-      }
-    } catch (e) {
-      String errorMessage = 'login_failed'.tr; 
-
-      if (e is DioError && e.response != null) {
-        final data = e.response!.data;
-        if (data != null && data['message'] != null) {
-          errorMessage = data['message'];
-        }
-      }
-
-      Get.snackbar(
-        'error'.tr, 
-        errorMessage,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        duration: const Duration(seconds: 3),
-      );
-
-     
-    } finally {
-      isLoadingLogin.value = false;
-    }
-  }
-
-  Future<void> checkUserIsApproved({required String userId}) async {
-    isLoadingCheckIsApproved.value = true;
-
-    final request = ApprovedRequest(userId: userId);
-
-    try {
-      final checkUserIsApproved = await _approvedUseCase(request);
-      currentUserIsApproved.value = checkUserIsApproved;
-
-      if (checkUserIsApproved.isUserApproved) {
-        Get.snackbar(
-          'approved'.tr, 
-          '${'approved_welcome'.tr} ${checkUserIsApproved.name}!',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
-          duration: const Duration(seconds: 3),
-        );
-
-        Get.off(
-          () => HomePage(),
-          transition: Transition.downToUp,
-          duration: const Duration(milliseconds: 400),
-        );
-
-        print(
-          "✅ Approved: ${checkUserIsApproved.name} (${checkUserIsApproved.email})",
-        );
-      } else {
-        Get.snackbar(
-          'not_approved'.tr, 
-          '${'not_approved_yet'.tr}, ${checkUserIsApproved.name}.', 
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orangeAccent,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
-          duration: const Duration(seconds: 3),
-        );
-
-  
-      }
-    } catch (e) {
-      String errorMessage = 'request_failed'.tr; 
 
       if (e is DioError && e.response != null) {
         final data = e.response!.data;
@@ -330,8 +160,172 @@ class AuthController extends GetxController {
         borderRadius: 8,
         duration: const Duration(seconds: 3),
       );
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-   
+  Future<void> quickLogout() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear(); 
+  
+ 
+  currentLoginUser.value = null;
+  
+  
+  Get.offAll(() => LoginPage());
+  
+  Get.snackbar('logged_out'.tr, 'logged_out_successfully'.tr);
+}
+
+  Future<void> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    if (emailLogin.text.isEmpty || passwordLogin.text.isEmpty) {
+      Get.snackbar('error'.tr, 'all_fields_required'.tr);
+      return;
+    }
+
+    isLoadingLogin.value = true;
+
+    final request = LoginRequest(
+      email: email,
+      password: password,
+      deviceTokenId: "string",
+      platform: 0,
+    );
+
+    try {
+      final loginUser = await _loginUseCase(request);
+      currentLoginUser.value = loginUser;
+
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString('userId', loginUser.id);
+      prefs.setString('userName' , loginUser.name);
+      
+      print("currentLoginUser ID: ${currentLoginUser.value?.id}");
+
+      if (loginUser.isUserApproved) {
+        Get.snackbar(
+          'success'.tr,
+          '${'welcome_back'.tr}, ${loginUser.name}!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
+
+        Get.off(
+          () => HomePage(),
+          transition: Transition.downToUp,
+          duration: const Duration(milliseconds: 400),
+        );
+
+        print("✅ Login Success: ${loginUser.name} (${loginUser.email})");
+      } else {
+        Get.snackbar(
+          'not_approved'.tr,
+          '${'not_approved_yet'.tr}, ${loginUser.name}.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orangeAccent,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
+
+        print("⚠️ Not Approved: ${loginUser.name} (${loginUser.email})");
+      }
+    } catch (e) {
+      String errorMessage = 'login_failed'.tr;
+
+      if (e is DioError && e.response != null) {
+        final data = e.response!.data;
+        if (data != null && data['message'] != null) {
+          errorMessage = data['message'];
+        }
+      }
+
+      Get.snackbar(
+        'error'.tr,
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      isLoadingLogin.value = false;
+    }
+  }
+
+  Future<void> checkUserIsApproved({required String userId}) async {
+    isLoadingCheckIsApproved.value = true;
+
+    final request = ApprovedRequest(userId: userId);
+
+    try {
+      final checkUserIsApproved = await _approvedUseCase(request);
+      currentUserIsApproved.value = checkUserIsApproved;
+
+      if (checkUserIsApproved.isUserApproved) {
+        Get.snackbar(
+          'approved'.tr,
+          '${'approved_welcome'.tr} ${checkUserIsApproved.name}!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
+
+        Get.off(
+          () => HomePage(),
+          transition: Transition.downToUp,
+          duration: const Duration(milliseconds: 600),
+        );
+
+        print(
+          "✅ Approved: ${checkUserIsApproved.name} (${checkUserIsApproved.email})",
+        );
+      } else {
+        Get.snackbar(
+          'not_approved'.tr,
+          '${'not_approved_yet'.tr}, ${checkUserIsApproved.name}.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orangeAccent,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'request_failed'.tr;
+
+      if (e is DioError && e.response != null) {
+        final data = e.response!.data;
+        if (data != null && data['message'] != null) {
+          errorMessage = data['message'];
+        }
+      }
+
+      Get.snackbar(
+        'error'.tr,
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
     } finally {
       isLoadingCheckIsApproved.value = false;
     }
@@ -353,7 +347,7 @@ class AuthController extends GetxController {
       final idToken = googleAuth.idToken;
 
       if (idToken == null) {
-        throw Exception('google_token_failed'.tr); 
+        throw Exception('google_token_failed'.tr);
       }
 
       userEmail.value = googleUser.email;
@@ -361,13 +355,11 @@ class AuthController extends GetxController {
       final AuthEntity response = await _loginWithGoogleUseCase(
         idToken: idToken,
         deviceTokenId: "test-device-id", // TODO: مقدار واقعی
-        platform: 0, 
+        platform: 0,
       );
 
       token.value = response.accessToken;
-     
     } catch (e) {
-  
     } finally {
       isLoadingGoogle.value = false;
     }

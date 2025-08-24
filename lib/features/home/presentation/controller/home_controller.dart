@@ -1,8 +1,37 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/home/domain/entities/get_alert_entity.dart';
 import 'package:test3/features/home/domain/usecase/get_alert_usecase.dart';
 
 class HomeController extends GetxController {
+  @override
+  void onInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUserId = prefs.getString('userId') ?? '';
+    await fetchAlerts(
+      userId: savedUserId,
+      sortDescending: true,
+      page: 1,
+      pageSize: 1000,
+    );
+    super.onInit();
+  }
+
+  var isFiltersExpanded = false.obs;
+
+  void toggleFiltersExpansion() {
+    isFiltersExpanded.value = !isFiltersExpanded.value;
+  }
+
+  void closeFilters() {
+    isFiltersExpanded.value = false;
+  }
+
+  void openFilters() {
+    isFiltersExpanded.value = true;
+  }
+
   var selectedIndex = 1.obs;
 
   void changePage(int index) {
@@ -18,30 +47,30 @@ class HomeController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = "".obs;
 
- 
+  var isLoadingDetail = false.obs;
+  var errorMessageDetail = ''.obs;
+
   var selectedStatusFilter = Rxn<int>();
   var selectedTypeFilter = Rxn<int>();
   var searchQuery = "".obs;
 
- 
   List<Map<String, dynamic>> get statusList => [
-    {'value': null, 'name': 'all_status'.tr}, 
-    {'value': 0, 'name': 'initial'.tr}, 
+    {'value': null, 'name': 'all_status'.tr},
+    {'value': 0, 'name': 'initial'.tr},
     {'value': 1, 'name': 'visited_by_admin'.tr},
-    {'value': 2, 'name': 'assigned_to_team'.tr}, 
+    {'value': 2, 'name': 'assigned_to_team'.tr},
     {'value': 3, 'name': 'visited_by_team_member'.tr},
-    {'value': 4, 'name': 'team_start_processing'.tr}, 
-    {'value': 5, 'name': 'team_finish_processing'.tr}, 
-    {'value': 6, 'name': 'admin_close'.tr}, 
+    {'value': 4, 'name': 'team_start_processing'.tr},
+    {'value': 5, 'name': 'team_finish_processing'.tr},
+    {'value': 6, 'name': 'admin_close'.tr},
   ];
 
-  
   List<Map<String, dynamic>> get alertTypeList => [
-    {'value': null, 'name': 'all_types'.tr}, 
-    {'value': 0, 'name': 'healthcare_cleaning'.tr}, 
-    {'value': 1, 'name': 'household_cleaning'.tr}, 
-    {'value': 2, 'name': 'patient_referral'.tr}, 
-    {'value': 3, 'name': 'safe_burial'.tr}, 
+    {'value': null, 'name': 'all_types'.tr},
+    {'value': 0, 'name': 'healthcare_cleaning'.tr},
+    {'value': 1, 'name': 'household_cleaning'.tr},
+    {'value': 2, 'name': 'patient_referral'.tr},
+    {'value': 3, 'name': 'safe_burial'.tr},
   ];
 
   Future<void> fetchAlerts({
@@ -72,22 +101,17 @@ class HomeController extends GetxController {
       type: type,
     );
 
-    result.fold(
-      (error) => errorMessage.value = error,
-      (data) {
-        alerts.value = data;
-        applyFilters();
-      },
-    );
+    result.fold((error) => errorMessage.value = error, (data) {
+      alerts.value = data;
+      applyFilters();
+    });
 
     isLoading.value = false;
   }
 
- 
   void applyFilters() {
     List<Alert> filtered = alerts.toList();
 
-    
     if (searchQuery.value.isNotEmpty) {
       String query = searchQuery.value.toLowerCase().trim();
       filtered = filtered.where((alert) {
@@ -97,18 +121,16 @@ class HomeController extends GetxController {
       }).toList();
     }
 
-  
     if (selectedStatusFilter.value != null) {
-      filtered = filtered.where((alert) => 
-        alert.alertStatus == selectedStatusFilter.value
-      ).toList();
+      filtered = filtered
+          .where((alert) => alert.alertStatus == selectedStatusFilter.value)
+          .toList();
     }
 
-  
     if (selectedTypeFilter.value != null) {
-      filtered = filtered.where((alert) => 
-        alert.alertType == selectedTypeFilter.value
-      ).toList();
+      filtered = filtered
+          .where((alert) => alert.alertType == selectedTypeFilter.value)
+          .toList();
     }
 
     filteredAlerts.value = filtered;
@@ -119,18 +141,15 @@ class HomeController extends GetxController {
     applyFilters();
   }
 
- 
   void changeTypeFilter(int? type) {
     selectedTypeFilter.value = type;
     applyFilters();
   }
 
- 
   void changeSearchQuery(String query) {
     searchQuery.value = query;
     applyFilters();
   }
-
 
   void clearFilters() {
     selectedStatusFilter.value = null;

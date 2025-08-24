@@ -14,4 +14,6 @@ abstract class AlertRepository {
     required int page,
     required int pageSize,
   });
+
+ 
 }

@@ -3,7 +3,6 @@ import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
 import 'package:test3/features/home/domain/entities/get_alert_entity.dart';
 import 'package:test3/features/home/domain/repositories/get_alert_repository.dart';
 
-
 class GetAlertRepositoryImpl implements AlertRepository {
   final GetAlertRemoteDataSource remoteDataSource;
 
@@ -40,4 +39,6 @@ class GetAlertRepositoryImpl implements AlertRepository {
       return Left(e.toString());
     }
   }
+
+
 }

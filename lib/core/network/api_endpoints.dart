@@ -12,5 +12,6 @@ class ApiEndpoints {
   static const String getUserInfo = "/user/get-user-info";
   static const String updateProfile = "/user/update-profile";
   static const String enums = "/general/get-all-enums";
+  static String geAlertById = '/alert/get-by-id';
   
 }

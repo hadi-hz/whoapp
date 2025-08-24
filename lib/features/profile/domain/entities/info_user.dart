@@ -7,6 +7,7 @@ class UserInfo  {
   final String? phoneNumber;
   final int preferredLanguage;
   final bool isUserApproved;
+  final bool emailConfirmed;
   final List<String> roles;
   final String? profileImageUrl;
 
@@ -18,6 +19,7 @@ class UserInfo  {
     this.phoneNumber,
     required this.preferredLanguage,
     required this.isUserApproved,
+    required this.emailConfirmed,
     required this.roles,
     this.profileImageUrl,
   });

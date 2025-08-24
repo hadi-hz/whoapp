@@ -218,40 +218,49 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget inputEmail(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'email'.tr, 
-      prefixIcon: const Icon(Icons.email),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'email_required'.tr; 
-        }
-        if (!GetUtils.isEmail(value)) {
-          return 'email_invalid'.tr; 
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+ Widget inputEmail(BuildContext context, controller) {
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'email'.tr,
+    prefixIcon: const Icon(Icons.email),
+    validator: (value) {
+     
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'email_required'.tr;
+      }
+      if (!GetUtils.isEmail(trimmedValue)) {
+        return 'email_invalid'.tr;
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
 
-  Widget inputPassword(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'password'.tr, 
-      prefixIcon: const Icon(Icons.lock),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'password_required'.tr; 
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
+Widget inputPassword(BuildContext context, controller) {
+  return TextFieldInnerShadow(
+    borderRadius: 16,
+    controller: controller,
+    hintText: 'password'.tr,
+    prefixIcon: const Icon(Icons.lock),
+    validator: (value) {
+      
+      String trimmedValue = (value ?? '').trim();
+      
+      if (trimmedValue.isEmpty) {
+        return 'password_required'.tr;
+      }
+      if (trimmedValue.length < 6) {
+        return 'password_min_length'.tr; 
+      }
+      return null;
+    },
+    width: MediaQuery.sizeOf(context).width * 0.82,
+  );
+}
 
   Widget loginInformation() {
     return Row(
@@ -403,7 +412,7 @@ class _LoginPageState extends State<LoginPage> {
         ConstantSpace.tinyHorizontalSpacer,
         TextButton(
           onPressed: () {
-            Get.to(
+            Get.off(
               () => const RegisterPage(),
               transition: Transition.downToUp,
               duration: const Duration(milliseconds: 400),

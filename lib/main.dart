@@ -8,6 +8,10 @@ import 'package:test3/features/add_report/presentation/controller/add_report_con
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/controller/translation_controller.dart';
 import 'package:test3/features/auth/presentation/pages/splashscreen_page.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/get_alert_by_id_datasource.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/get_alert_by_id_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
 import 'package:test3/features/home/data/datasource/get_alert_datasource.dart'
     hide AlertRemoteDataSourceImpl;
 import 'package:test3/features/home/data/repositories/get_alert_impl.dart'
@@ -23,6 +27,19 @@ import 'package:test3/features/profile/presentation/controller/profile_controlle
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Get.put<AlertDetailRemoteDataSourceImpl>(AlertDetailRemoteDataSourceImpl());
+  Get.put<AlertDetailRepositoryImpl>(
+    AlertDetailRepositoryImpl(Get.find<AlertDetailRemoteDataSourceImpl>()),
+  );
+  Get.put<GetAlertDetailUseCase>(
+    GetAlertDetailUseCase(Get.find<AlertDetailRepositoryImpl>()),
+  );
+  Get.put<AlertDetailController>(
+    AlertDetailController(
+      getAlertDetailUseCase: Get.find<GetAlertDetailUseCase>(),
+    ),
+  );
 
   final alertRepository = AlertRepositoryImpl(AlertRemoteDataSourceImpl());
   Get.put(AuthController());

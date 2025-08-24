@@ -9,6 +9,7 @@ class UserInfoModel extends UserInfo {
     super.phoneNumber,
     required super.preferredLanguage,
     required super.isUserApproved,
+    required super.emailConfirmed,
     required super.roles,
     super.profileImageUrl,
   });
@@ -22,6 +23,7 @@ class UserInfoModel extends UserInfo {
       phoneNumber: json["phoneNumber"],
       preferredLanguage: json["preferredLanguage"],
       isUserApproved: json["isUserApproved"],
+      emailConfirmed: json["emailConfirmed"],
       roles: List<String>.from(json["roles"]),
       profileImageUrl: json["profileImageUrl"],
     );
@@ -36,6 +38,7 @@ class UserInfoModel extends UserInfo {
       "phoneNumber": phoneNumber,
       "preferredLanguage": preferredLanguage,
       "isUserApproved": isUserApproved,
+      "emailConfirmed": emailConfirmed,
       "roles": roles,
       "profileImageUrl": profileImageUrl,
     };
