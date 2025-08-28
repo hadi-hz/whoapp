@@ -180,7 +180,7 @@ class AuthController extends GetxController {
       'logged_out_successfully'.tr,
       snackPosition: SnackPosition.TOP,
       backgroundColor: Colors.green,
-      colorText: AppColors.background
+      colorText: AppColors.background,
     );
   }
 
@@ -348,7 +348,7 @@ class AuthController extends GetxController {
 
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        isLoading.value = false;
+        isLoadingGoogle.value = false;
         return;
       }
 
@@ -363,12 +363,48 @@ class AuthController extends GetxController {
 
       final AuthEntity response = await _loginWithGoogleUseCase(
         idToken: idToken,
-        deviceTokenId: "test-device-id", // TODO: مقدار واقعی
+        deviceTokenId: "test-device-id",
         platform: 0,
       );
 
       token.value = response.accessToken;
+      userName?.value = googleUser.displayName ?? '';
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', response.userId ?? googleUser.id);
+      await prefs.setString('userName', googleUser.displayName ?? '');
+      await prefs.setString('userEmail', googleUser.email);
+      await prefs.setString('token', response.accessToken);
+
+      Get.snackbar(
+        'success'.tr,
+        '${'welcome_back'.tr}, ${googleUser.displayName}!',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
+
+      Get.offAll(
+        () => HomePage(),
+        transition: Transition.downToUp,
+        duration: const Duration(milliseconds: 400),
+      );
     } catch (e) {
+      Get.snackbar(
+        'error'.tr,
+        e.toString().contains('google_token_failed')
+            ? e.toString()
+            : 'login_failed'.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
     } finally {
       isLoadingGoogle.value = false;
     }
