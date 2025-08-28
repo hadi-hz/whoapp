@@ -1,44 +1,37 @@
 import 'package:dartz/dartz.dart';
 import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
+import 'package:test3/features/home/data/model/get_filter_alert_model.dart';
 import 'package:test3/features/home/domain/entities/get_alert_entity.dart';
+import 'package:test3/features/home/domain/entities/get_filter_alert.dart';
 import 'package:test3/features/home/domain/repositories/get_alert_repository.dart';
 
-class GetAlertRepositoryImpl implements AlertRepository {
+
+class AlertListRepositoryImpl implements AlertListRepository {
   final GetAlertRemoteDataSource remoteDataSource;
 
-  GetAlertRepositoryImpl(this.remoteDataSource);
+  AlertListRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<String, List<Alert>>> getAllAlerts({
-    required String userId,
-    int? status,
-    int? type,
-    String? registerDateFrom,
-    String? registerDateTo,
-    String? sortBy,
-    required bool sortDescending,
-    String? teamId,
-    required int page,
-    required int pageSize,
-  }) async {
+  Future<Either<String, List<AlertEntity>>> getAllAlerts(AlertFilterEntity filter) async {
     try {
-      final result = await remoteDataSource.getAllAlerts({
-        "UserId": userId,
-        if (status != null) "Status": status,
-        if (type != null) "Type": type,
-        if (registerDateFrom != null) "RegisterDateFrom": registerDateFrom,
-        if (registerDateTo != null) "RegisterDateTo": registerDateTo,
-        if (sortBy != null) "SortBy": sortBy,
-        "SortDescending": sortDescending,
-        if (teamId != null) "TeamId": teamId,
-        "Page": page,
-        "PageSize": pageSize,
-      });
+      final alertFilter = AlertFilterModel(
+        search: filter.search,
+        userId: filter.userId,
+        status: filter.status,
+        type: filter.type,
+        registerDateFrom: filter.registerDateFrom,
+        registerDateTo: filter.registerDateTo,
+        sortBy: filter.sortBy,
+        sortDescending: filter.sortDescending,
+        teamId: filter.teamId,
+        page: filter.page,
+        pageSize: filter.pageSize,
+      );
+
+      final result = await remoteDataSource.getAllAlerts(alertFilter);
       return Right(result);
     } catch (e) {
       return Left(e.toString());
     }
   }
-
-
 }

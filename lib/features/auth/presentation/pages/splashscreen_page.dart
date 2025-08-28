@@ -36,31 +36,24 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       final prefs = await SharedPreferences.getInstance();
       final String? savedUserId = prefs.getString('userId');
       final String? savedUserName = prefs.getString('userName');
-      print('savedUserId : ${savedUserId}');
-      await homeController.fetchAlerts(
-        userId: savedUserId ?? '',
-        sortDescending: true,
-        page: 1,
-        pageSize: 150,
-      );
 
       controller.getCurrentLocation();
 
       if (savedUserId != null && savedUserId.isNotEmpty) {
         Get.offAll(
-          HomePage(),
+          () => HomePage(),
           transition: Transition.downToUp,
           duration: const Duration(milliseconds: 300),
         );
       } else {
         Get.offAll(
-          LoginPage(),
+          () => LoginPage(),
           transition: Transition.downToUp,
           duration: const Duration(milliseconds: 300),
         );
       }
     } catch (e) {
-      Get.offAll(LoginPage());
+      Get.offAll(() => LoginPage());
     }
   }
 

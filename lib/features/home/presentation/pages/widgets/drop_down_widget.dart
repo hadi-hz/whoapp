@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:test3/core/const/const.dart';
 
@@ -52,7 +51,8 @@ class DropdownFilter extends StatelessWidget {
             return DropdownMenuItem<int?>(
               value: item['value'],
               child: Text(
-                item['name'],
+                
+                item['label']?.toString() ?? item['name']?.toString() ?? 'Unknown',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,

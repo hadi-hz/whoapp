@@ -13,15 +13,18 @@ import 'package:test3/features/auth/presentation/controller/auth_controller.dart
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/inner_shadow_container.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
+import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
+
 import 'package:test3/features/home/presentation/pages/widgets/reports.dart';
 import 'package:test3/features/profile/presentation/pages/profile.dart';
 
-class AnimatedBottomNav extends StatelessWidget {
-  AnimatedBottomNav({super.key});
+class AnimatedBottomNavDoctor extends StatelessWidget {
+  AnimatedBottomNavDoctor({super.key});
 
   final HomeController homeController = Get.find<HomeController>();
   final AddReportController controller = Get.find<AddReportController>();
+  final AlertListController alertController = Get.find<AlertListController>();
   final authController = Get.find<AuthController>();
 
   final iconList = <IconData>[Icons.person, Icons.list_alt_rounded];
@@ -31,6 +34,7 @@ class AnimatedBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       extendBody: true,
       body: Obx(() {
         return IndexedStack(
@@ -44,7 +48,6 @@ class AnimatedBottomNav extends StatelessWidget {
         child: FloatingActionButton(
           shape: CircleBorder(),
           backgroundColor: AppColors.primaryColor,
-
           onPressed: () {
             Get.bottomSheet(
               Container(
@@ -74,7 +77,6 @@ class AnimatedBottomNav extends StatelessWidget {
                           ),
                           ConstantSpace.largeVerticalSpacer,
                           pickerImage(context),
-
                           ConstantSpace.mediumVerticalSpacer,
                           dropDownHealth(context),
                           ConstantSpace.smallVerticalSpacer,
@@ -122,6 +124,72 @@ class AnimatedBottomNav extends StatelessWidget {
     );
   }
 
+  // باقی متدها همان است...
+
+  Widget buttonSubmitReport() {
+    return BoxNeumorphysm(
+      backgroundColor: AppColors.primaryColor,
+      width: 170,
+      height: 60,
+      borderRadius: 12,
+      borderWidth: 5,
+      topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
+      bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
+      bottomRightOffset: const Offset(4, 4),
+      topLeftOffset: const Offset(-4, -4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'submit_report'.tr,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+      onTap: () async {
+        String? validationError = _validateForm();
+        if (validationError != null) {
+          Get.snackbar(
+            'validation_error'.tr,
+            validationError,
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(12),
+            borderRadius: 8,
+          );
+          return;
+        }
+
+        if (_formKey.currentState!.validate()) {
+          final prefs = await SharedPreferences.getInstance();
+          final savedUserId = prefs.getString('userId') ?? '';
+
+          await controller.submitReport(
+            authController.selectedAlertIndex.value,
+          );
+
+          // استفاده از AlertListController به جای homeController.fetchAlerts
+          await _refreshAlerts(savedUserId);
+        }
+      },
+    );
+  }
+
+  Future<void> _refreshAlerts(String userId) async {
+    alertController.selectedUserId.value = userId;
+    alertController.sortDescending.value = true;
+    alertController.currentPage.value = 1;
+    alertController.pageSize.value = 100;
+    
+    await alertController.loadAlerts();
+  }
+
+  // باقی متدها همان کد قبلی...
   void _showPickOptionsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -185,62 +253,59 @@ class AnimatedBottomNav extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: 8,
-              mainAxisSize: MainAxisSize.min,
-              children: controller.pickedImages
-                  .asMap()
-                  .entries
-                  .map(
-                    (entry) => Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: AppColors.textColor,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
+          Expanded(
+            child: SizedBox(
+              height: 70,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: controller.pickedImages.length,
+                separatorBuilder: (context, index) => SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final entry = MapEntry(index, controller.pickedImages[index]);
+                  return Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppColors.textColor,
+                            width: 2,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(entry.value.path),
-                              width: 70,
-                              height: 70,
-                              fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(entry.value.path),
+                            width: 70,
+                            height: 70,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: GestureDetector(
+                          onTap: () => controller.removeImage(entry.key),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: -2,
-                          right: -2,
-                          child: GestureDetector(
-                            onTap: () => controller.removeImage(entry.key),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -340,54 +405,29 @@ class AnimatedBottomNav extends StatelessWidget {
     );
   }
 
-  Widget buttonSubmitReport() {
-    return BoxNeumorphysm(
-      onTap: () async {
-        final prefs = await SharedPreferences.getInstance();
-        final savedUserId = prefs.getString('userId') ?? '';
-        if (_formKey.currentState!.validate()) {
-          await controller.submitReport(
-            authController.selectedAlertIndex.value,
-          );
-        }
-        homeController.fetchAlerts(
-          userId: savedUserId,
-          sortDescending: true,
-          page: 1,
-          pageSize: 100,
-        );
-      },
-      borderRadius: 12,
-      borderWidth: 5,
-      backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
-      bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
-      height: 60,
-      width: 150,
-      bottomRightOffset: const Offset(4, 4),
-      topLeftOffset: const Offset(-4, -4),
-      child: Center(
-        child: Obx(
-          () => controller.isLoading.value
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.background,
-                    strokeWidth: 2,
-                  ),
-                )
-              : Text(
-                  'submit_report'.tr,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.background,
-                  ),
-                ),
-        ),
-      ),
-    );
+  String? _validateForm() {
+    if (controller.selectedLat.value == 0.0 ||
+        controller.selectedLng.value == 0.0) {
+      return 'no_location_selected'.tr;
+    }
+
+    if (controller.pickedImages.isEmpty) {
+      return 'no_images_selected'.tr;
+    }
+
+    if (controller.patientName.text.trim().isEmpty) {
+      return 'enter_patient_name'.tr;
+    }
+
+    if (controller.description.text.trim().isEmpty) {
+      return 'enter_description'.tr;
+    }
+
+    if (authController.selectedAlertIndex.value == -1) {
+      return 'select_health_service'.tr;
+    }
+
+    return null;
   }
 
   Widget buttonPickLocation(BuildContext context) {
@@ -404,8 +444,6 @@ class AnimatedBottomNav extends StatelessWidget {
           if (result != null) {
             controller.selectedLat.value = result.latitude;
             controller.selectedLng.value = result.longitude;
-          } else {
-            print('no_location_selected'.tr);
           }
         },
         borderRadius: 12,
@@ -416,26 +454,25 @@ class AnimatedBottomNav extends StatelessWidget {
         topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
         bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
         height: 60,
-        width: 150,
+        width: 170,
         bottomRightOffset: const Offset(4, 4),
         topLeftOffset: const Offset(-4, -4),
-        child: Center(
-          child: Row(
-            children: [
-              controller.selectedLat.value != 0.0
-                  ? Icon(Icons.check_circle, color: AppColors.background)
-                  : Icon(Icons.location_on, color: AppColors.background),
-              SizedBox(width: 8),
-              Text(
-                'location'.tr,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            controller.selectedLat.value != 0.0
+                ? Icon(Icons.check_circle, color: AppColors.background)
+                : Icon(Icons.location_on, color: AppColors.background),
+            SizedBox(width: 8),
+            Text(
+              'location'.tr,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     });

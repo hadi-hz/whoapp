@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:get/utils.dart';
 import 'package:test3/core/network/api_endpoints.dart';
 import 'package:test3/core/network/dio_baseurl.dart';
 import 'package:test3/features/profile/data/model/chnage_password.dart';
@@ -89,7 +90,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return ChangePasswordModel.fromJson(response.data);
     } else {
-      throw Exception('Failed to change password');
+      throw Exception('failed_to_change_password'.tr);
     }
   }
 }

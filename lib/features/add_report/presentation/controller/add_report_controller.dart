@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,10 @@ class AddReportController extends GetxController {
   final AlertRepository repository;
   final DatabaseHelper _dbHelper = DatabaseHelper();
   var offlineReportsCount = 0.obs;
+  
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  var isConnected = false.obs;
 
   AddReportController(this.repository);
 
@@ -36,6 +41,26 @@ class AddReportController extends GetxController {
   void onInit() {
     super.onInit();
     checkOfflineReports();
+    _initConnectivityListener();
+  }
+
+  @override
+  void onClose() {
+    _connectivitySubscription?.cancel();
+    super.onClose();
+  }
+
+ 
+  void _initConnectivityListener() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) {
+      bool hasConnection = !result.contains(ConnectivityResult.none);
+      isConnected.value = hasConnection;
+      
+  
+      if (hasConnection && offlineReportsCount.value > 0) {
+        syncOfflineReports();
+      }
+    });
   }
 
   List<File> convertXFilesToFiles(List<XFile> xFiles) {
@@ -64,12 +89,49 @@ class AddReportController extends GetxController {
     isLoading.value = true;
 
     try {
-      bool hasInternet = await checkInternetConnection();
-      isOfflineMode.value = !hasInternet;
-
       await getCurrentLocation();
+      bool hasInternet = await checkInternetConnection();
 
-      if (isOfflineMode.value) {
+      if (hasInternet) {
+        
+        final alertModel = AlertModel(
+          doctorId: savedUserId,
+          alertDescriptionByDoctor: description.text,
+          patientName: patientName.text,
+          alertType: alertType,
+          latitude: selectedLat.value,
+          longitude: selectedLng.value,
+          latitudeGps: currentLatGps.value,
+          longitudeGps: currentLngGps.value,
+          isOflineMode: false,
+          localCreateTime: DateTime.now().toIso8601String(),
+        );
+
+        final response = await repository.submitAlert(
+          alertModel,
+          files: pickedImages,
+        );
+
+        responseData.value = response;
+
+        Get.snackbar(
+          'success'.tr, 
+          'report_submitted_success'.tr, 
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(12),
+          borderRadius: 8,
+        );
+
+        clearForm();
+
+        
+        if (offlineReportsCount.value > 0) {
+          syncOfflineReports();
+        }
+      } else {
+    
         await saveOfflineReport(
           doctorId: savedUserId,
           patientName: patientName.text,
@@ -95,43 +157,6 @@ class AddReportController extends GetxController {
         );
 
         clearForm();
-      } else {
-        final alertModel = AlertModel(
-          doctorId: savedUserId,
-          alertDescriptionByDoctor: description.text,
-          patientName: patientName.text,
-          alertType: alertType,
-          latitude: selectedLat.value,
-          longitude: selectedLng.value,
-          latitudeGps: currentLatGps.value,
-          longitudeGps: currentLngGps.value,
-          isOflineMode: false,
-          localCreateTime: DateTime.now().toIso8601String(),
-        );
-
-        final response = await repository.submitAlert(
-          alertModel,
-          files: pickedImages,
-        );
-
-        responseData.value = response;
-        
-
-        Get.snackbar(
-          'success'.tr, 
-          'report_submitted_success'.tr, 
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(12),
-          borderRadius: 8,
-        );
-
-        clearForm();
-
-        if (offlineReportsCount.value > 0) {
-          syncOfflineReports();
-        }
       }
     } catch (e) {
       responseData.value = null;
@@ -230,12 +255,8 @@ class AddReportController extends GetxController {
     try {
       int count = await _dbHelper.getOfflineReportsCount();
       offlineReportsCount.value = count;
-
-      if (count > 0) {
-       
-      }
     } catch (e) {
-      
+     
     }
   }
 

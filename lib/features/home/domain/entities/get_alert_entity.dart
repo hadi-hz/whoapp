@@ -1,4 +1,4 @@
-class Alert {
+class AlertEntity {
   final String id;
   final String alertDescriptionByDoctor;
   final int alertStatus;
@@ -10,8 +10,9 @@ class Alert {
   final String? teamId;
   final bool isDoctor;
   final bool isTeamMember;
+  final String trackId;
 
-  const Alert({
+  AlertEntity({
     required this.id,
     required this.alertDescriptionByDoctor,
     required this.alertStatus,
@@ -23,5 +24,6 @@ class Alert {
     this.teamId,
     required this.isDoctor,
     required this.isTeamMember,
+    required this.trackId,
   });
 }

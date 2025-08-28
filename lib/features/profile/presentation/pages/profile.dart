@@ -78,11 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ConstantSpace.largeVerticalSpacer,
                   changePasswordButton(),
                   ConstantSpace.largeVerticalSpacer,
-                  Row(
-                    children: [
-                      logoutButton(),
-                    ],
-                  ),
+                  Row(children: [logoutButton()]),
                 ],
               ),
             ),
@@ -325,9 +321,21 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: ClipOval(
               child: file != null
-                  ? Image.file(file, fit: BoxFit.cover)
-                  : (networkUrl != null
-                        ? Image.network(networkUrl, fit: BoxFit.cover)
+                  ? Image.file(file, fit: BoxFit.cover, width: 100, height: 100)
+                  : (networkUrl != null && networkUrl.isNotEmpty
+                        ? Image.network(
+                            networkUrl,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.white,
+                              );
+                            },
+                          )
                         : Icon(Icons.person, size: 50, color: Colors.white)),
             ),
           ),
@@ -581,7 +589,6 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-        
           Icon(Icons.lock, color: AppColors.primaryColor),
           ConstantSpace.smallHorizontalSpacer,
           Text(
@@ -751,17 +758,31 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget logoutButton() {
-    return
-      ElevatedButton.icon(
-        onPressed: () => _showLogoutDialog(),
-        icon: Icon(Icons.logout),
-        label: Text('logout'.tr),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
+    return GestureDetector(
+      onTap: () => _showLogoutDialog(),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.3),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-      );
- 
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.logout, color: Colors.white),
+            SizedBox(width: 8),
+            Text('logout'.tr, style: TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showLogoutDialog() {

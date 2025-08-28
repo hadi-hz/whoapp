@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test3/core/const/const.dart';
 import 'package:test3/features/auth/data/datasource/auth_remote_datasource.dart';
 import 'package:test3/features/auth/data/model/approved_request.dart';
 import 'package:test3/features/auth/data/model/login_request.dart';
@@ -103,10 +104,7 @@ class AuthController extends GetxController {
     required String email,
     required String password,
   }) async {
-    if (name.isEmpty ||
-        lastname.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty) {
+    if (name.isEmpty || lastname.isEmpty || email.isEmpty || password.isEmpty) {
       Get.snackbar('error'.tr, 'all_fields_required'.tr);
       return;
     }
@@ -177,7 +175,13 @@ class AuthController extends GetxController {
 
     Get.offAll(() => LoginPage());
 
-    Get.snackbar('logged_out'.tr, 'logged_out_successfully'.tr);
+    Get.snackbar(
+      'logged_out'.tr,
+      'logged_out_successfully'.tr,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green,
+      colorText: AppColors.background
+    );
   }
 
   Future<void> loginUser({
@@ -202,10 +206,6 @@ class AuthController extends GetxController {
       final loginUser = await _loginUseCase(request);
       currentLoginUser.value = loginUser;
 
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setString('userId', loginUser.id);
-      prefs.setString('userName', loginUser.name);
-
       print("currentLoginUser ID: ${currentLoginUser.value?.id}");
 
       if (loginUser.isUserApproved) {
@@ -226,7 +226,14 @@ class AuthController extends GetxController {
           duration: const Duration(milliseconds: 400),
         );
 
-        print("✅ Login Success: ${loginUser.name} (${loginUser.email})");
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('userId', loginUser.id);
+        prefs.setString('userName', loginUser.name);
+        prefs.setString('role', loginUser.roles.first);
+
+        print(
+          "✅ Login Success: ${loginUser.name} (${loginUser.email} ${loginUser.roles.first})",
+        );
       } else {
         Get.snackbar(
           'not_approved'.tr,

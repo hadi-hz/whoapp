@@ -1,0 +1,43 @@
+import 'package:dartz/dartz.dart';
+import 'package:test3/features/home/data/datasource/get_team_by_id.dart';
+import 'package:test3/features/home/data/datasource/team_datasource.dart';
+import 'package:test3/features/home/data/model/team_filter_model.dart';
+import 'package:test3/features/home/domain/entities/team_filter_entity.dart';
+import 'package:test3/features/home/domain/repositories/team_repository.dart';
+import '../../domain/entities/team_entity.dart';
+
+
+class TeamsRepositoryImpl implements TeamsRepository {
+  final TeamsRemoteDataSource remoteDataSource;
+  final TeamRemoteDataSourceTeamId remoteDataSourceTeamById;
+
+
+  TeamsRepositoryImpl({required this.remoteDataSource , required this.remoteDataSourceTeamById});
+
+  @override
+  Future<Either<String, List<TeamEntity>>> getAllTeams(TeamsFilterEntity filter) async {
+    try {
+      final filterModel = TeamsFilterModel(
+        name: filter.name,
+        isHealthcareCleaningAndDisinfection: filter.isHealthcareCleaningAndDisinfection,
+        isHouseholdCleaningAndDisinfection: filter.isHouseholdCleaningAndDisinfection,
+        isPatientsReferral: filter.isPatientsReferral,
+        isSafeAndDignifiedBurial: filter.isSafeAndDignifiedBurial,
+      );
+
+      final result = await remoteDataSource.getAllTeams(filterModel);
+      return Right(result);
+    } catch (e) {
+      return Left(e.toString());
+    }
+
+
+    
+  }
+
+   @override
+  Future<TeamEntity> getTeamById(String id) async {
+    final teamModel = await remoteDataSourceTeamById.getTeamById(id);
+    return teamModel.toEntity();
+  }
+}

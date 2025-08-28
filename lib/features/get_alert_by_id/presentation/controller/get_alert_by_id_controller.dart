@@ -1,28 +1,69 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/get_alert-by_id.dart';
+import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
-
+import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
 
 class AlertDetailController extends GetxController {
   final GetAlertDetailUseCase getAlertDetailUseCase;
+  final GetTeamByAlertType getTeamByAlertType;
+  final AssignTeamUseCase assignTeamUseCase;
 
-  AlertDetailController({required this.getAlertDetailUseCase});
+  AlertDetailController({
+    required this.getAlertDetailUseCase,
+    required this.getTeamByAlertType,
+    required this.assignTeamUseCase,
+  });
 
   var isLoading = false.obs;
   var errorMessage = ''.obs;
   Rxn<AlertDetailEntity> alertDetail = Rxn<AlertDetailEntity>();
 
+  var isLoadingTeam = false.obs;
+  var errorMessageTeam = ''.obs;
+  var teams = <TeamsEntity>[].obs;
+
+  var isAssigning = false.obs;
+  var assignErrorMessage = ''.obs;
+
+  Rxn<TeamsEntity> selectedTeam = Rxn<TeamsEntity>();
+
+  void clearSelectedTeam() {
+    selectedTeam.value = null;
+  }
+
+  var userRole = ''.obs;
+
+  Future<void> fetchTeamByAlertType(int alertType) async {
+    isLoadingTeam.value = true;
+    errorMessageTeam.value = "";
+
+    final result = await getTeamByAlertType(alertType);
+    print('result team : ${result}');
+
+    result.fold(
+      (error) => errorMessageTeam.value = error,
+      (teamsList) => teams.value = teamsList,
+    );
+
+    isLoadingTeam.value = false;
+  }
+
   Future<void> fetchAlertDetail(String alertId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedUserId = prefs.getString('userId');
+    final String? savedRole = prefs.getString('role');
+    userRole.value = savedRole ?? '';
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-
-      final result = await getAlertDetailUseCase(alertId);
+      final result = await getAlertDetailUseCase(alertId, savedUserId ?? '');
       print('result result : ${result}');
-      
+
       result.fold(
         (failure) {
           errorMessage.value = failure;
@@ -36,6 +77,7 @@ class AlertDetailController extends GetxController {
         },
         (data) {
           alertDetail.value = data;
+          print("alertDetail.value : ${alertDetail.value?.team?.id}");
         },
       );
     } catch (e) {
@@ -107,5 +149,50 @@ class AlertDetailController extends GetxController {
       default:
         return 'Unknown';
     }
+  }
+
+  Future<bool> assignTeamToAlert({
+    required String alertId,
+    required String teamId,
+    required String userId,
+  }) async {
+    isAssigning.value = true;
+    assignErrorMessage.value = '';
+
+    final result = await assignTeamUseCase(
+      alertId: alertId,
+      teamId: teamId,
+      userId: userId,
+    );
+
+    isAssigning.value = false;
+
+    return result.fold(
+      (error) {
+        assignErrorMessage.value = error;
+        Get.snackbar(
+          'error'.tr,
+          error,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      },
+      (assignResult) {
+        Get.snackbar(
+          'success'.tr,
+          assignResult.message,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return true;
+      },
+    );
+  }
+
+  void clearAssignError() {
+    assignErrorMessage.value = '';
   }
 }

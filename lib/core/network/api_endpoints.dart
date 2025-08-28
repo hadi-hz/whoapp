@@ -12,6 +12,18 @@ class ApiEndpoints {
   static const String getUserInfo = "/user/get-user-info";
   static const String updateProfile = "/user/update-profile";
   static const String enums = "/general/get-all-enums";
-  static String geAlertById = '/alert/get-by-id';
+  static const String geAlertById = '/alert/get-by-id';
+  static const String getallTeams = '/teams/getall-by-alerttype';
+  static const String assignTeamToAlert = '/alert/assign-team-to-alert';
+  static const String userGetAll = '/user/getall';
+  static const String assignRole = '/auth/assign-role';
+  static const String teamsGetAll = '/teams/getall';
+  static const String teamsGetbyId = '/teams/getbyId';
+  static const String addMembers = '/teammember/add-members';
+  static const String teamsCreate= '/teams/create';
+  static const String teamsByMemberId= '/teams/get-teams-by-memberId';
+  static const String teamStartProcessing= '/alert/team-start-processing';
+  static const String changeLanguage= '/user/change-preferred-language';
+ 
   
 }

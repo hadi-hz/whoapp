@@ -13,9 +13,9 @@ class AlertDetailRepositoryImpl implements AlertDetailRepository {
   AlertDetailRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Either<String, AlertDetailEntity>> getAlertById(String alertId) async {
+  Future<Either<String, AlertDetailEntity>> getAlertById(String alertId ,currentUserId ) async {
     try {
-      final request = AlertDetailRequest(alertId: alertId);
+      final request = AlertDetailRequest(alertId: alertId , currentUserId: currentUserId);
       final result = await remoteDataSource.getAlertById(request);
       return Right(result);
     } catch (e) {

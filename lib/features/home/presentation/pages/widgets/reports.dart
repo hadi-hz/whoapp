@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/const/const.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/pages/get_alert_detail.dart';
+import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/widgets/drop_down_widget.dart';
 
@@ -19,29 +20,9 @@ class ReportsPage extends StatefulWidget {
 
 class _ReportsPageState extends State<ReportsPage> {
   final TextEditingController search = TextEditingController();
-
   final controller = Get.find<AuthController>();
-
   final HomeController homeController = Get.find<HomeController>();
-
-  @override
-  void initState() {
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      final prefs = await SharedPreferences.getInstance();
-      final savedUserId = prefs.getString('userId') ?? '';
-      final savedUserName = prefs.getString('userName') ?? '';
-      controller.userName?.value = savedUserName;
-
-      await homeController.fetchAlerts(
-        userId: savedUserId,
-        sortDescending: true,
-        page: 1,
-        pageSize: 1000,
-      );
-    });
-
-    super.initState();
-  }
+  final AlertListController alertController = Get.find<AlertListController>();
 
   @override
   Widget build(BuildContext context) {
@@ -102,17 +83,17 @@ class _ReportsPageState extends State<ReportsPage> {
                 SizedBox(
                   height: context.height * 0.59,
                   child: Obx(() {
-                    if (homeController.isLoading.value) {
+                    if (alertController.isLoading.value) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (homeController.errorMessage.value.isNotEmpty) {
+                    if (alertController.hasError.value) {
                       return Center(
-                        child: Text(homeController.errorMessage.value),
+                        child: Text(alertController.errorMessage.value),
                       );
                     }
 
-                    if (homeController.filteredAlerts.isEmpty) {
+                    if (alertController.alerts.isEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -124,24 +105,22 @@ class _ReportsPageState extends State<ReportsPage> {
                             ),
                             const SizedBox(height: 16),
                             Text('no_reports_found'.tr),
-                            if (homeController
+                            if (alertController
                                 .searchQuery
                                 .value
                                 .isNotEmpty) ...[
                               const SizedBox(height: 8),
                               Text(
-                                '${'no_results_for'.tr} "${homeController.searchQuery.value}"',
+                                '${'no_results_for'.tr} "${alertController.searchQuery.value}"',
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
                                 ),
                               ),
                             ],
-                            if (homeController.selectedStatusFilter.value !=
-                                    null ||
-                                homeController.selectedTypeFilter.value !=
-                                    null ||
-                                homeController
+                            if (alertController.selectedStatus.value != null ||
+                                alertController.selectedType.value != null ||
+                                alertController
                                     .searchQuery
                                     .value
                                     .isNotEmpty) ...[
@@ -149,7 +128,7 @@ class _ReportsPageState extends State<ReportsPage> {
                               TextButton(
                                 onPressed: () {
                                   search.clear();
-                                  homeController.clearFilters();
+                                  alertController.clearFilters();
                                 },
                                 child: Text('clear_filters'.tr),
                               ),
@@ -157,9 +136,6 @@ class _ReportsPageState extends State<ReportsPage> {
                           ],
                         ),
                       );
-                    }
-                    if (homeController.alerts.isEmpty) {
-                      return Center(child: Text('no_reports_found'.tr));
                     }
 
                     Map<String, dynamic> getStatusData(int status) {
@@ -186,7 +162,6 @@ class _ReportsPageState extends State<ReportsPage> {
                             'name': 'team_start_processing'.tr,
                             'color': Colors.teal,
                           };
-
                         case 5:
                           return {
                             'name': 'team_finish_processing'.tr,
@@ -206,15 +181,19 @@ class _ReportsPageState extends State<ReportsPage> {
                       child: Wrap(
                         spacing: 12,
                         runSpacing: 12,
-                        children: homeController.filteredAlerts.map((alert) {
-                          final statusData = getStatusData(
-                            alert.alertStatus ?? 0,
-                          );
+
+                        children: alertController.alerts.map((alert) {
+                          final statusData = getStatusData(alert.alertStatus);
 
                           return IntrinsicHeight(
                             child: GestureDetector(
                               onTap: () {
-                                Get.to(AlertDetailPage(alertId: alert.id));
+                                Get.to(
+                                  AlertDetailPage(
+                                    alertId: alert.id,
+                                    alertType: alert.alertType,
+                                  ),
+                                );
                               },
                               child: Container(
                                 width:
@@ -246,7 +225,7 @@ class _ReportsPageState extends State<ReportsPage> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            alert.doctorName ?? '',
+                                            alert.doctorName,
                                             style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
@@ -283,13 +262,9 @@ class _ReportsPageState extends State<ReportsPage> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            alert.serverCreateTime != null
-                                                ? DateFormat(
-                                                    'yyyy-MM-dd',
-                                                  ).format(
-                                                    alert.serverCreateTime!,
-                                                  )
-                                                : '',
+                                            DateFormat(
+                                              'yyyy-MM-dd',
+                                            ).format(alert.serverCreateTime),
                                             style: const TextStyle(
                                               fontSize: 12,
                                             ),
@@ -344,6 +319,55 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
+  Widget searching(BuildContext context, TextEditingController controller) {
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        onChanged: (value) {
+          alertController.onSearchChanged(value);
+        },
+        decoration: InputDecoration(
+          hintText: 'search_by_doctor_team'.tr,
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          suffixIcon: Obx(() {
+            if (alertController.searchQuery.value.isNotEmpty) {
+              return IconButton(
+                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                onPressed: () {
+                  controller.clear();
+                  alertController.onSearchChanged("");
+                },
+              );
+            }
+            return const Icon(Icons.search, color: Colors.grey);
+          }),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget buildExpandableFiltersContainer() {
     return Container(
       decoration: BoxDecoration(
@@ -392,14 +416,14 @@ class _ReportsPageState extends State<ReportsPage> {
                       ),
                     ),
                     const Spacer(),
-
                     Obx(() {
                       int activeFilters = 0;
-                      if (homeController.selectedStatusFilter.value != null)
+
+                      if (alertController.selectedStatus.value != null)
                         activeFilters++;
-                      if (homeController.selectedTypeFilter.value != null)
+                      if (alertController.selectedType.value != null)
                         activeFilters++;
-                      if (homeController.searchQuery.value.isNotEmpty)
+                      if (alertController.searchQuery.value.isNotEmpty)
                         activeFilters++;
 
                       return activeFilters > 0
@@ -437,7 +461,6 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ),
           ),
-
           Obx(
             () => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -456,53 +479,390 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget searching(BuildContext context, TextEditingController controller) {
-    return Container(
-      width: MediaQuery.sizeOf(context).width,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        onChanged: (value) {
-          homeController.changeSearchQuery(value);
-        },
-        decoration: InputDecoration(
-          hintText: 'search_by_doctor_team'.tr,
-          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-          suffixIcon: Obx(() {
-            if (homeController.searchQuery.value.isNotEmpty) {
-              return IconButton(
-                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
-                onPressed: () {
-                  controller.clear();
-                  homeController.changeSearchQuery("");
-                },
-              );
-            }
-            return const Icon(Icons.search, color: Colors.grey);
-          }),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+  Widget buildFiltersContent() {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() => Row(
+          children: [
+            Expanded(
+              child: DropdownFilter(
+                hint: 'filter_by_status'.tr,
+                selectedValue: alertController.selectedStatus.value,
+          
+                items: alertController.statusOptions,
+                onChanged: (value) => alertController.onStatusChanged(value),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: DropdownFilter(
+                hint: 'filter_by_type'.tr,
+                selectedValue: alertController.selectedType.value,
+            
+                items: alertController.typeOptions,
+                onChanged: (value) => alertController.onTypeChanged(value),
+              ),
+            ),
+          ],
+        )),
+
+        const SizedBox(height: 16),
+
+        TextFormField(
+          onChanged: (value) =>
+              alertController.onUserIdChanged(value.isEmpty ? null : value),
+          decoration: InputDecoration(
+            hintText: 'filter_by_user_id'.tr,
+            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.borderColor),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
+            suffixIcon: Obx(
+              () => alertController.selectedUserId.value != null
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 20),
+                      onPressed: () => alertController.onUserIdChanged(null),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ),
         ),
-      ),
+
+        const SizedBox(height: 16),
+
+        TextFormField(
+          onChanged: (value) =>
+              alertController.onTeamIdChanged(value.isEmpty ? null : value),
+          decoration: InputDecoration(
+            hintText: 'filter_by_team_id'.tr,
+            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.borderColor),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
+            suffixIcon: Obx(
+              () => alertController.selectedTeamId.value != null
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 20),
+                      onPressed: () => alertController.onTeamIdChanged(null),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        Text(
+          'date_range_filter'.tr,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _selectDate(context, isFromDate: true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.borderColor),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Obx(
+                          () => Text(
+                            alertController.dateFrom.value != null
+                                ? DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(alertController.dateFrom.value!)
+                                : 'from_date'.tr,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: alertController.dateFrom.value != null
+                                  ? Colors.black
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (alertController.dateFrom.value != null)
+                        GestureDetector(
+                          onTap: () => alertController.onDateRangeChanged(
+                            null,
+                            alertController.dateTo.value,
+                          ),
+                          child: const Icon(
+                            Icons.clear,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _selectDate(context, isFromDate: false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.borderColor),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Obx(
+                          () => Text(
+                            alertController.dateTo.value != null
+                                ? DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(alertController.dateTo.value!)
+                                : 'to_date'.tr,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: alertController.dateTo.value != null
+                                  ? Colors.black
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (alertController.dateTo.value != null)
+                        GestureDetector(
+                          onTap: () => alertController.onDateRangeChanged(
+                            alertController.dateFrom.value,
+                            null,
+                          ),
+                          child: const Icon(
+                            Icons.clear,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        Text(
+          'sort_options'.tr,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.borderColor),
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: Obx(
+                    () => DropdownButton<String>(
+                      isExpanded: true,
+                      value: alertController.sortBy.value,
+                      hint: Text('sort_by'.tr),
+                      onChanged: (value) => alertController.onSortChanged(
+                        value ?? 'serverCreateTime',
+                        alertController.sortDescending.value,
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'serverCreateTime',
+                          child: Text('date'.tr),
+                        ),
+                        DropdownMenuItem(
+                          value: 'doctorName',
+                          child: Text('doctor_name'.tr),
+                        ),
+                        DropdownMenuItem(
+                          value: 'alertStatus',
+                          child: Text('status'.tr),
+                        ),
+                        DropdownMenuItem(
+                          value: 'alertType',
+                          child: Text('type'.tr),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Obx(
+              () => GestureDetector(
+                onTap: () => alertController.onSortChanged(
+                  alertController.sortBy.value,
+                  !alertController.sortDescending.value,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.borderColor),
+                    borderRadius: BorderRadius.circular(12),
+                    color: alertController.sortDescending.value
+                        ? AppColors.primaryColor.withOpacity(0.1)
+                        : Colors.white,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        alertController.sortDescending.value
+                            ? Icons.arrow_downward
+                            : Icons.arrow_upward,
+                        size: 16,
+                        color: alertController.sortDescending.value
+                            ? AppColors.primaryColor
+                            : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        alertController.sortDescending.value
+                            ? 'desc'.tr
+                            : 'asc'.tr,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: alertController.sortDescending.value
+                              ? AppColors.primaryColor
+                              : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  search.clear();
+                  alertController.clearFilters();
+                },
+                icon: const Icon(Icons.clear_all, size: 18),
+                label: Text('clear_all_filters'.tr),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.withOpacity(0.2),
+                  foregroundColor: Colors.grey[700],
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => alertController.refreshAlerts(),
+                icon: const Icon(Icons.refresh, size: 18),
+                label: Text('apply_filters'.tr),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isFromDate,
+  }) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
     );
+
+    if (picked != null) {
+      if (isFromDate) {
+        alertController.onDateRangeChanged(
+          picked,
+          alertController.dateTo.value,
+        );
+      } else {
+        alertController.onDateRangeChanged(
+          alertController.dateFrom.value,
+          picked,
+        );
+      }
+    }
   }
 
   Widget profileHeader() {
@@ -550,68 +910,6 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildFiltersContent() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Obx(
-            () => Row(
-              children: [
-                Expanded(
-                  child: DropdownFilter(
-                    hint: 'filter_by_status'.tr,
-                    selectedValue: homeController.selectedStatusFilter.value,
-                    items: homeController.statusList,
-                    onChanged: (value) =>
-                        homeController.changeStatusFilter(value),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownFilter(
-                    hint: 'filter_by_type'.tr,
-                    selectedValue: homeController.selectedTypeFilter.value,
-                    items: homeController.alertTypeList,
-                    onChanged: (value) =>
-                        homeController.changeTypeFilter(value),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  search.clear();
-                  homeController.clearFilters();
-                },
-                icon: const Icon(Icons.clear_all, size: 18),
-                label: Text('clear_all_filters'.tr),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.withOpacity(0.2),
-                  foregroundColor: Colors.grey[700],
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

@@ -61,19 +61,21 @@ class _RegisterPageState extends State<RegisterPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         loginInformation(),
-                        ConstantSpace.xLargeVerticalSpacer,
+                        ConstantSpace.mediumVerticalSpacer,
                         inputName(context, controller.name),
-                        ConstantSpace.mediumVerticalSpacer,
+                        ConstantSpace.smallVerticalSpacer,
                         inputLastName(context, controller.lastName),
-                        ConstantSpace.mediumVerticalSpacer,
+                        ConstantSpace.smallVerticalSpacer,
                         inputEmail(context, controller.email),
-                        ConstantSpace.mediumVerticalSpacer,
+                        ConstantSpace.smallVerticalSpacer,
                         inputPassword(context, controller.password),
-                        ConstantSpace.largeVerticalSpacer,
+                        ConstantSpace.mediumVerticalSpacer,
                         buttonRegister(),
-                        ConstantSpace.xLargeVerticalSpacer,
+                        ConstantSpace.mediumVerticalSpacer,
                         secondSection(),
-                        ConstantSpace.largeVerticalSpacer,
+                        ConstantSpace.mediumVerticalSpacer,
+                        buttonRegisterGoogle(),
+                        ConstantSpace.mediumVerticalSpacer,
                         SignInButton(),
                       ],
                     ),
@@ -164,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'hello'.tr + "!", 
+          'hello'.tr + "!",
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -180,7 +182,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'welcome'.tr, 
+          'welcome'.tr,
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -196,7 +198,7 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'signup_account'.tr, 
+          'signup_account'.tr,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -208,93 +210,88 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget inputName(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'name'.tr,
-    prefixIcon: const Icon(Icons.person),
-    validator: (value) {
-  
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'firstname_required'.tr;
-      }
-      if (trimmedValue.length < 2) {
-        return 'name_too_short'.tr; 
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'name'.tr,
+      prefixIcon: const Icon(Icons.person),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
 
-Widget inputLastName(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'lastname'.tr,
-    prefixIcon: const Icon(Icons.person),
-    validator: (value) {
-     
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'lastname_required'.tr;
-      }
-      if (trimmedValue.length < 2) {
-        return 'lastname_too_short'.tr; 
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+        if (trimmedValue.isEmpty) {
+          return 'firstname_required'.tr;
+        }
+        if (trimmedValue.length < 2) {
+          return 'name_too_short'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
 
-Widget inputEmail(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'email'.tr,
-    prefixIcon: const Icon(Icons.email),
-    validator: (value) {
-      
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'email_required'.tr;
-      }
-      if (!GetUtils.isEmail(trimmedValue)) {
-        return 'email_invalid'.tr;
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+  Widget inputLastName(BuildContext context, controller) {
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'lastname'.tr,
+      prefixIcon: const Icon(Icons.person),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
 
-Widget inputPassword(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'password'.tr,
-    prefixIcon: const Icon(Icons.lock),
-    validator: (value) {
-     
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'password_required'.tr;
-      }
-      if (trimmedValue.length < 6) {
-        return 'password_min_length'.tr;
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+        if (trimmedValue.isEmpty) {
+          return 'lastname_required'.tr;
+        }
+        if (trimmedValue.length < 2) {
+          return 'lastname_too_short'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
 
+  Widget inputEmail(BuildContext context, controller) {
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'email'.tr,
+      prefixIcon: const Icon(Icons.email),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
+
+        if (trimmedValue.isEmpty) {
+          return 'email_required'.tr;
+        }
+        if (!GetUtils.isEmail(trimmedValue)) {
+          return 'email_invalid'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
+
+  Widget inputPassword(BuildContext context, controller) {
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'password'.tr,
+      prefixIcon: const Icon(Icons.lock),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
+
+        if (trimmedValue.isEmpty) {
+          return 'password_required'.tr;
+        }
+        if (trimmedValue.length < 6) {
+          return 'password_min_length'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
 
   Widget loginInformation() {
     return Row(
@@ -324,7 +321,6 @@ Widget inputPassword(BuildContext context, controller) {
                   password: controller.password.text.trim(),
                 );
               }
-           
             },
       borderRadius: 12,
       borderColor: AppColors.background,
@@ -345,12 +341,64 @@ Widget inputPassword(BuildContext context, controller) {
                   child: CircularProgressIndicator(color: AppColors.background),
                 )
               : Text(
-                  'register_account'.tr, 
+                  'register_account'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: AppColors.background,
                   ),
+                );
+        }),
+      ),
+    );
+  }
+
+  Widget buttonRegisterGoogle() {
+    return BoxNeumorphysm(
+      onTap: controller.isLoadingGoogle.value
+          ? () {}
+          : () {
+              print(controller.token.value);
+              print(controller.userEmail.value);
+
+              controller.loginWithGoogle();
+            },
+      borderRadius: 12,
+      borderWidth: 5,
+      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
+      topLeftShadowColor: Colors.white,
+      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      height: 60,
+      width: context.width * 0.82,
+      bottomRightOffset: const Offset(4, 4),
+      topLeftOffset: const Offset(-4, -4),
+      child: Center(
+        child: Obx(() {
+          return controller.isLoadingGoogle.value
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/google_icon.png',
+                      height: 20,
+                      width: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Register in with Google'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 );
         }),
       ),
@@ -366,7 +414,7 @@ Widget inputPassword(BuildContext context, controller) {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
-              'or'.tr, 
+              'or'.tr,
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -385,7 +433,7 @@ Widget inputPassword(BuildContext context, controller) {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'have_account'.tr, 
+          'have_account'.tr,
           style: TextStyle(
             fontSize: 16,
             color: AppColors.borderColor,
@@ -402,7 +450,7 @@ Widget inputPassword(BuildContext context, controller) {
             );
           },
           child: Text(
-            'sign_in_short'.tr, 
+            'sign_in_short'.tr,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

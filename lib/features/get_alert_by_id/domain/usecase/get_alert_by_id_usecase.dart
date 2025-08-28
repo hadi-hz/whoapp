@@ -9,7 +9,7 @@ class GetAlertDetailUseCase {
 
   GetAlertDetailUseCase(this.repository);
 
-  Future<Either<String, AlertDetailEntity>> call(String alertId) async {
-    return await repository.getAlertById(alertId);
+  Future<Either<String, AlertDetailEntity>> call(String alertId , String currentUserId) async {
+    return await repository.getAlertById(alertId , currentUserId );
   }
 }

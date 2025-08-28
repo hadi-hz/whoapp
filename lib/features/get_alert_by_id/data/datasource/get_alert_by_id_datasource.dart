@@ -40,10 +40,10 @@ Future<AlertDetailModel> getAlertById(AlertDetailRequest request) async {
       throw Exception('Failed to get alert detail: ${response.statusMessage}');
     }
   } catch (e) {
-    // Log the error
+   
     print('Error getting alert detail: $e');
     
-    // Re-throw with a user-friendly message
+   
     if (e.toString().contains('SocketException')) {
       throw Exception('No internet connection');
     } else if (e.toString().contains('TimeoutException')) {
