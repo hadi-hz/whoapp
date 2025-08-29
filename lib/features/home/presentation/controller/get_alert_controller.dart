@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/home/domain/entities/get_alert_entity.dart';
 import 'package:test3/features/home/domain/entities/get_filter_alert.dart';
 import 'package:test3/features/home/domain/usecase/get_alert_usecase.dart';
@@ -12,7 +13,7 @@ class AlertListController extends GetxController {
   var alerts = <AlertEntity>[].obs;
   var errorMessage = ''.obs;
   var hasError = false.obs;
-
+  var userRole = ''.obs;
   var searchQuery = ''.obs;
   var selectedStatus = Rxn<int>();
   var selectedType = Rxn<int>();
@@ -50,6 +51,10 @@ class AlertListController extends GetxController {
   }
 
   Future<void> loadAlerts() async {
+       final prefs = await SharedPreferences.getInstance();
+      final String? savedUserId = prefs.getString('userId');
+      final String? savedRole = prefs.getString('role');
+      userRole.value = savedRole ?? '' ; 
     isLoading.value = true;
     hasError.value = false;
     errorMessage.value = '';

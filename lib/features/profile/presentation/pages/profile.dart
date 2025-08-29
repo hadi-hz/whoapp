@@ -356,45 +356,78 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: Icon(Icons.edit, size: 18, color: Colors.white),
                 onPressed: () {
                   Get.bottomSheet(
-                    Form(
-                      key: formKey,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(25),
-                          ),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.55,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            start: 20,
-                            bottom: 30,
-                            end: 20,
-                            top: 12,
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.1),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(25),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person_add,
+                                  color: AppColors.primaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'edit_profile'.tr,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () => Get.back(),
+                                  icon: const Icon(Icons.close),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: context.width * 0.28,
-                                child: Divider(
-                                  color: AppColors.textColor,
-                                  thickness: 4,
-                                  radius: BorderRadius.all(Radius.circular(22)),
+                          // محتوای قبلی
+                          Expanded(
+                            child: Form(
+                              key: formKey,
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.only(
+                                  start: 20,
+                                  bottom: 30,
+                                  end: 20,
+                                  top: 12,
+                                ),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      chooseImageProfile(),
+                                      ConstantSpace.mediumVerticalSpacer,
+                                      inputName(context, controller.name),
+                                      ConstantSpace.mediumVerticalSpacer,
+                                      inputLastName(
+                                        context,
+                                        controller.lastName,
+                                      ),
+                                      ConstantSpace.largeVerticalSpacer,
+                                      buttonSaveProfile(),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              ConstantSpace.mediumVerticalSpacer,
-                              chooseImageProfile(),
-                              ConstantSpace.mediumVerticalSpacer,
-                              inputName(context, controller.name),
-                              ConstantSpace.mediumVerticalSpacer,
-                              inputLastName(context, controller.lastName),
-
-                              ConstantSpace.largeVerticalSpacer,
-                              buttonSaveProfile(),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                     isScrollControlled: true,

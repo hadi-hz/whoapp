@@ -24,6 +24,10 @@ class ApiEndpoints {
   static const String teamsByMemberId= '/teams/get-teams-by-memberId';
   static const String teamStartProcessing= '/alert/team-start-processing';
   static const String changeLanguage= '/user/change-preferred-language';
+  static const String alertUpdateAdmin= '/alert/alert-update-by-admin';
+  static const String alertUpdateteammember= '/alert/alert-update-by-teammember';
+  static const String visitedAdmin= '/alert/visited-by-admin';
+  static const String visitedTeamMember= '/alert/visited-by-team-member';
  
   
 }

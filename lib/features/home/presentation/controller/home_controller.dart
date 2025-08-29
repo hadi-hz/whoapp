@@ -61,15 +61,15 @@ class HomeController extends GetxController {
   var emailFilter = ''.obs;
   var roleFilter = ''.obs;
   var isApprovedFilter = Rxn<bool>();
-  var sortBy = 'RegisterDate'.obs;
+  var sortBy = 'Email'.obs;
   var sortDesc = true.obs;
   var registerDateFrom = Rxn<DateTime>();
   var registerDateTo = Rxn<DateTime>();
   var currentPage = 1.obs;
   var pageSize = 100.obs;
 
-  final List<String> sortOptions = ['Email', 'Lastname', 'RegisterDate'];
-  final List<String> roleOptions = ['Admin', 'Doctor'];
+  final List<String> sortOptions = ['Email', 'Lastname'];
+  final List<String> roleOptions = ['Admin', 'Doctor', 'ServiceProvider'];
 
   RxString role = ''.obs;
   RxString userName = ''.obs;
@@ -79,12 +79,36 @@ class HomeController extends GetxController {
     final savedUserId = prefs.getString('userId') ?? '';
     final String? savedRole = prefs.getString('role');
     final String? savedUserName = prefs.getString('userName');
-   
+
     role.value = savedRole ?? '';
     userName.value = savedUserName ?? '';
     await fetchUsers();
     await fetchTeams();
     super.onInit();
+  }
+
+  var userSearchQuery = ''.obs;
+
+  List<UserEntity> get filteredUsers {
+    if (userSearchQuery.value.isEmpty) {
+      return users;
+    }
+    return users
+        .where(
+          (user) =>
+              user.fullName.toLowerCase().contains(
+                userSearchQuery.value.toLowerCase(),
+              ) ||
+              (user.email?.toLowerCase().contains(
+                    userSearchQuery.value.toLowerCase(),
+                  ) ??
+                  false),
+        )
+        .toList();
+  }
+
+  void setUserSearchQuery(String query) {
+    userSearchQuery.value = query;
   }
 
   var isFiltersExpanded = false.obs;
@@ -107,17 +131,13 @@ class HomeController extends GetxController {
     selectedIndex.value = index;
   }
 
- 
-
   HomeController({
-    
     required this.getAllUsersUseCase,
     required this.getUserDetailUseCase,
     required this.assignRoleUseCase,
     required this.getAllTeamsUseCase,
     required this.getTeamByIdUseCase,
   });
-
 
   var isLoading = false.obs;
   var errorMessage = "".obs;
@@ -147,11 +167,6 @@ class HomeController extends GetxController {
     {'value': 2, 'name': 'patient_referral'.tr},
     {'value': 3, 'name': 'safe_burial'.tr},
   ];
-
-  
- 
- 
-  
 
   Future<void> fetchUsers() async {
     isLoadingUsers.value = true;
@@ -319,46 +334,48 @@ class HomeController extends GetxController {
   }
 
   Future<bool> assignRoleToUser({
-  required String userId,
-  required String roleName,
-}) async {
-  isAssigningRole.value = true;
-  final result = await assignRoleUseCase(userId: userId, roleName: roleName);
-  isAssigningRole.value = false;
-  return result.fold(
-    (error) {
-      Get.snackbar(
-        'error'.tr,
-        error,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return false;
-    },
-    (assignResult) async {
-      Get.snackbar(
-        'success'.tr,
-        assignResult.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      final currentUser = userDetail.value;
-      if (currentUser != null) {
-        final prefs = await SharedPreferences.getInstance();
-        final currentUserId = prefs.getString('userId');
-        if (currentUserId != null) {
-          fetchUserDetail(
-            userId: currentUser.id,
-            currentUserId: currentUserId,
-          );
+    required String userId,
+    required String roleName,
+  }) async {
+    isAssigningRole.value = true;
+    final result = await assignRoleUseCase(userId: userId, roleName: roleName);
+    isAssigningRole.value = false;
+    return result.fold(
+      (error) {
+        Get.snackbar(
+          'error'.tr,
+          error,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      },
+      (assignResult) async {
+        Get.snackbar(
+          'success'.tr,
+          assignResult.message,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        final currentUser = userDetail.value;
+        fetchUsers();
+        if (currentUser != null) {
+          final prefs = await SharedPreferences.getInstance();
+          final currentUserId = prefs.getString('userId');
+          if (currentUserId != null) {
+            fetchUserDetail(
+              userId: currentUser.id,
+              currentUserId: currentUserId,
+            );
+          }
         }
-      }
-      return true;
-    },
-  );
-}
+        return true;
+      },
+    );
+  }
+
   void setSelectedRole(String role) {
     selectedRole.value = role;
   }
@@ -469,16 +486,11 @@ class HomeController extends GetxController {
     return count;
   }
 
-
-
-
-
-
   Future<void> getTeamById(String id) async {
     try {
       isLoadingGetTeamById.value = true;
       errorMessageGetTeamById.value = '';
-      
+
       final team = await getTeamByIdUseCase.call(id);
       currentTeam.value = team;
     } catch (e) {

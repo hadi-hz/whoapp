@@ -24,8 +24,7 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
   final iconList = <IconData>[
     Icons.person,
     Icons.list_alt_rounded,
-
-    Icons.person_add_alt_1_sharp,
+    Icons.supervised_user_circle,
     Icons.groups_2,
   ];
 

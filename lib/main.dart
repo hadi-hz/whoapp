@@ -1,6 +1,9 @@
+import 'package:device_preview/device_preview.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/network/dio_baseurl.dart';
 import 'package:test3/features/add_report/data/datasource/alert_remote_datasource.dart';
 import 'package:test3/features/add_report/data/repositories/alert_repository_impl.dart';
@@ -16,19 +19,38 @@ import 'package:test3/features/auth/presentation/pages/splashscreen_page.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/assign_team_datesource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_alert_by_id_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/update_by_admin_datasource.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/update_by_team_member_datasource.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_admin_datasource.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_team_member_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/assign_team_repository.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_alert_by_id_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_team_by_alert_type_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/update_by_admin_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/update_by_team_member_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/visited_by_admin_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/visited_team_member_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/assign_team_repository.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_admin.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_team_member.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_admin.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_team_member.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_admin_usecase.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_team_member_usecase.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_admin_controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_team_member-controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/visited_team_member_controller.dart';
 import 'package:test3/features/home/data/datasource/assign_role_datasource.dart';
 import 'package:test3/features/home/data/datasource/create_team_datasource.dart';
-import 'package:test3/features/home/data/datasource/get_alert_datasource.dart'
-    hide AlertRemoteDataSourceImpl, AlertRemoteDataSource;
+import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
 import 'package:test3/features/home/data/datasource/get_team_by_id.dart';
 import 'package:test3/features/home/data/datasource/get_teams_by_member_id.dart';
 import 'package:test3/features/home/data/datasource/team_datasource.dart';
@@ -37,8 +59,7 @@ import 'package:test3/features/home/data/datasource/user_detail_datasource.dart'
 import 'package:test3/features/home/data/datasource/users_datasource.dart';
 import 'package:test3/features/home/data/repositories/assign_role_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/create_team_repository_impl.dart';
-import 'package:test3/features/home/data/repositories/get_alert_impl.dart'
-    hide AlertRepositoryImpl;
+import 'package:test3/features/home/data/repositories/get_alert_impl.dart';
 import 'package:test3/features/home/data/repositories/get_teams_by_member_id_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_start_processing_repository_impl.dart';
@@ -67,6 +88,7 @@ import 'package:test3/features/home/presentation/controller/get_alert_controller
 import 'package:test3/features/home/presentation/controller/get_teams_by_member_id_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
+import 'package:test3/features/home/presentation/pages/home.dart';
 import 'package:test3/features/profile/data/datasource/get_user_info_remote_datasource.dart';
 import 'package:test3/features/profile/data/repositories/get-user_info_repository_impl.dart';
 import 'package:test3/features/profile/domain/usecase/chnage_password_usecase.dart';
@@ -74,8 +96,11 @@ import 'package:test3/features/profile/domain/usecase/get_user_info_usecase.dart
 import 'package:test3/features/profile/domain/usecase/update_user_profile_usecase.dart';
 import 'package:test3/features/profile/presentation/controller/profile_controller.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final hasToken = prefs.getString('token') != null;
 
   Get.put<Dio>(DioBase().dio);
 
@@ -192,8 +217,9 @@ void main() {
     () => GetTeamsByUserUseCase(Get.find<GetTeamsByUserRepository>()),
   );
 
-  Get.lazyPut<GetTeamsByUserController>(
-    () => GetTeamsByUserController(Get.find<GetTeamsByUserUseCase>()),
+  Get.put<GetTeamsByUserController>(
+    GetTeamsByUserController(Get.find<GetTeamsByUserUseCase>()),
+    permanent: true,
   );
 
   Get.lazyPut<CreateTeamRemoteDataSource>(
@@ -274,11 +300,103 @@ void main() {
     permanent: true,
   );
 
-  runApp(const MainApp());
+  Get.lazyPut<UpdateAlertByAdminRemoteDataSource>(
+    () => UpdateAlertByAdminRemoteDataSourceImpl(Get.find<Dio>()),
+  );
+
+  Get.lazyPut<UpdateAlertByAdminRepository>(
+    () => UpdateAlertByAdminRepositoryImpl(
+      Get.find<UpdateAlertByAdminRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut<UpdateAlertByAdminUseCase>(
+    () => UpdateAlertByAdminUseCase(Get.find<UpdateAlertByAdminRepository>()),
+  );
+
+  Get.put<UpdateAlertByAdminController>(
+    UpdateAlertByAdminController(Get.find<UpdateAlertByAdminUseCase>()),
+    permanent: true,
+  );
+
+  Get.lazyPut<UpdateAlertByTeamMemberRemoteDataSource>(
+    () => UpdateAlertByTeamMemberRemoteDataSourceImpl(Get.find<Dio>()),
+  );
+
+  Get.lazyPut<UpdateAlertByTeamMemberRepository>(
+    () => UpdateAlertByTeamMemberRepositoryImpl(
+      Get.find<UpdateAlertByTeamMemberRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut<UpdateAlertByTeamMemberUseCase>(
+    () => UpdateAlertByTeamMemberUseCase(
+      Get.find<UpdateAlertByTeamMemberRepository>(),
+    ),
+  );
+
+  Get.put<UpdateAlertByTeamMemberController>(
+    UpdateAlertByTeamMemberController(
+      Get.find<UpdateAlertByTeamMemberUseCase>(),
+    ),
+    permanent: true,
+  );
+
+  Get.lazyPut<VisitedByAdminRemoteDataSource>(
+    () => VisitedByAdminRemoteDataSourceImpl(Get.find<Dio>()),
+  );
+
+  Get.lazyPut<VisitedByAdminRepository>(
+    () => VisitedByAdminRepositoryImpl(
+      Get.find<VisitedByAdminRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut<VisitedByAdminUseCase>(
+    () => VisitedByAdminUseCase(Get.find<VisitedByAdminRepository>()),
+  );
+
+  Get.lazyPut<VisitedByAdminController>(
+    () => VisitedByAdminController(Get.find<VisitedByAdminUseCase>()),
+  );
+
+  Get.put<VisitedByAdminController>(
+    VisitedByAdminController(Get.find<VisitedByAdminUseCase>()),
+    permanent: true,
+  );
+
+  Get.lazyPut<VisitedByTeamMemberRemoteDataSource>(
+    () => VisitedByTeamMemberRemoteDataSourceImpl(Get.find<Dio>()),
+  );
+
+  Get.lazyPut<VisitedByTeamMemberRepository>(
+    () => VisitedByTeamMemberRepositoryImpl(
+      Get.find<VisitedByTeamMemberRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut<VisitedByTeamMemberUseCase>(
+    () => VisitedByTeamMemberUseCase(Get.find<VisitedByTeamMemberRepository>()),
+  );
+
+  Get.put<VisitedByTeamMemberController>(
+    VisitedByTeamMemberController(Get.find<VisitedByTeamMemberUseCase>()),
+    permanent: true,
+  );
+
+  // runApp(
+  //   DevicePreview(
+  //     enabled: !kReleaseMode,
+  //     builder: (context) => MainApp(showSplash: !hasToken),
+  //   ),
+  // );
+
+  runApp(MainApp(showSplash: !hasToken));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final bool showSplash;
+  const MainApp({super.key, this.showSplash = true});
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +404,7 @@ class MainApp extends StatelessWidget {
       translations: AppTranslations(),
       locale: const Locale('en'),
       fallbackLocale: const Locale('en'),
-      home: SplashScreenPage(),
+      home: showSplash ? SplashScreenPage() : HomePage(),
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:test3/features/home/presentation/controller/home_controller.dart
 import 'package:test3/features/home/presentation/pages/widgets/user_detail.dart';
 
 class UsersScreen extends StatelessWidget {
-   UsersScreen({super.key});
+  UsersScreen({super.key});
 
   final TextEditingController search = TextEditingController();
   final HomeController homeController = Get.find<HomeController>();
@@ -66,8 +66,7 @@ class UsersScreen extends StatelessWidget {
               ConstantSpace.mediumVerticalSpacer,
               buildExpandableFiltersContainer(),
               ConstantSpace.mediumVerticalSpacer,
-              
-              
+
               Expanded(
                 child: Obx(() {
                   if (homeController.isLoadingUsers.value) {
@@ -79,7 +78,11 @@ class UsersScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
                           const SizedBox(height: 16),
                           Text(homeController.errorMessage.value),
                           const SizedBox(height: 16),
@@ -123,7 +126,8 @@ class UsersScreen extends StatelessWidget {
 
                   return ListView.separated(
                     itemCount: homeController.users.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final user = homeController.users[index];
                       return _buildUserCard(user);
@@ -141,17 +145,14 @@ class UsersScreen extends StatelessWidget {
   Widget _buildUserCard(UserEntity user) {
     return GestureDetector(
       onTap: () {
-      Get.to(() => UserDetailScreen(userId: user.id));
-    },
+        Get.to(() => UserDetailScreen(userId: user.id));
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            width: 1,
-            color: AppColors.borderColor,
-          ),
+          border: Border.all(width: 1, color: AppColors.borderColor),
           boxShadow: const [
             BoxShadow(
               color: Colors.black12,
@@ -162,16 +163,12 @@ class UsersScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-         
             Container(
               width: 50,
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.borderColor,
-                  width: 1,
-                ),
+                border: Border.all(color: AppColors.borderColor, width: 1),
               ),
               child: ClipOval(
                 child: user.profileImageUrl.isNotEmpty
@@ -199,15 +196,13 @@ class UsersScreen extends StatelessWidget {
                       ),
               ),
             ),
-            
+
             const SizedBox(width: 16),
-            
-        
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                 
                   Text(
                     user.fullName.isNotEmpty ? user.fullName : 'no_name'.tr,
                     style: const TextStyle(
@@ -216,32 +211,27 @@ class UsersScreen extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 4),
-                  
-                
+
                   Text(
                     user.email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
-             
+
                   if (user.roles.isNotEmpty)
                     Wrap(
                       spacing: 6,
                       children: user.roles.map((role) {
-                        Color roleColor = role == 'Admin' 
-                            ? Colors.purple 
-                            : role == 'Doctor' 
-                                ? Colors.blue 
-                                : Colors.grey;
-                        
+                        Color roleColor = role == 'Admin'
+                            ? Colors.purple
+                            : role == 'Doctor'
+                            ? Colors.blue
+                            : Colors.grey;
+
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -269,10 +259,9 @@ class UsersScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(width: 12),
-            
-      
+
             Column(
               children: [
                 Icon(
@@ -302,7 +291,7 @@ class UsersScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-       
+
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -349,10 +338,14 @@ class UsersScreen extends StatelessWidget {
 
                     Obx(() {
                       int activeFilters = 0;
-                      if (homeController.nameFilter.value.isNotEmpty) activeFilters++;
-                      if (homeController.emailFilter.value.isNotEmpty) activeFilters++;
-                      if (homeController.roleFilter.value.isNotEmpty) activeFilters++;
-                      if (homeController.isApprovedFilter.value != null) activeFilters++;
+                      if (homeController.nameFilter.value.isNotEmpty)
+                        activeFilters++;
+                      if (homeController.emailFilter.value.isNotEmpty)
+                        activeFilters++;
+                      if (homeController.roleFilter.value.isNotEmpty)
+                        activeFilters++;
+                      if (homeController.isApprovedFilter.value != null)
+                        activeFilters++;
 
                       return activeFilters > 0
                           ? Container(
@@ -465,19 +458,16 @@ class UsersScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'hello'.tr,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+              'users_management'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
-            ConstantSpace.smallVerticalSpacer,
-            Obx(() {
-              return Text(
-                '${homeController.userName?.value ?? ''}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              );
-            }),
+            const SizedBox(height: 4),
+            Obx(
+              () => Text(
+                '${homeController.totalUsers} ${'users_available'.tr}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ),
           ],
         ),
         const Spacer(),
@@ -508,208 +498,244 @@ class UsersScreen extends StatelessWidget {
   }
 
   Widget buildFiltersContent() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Obx(() => DropdownButtonFormField<String>(
-                value: homeController.roleFilter.value.isEmpty ? null : homeController.roleFilter.value,
-                decoration: InputDecoration(
-                  labelText: 'filter_by_role'.tr,
-                  labelStyle: TextStyle(
-                    color: homeController.roleFilter.value.isNotEmpty 
-                        ? AppColors.primaryColor 
-                        : Colors.grey,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: homeController.roleFilter.value.isNotEmpty 
-                          ? AppColors.primaryColor 
-                          : Colors.grey,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Obx(
+                  () => DropdownButtonFormField<String>(
+                    value: homeController.roleFilter.value.isEmpty
+                        ? null
+                        : homeController.roleFilter.value,
+                    decoration: InputDecoration(
+                      labelText: 'filter_by_role'.tr,
+                      labelStyle: TextStyle(
+                        color: homeController.roleFilter.value.isNotEmpty
+                            ? AppColors.primaryColor
+                            : Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: homeController.roleFilter.value.isNotEmpty
+                              ? AppColors.primaryColor
+                              : Colors.grey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: homeController.roleFilter.value.isNotEmpty
+                              ? AppColors.primaryColor
+                              : Colors.grey.shade300,
+                          width: homeController.roleFilter.value.isNotEmpty
+                              ? 2
+                              : 1,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: homeController.roleFilter.value.isNotEmpty 
-                          ? AppColors.primaryColor 
-                          : Colors.grey.shade300,
-                      width: homeController.roleFilter.value.isNotEmpty ? 2 : 1,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: [
-                  DropdownMenuItem(value: null, child: Text('all_roles'.tr)),
-                  ...homeController.roleOptions.map((role) =>
-                    DropdownMenuItem(value: role, child: Text(role)),
-                  ),
-                ],
-                onChanged: (value) => homeController.setRoleFilter(value ?? ''),
-              )),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Obx(() => DropdownButtonFormField<bool?>(
-                value: homeController.isApprovedFilter.value,
-                decoration: InputDecoration(
-                  labelText: 'filter_by_approval'.tr,
-                  labelStyle: TextStyle(
-                    color: homeController.isApprovedFilter.value != null 
-                        ? AppColors.primaryColor 
-                        : Colors.grey,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: homeController.isApprovedFilter.value != null 
-                          ? AppColors.primaryColor 
-                          : Colors.grey,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: homeController.isApprovedFilter.value != null 
-                          ? AppColors.primaryColor 
-                          : Colors.grey.shade300,
-                      width: homeController.isApprovedFilter.value != null ? 2 : 1,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: [
-                  DropdownMenuItem(value: null, child: Text('all_statuses'.tr)),
-                  DropdownMenuItem(value: true, child: Text('approved'.tr)),
-                  DropdownMenuItem(value: false, child: Text('pending'.tr)),
-                ],
-                onChanged: homeController.setApprovalFilter,
-              )),
-            ),
-          ],
-        ),
-        
-        const SizedBox(height: 16),
-        
-        Row(
-          children: [
-            Expanded(
-              child: Obx(() => DropdownButtonFormField<String>(
-                value: homeController.sortBy.value,
-                decoration: InputDecoration(
-                  labelText: 'sort_by'.tr,
-                  labelStyle: TextStyle(
-                    color: homeController.sortBy.value != 'RegisterDate' 
-                        ? AppColors.primaryColor 
-                        : Colors.grey,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: homeController.sortBy.value != 'RegisterDate' 
-                          ? AppColors.primaryColor 
-                          : Colors.grey.shade300,
-                      width: homeController.sortBy.value != 'RegisterDate' ? 2 : 1,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                items: homeController.sortOptions.map((sort) =>
-                  DropdownMenuItem(value: sort, child: Text(sort.toLowerCase().tr)),
-                ).toList(),
-                onChanged: (value) => homeController.setSortBy(value ?? 'RegisterDate'),
-              )),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              children: [
-                Text('sort_order'.tr, style: const TextStyle(fontSize: 12)),
-                Obx(() => Switch(
-                  value: homeController.sortDesc.value,
-                  activeColor: AppColors.primaryColor,
-                  
-                  onChanged: homeController.setSortDirection,
-                )),
-                Text('descending'.tr, style: const TextStyle(fontSize: 10)),
-              ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: homeController.applyFiltersUsers,
-                icon: const Icon(Icons.search, size: 18),
-                label: Text('apply_filters'.tr),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('all_roles'.tr),
+                      ),
+                      ...homeController.roleOptions.map(
+                        (role) =>
+                            DropdownMenuItem(value: role, child: Text(role)),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        homeController.setRoleFilter(value ?? ''),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  search.clear();
-                  homeController.clearAllFilters();
-                },
-                icon: const Icon(Icons.clear_all, size: 18),
-                label: Text('clear_all_filters'.tr),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.withOpacity(0.2),
-                  foregroundColor: Colors.grey[700],
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Obx(
+                  () => DropdownButtonFormField<bool?>(
+                    value: homeController.isApprovedFilter.value,
+                    decoration: InputDecoration(
+                      labelText: 'filter_by_approval'.tr,
+                      labelStyle: TextStyle(
+                        color: homeController.isApprovedFilter.value != null
+                            ? AppColors.primaryColor
+                            : Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: homeController.isApprovedFilter.value != null
+                              ? AppColors.primaryColor
+                              : Colors.grey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: homeController.isApprovedFilter.value != null
+                              ? AppColors.primaryColor
+                              : Colors.grey.shade300,
+                          width: homeController.isApprovedFilter.value != null
+                              ? 2
+                              : 1,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text('all_statuses'.tr),
+                      ),
+                      DropdownMenuItem(value: true, child: Text('approved'.tr)),
+                      DropdownMenuItem(value: false, child: Text('pending'.tr)),
+                    ],
+                    onChanged: homeController.setApprovalFilter,
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-  
-}
+            ],
+          ),
 
+          const SizedBox(height: 16),
 
+          Row(
+            children: [
+              Expanded(
+                child: Obx(
+                  () => DropdownButtonFormField<String>(
+                    value: homeController.sortBy.value.isEmpty ? null : homeController.sortBy.value,
+                    decoration: InputDecoration(
+                      labelText: 'sort_by'.tr,
+                      labelStyle: TextStyle(
+                        color: homeController.sortBy.value != 'Email'
+                            ? AppColors.primaryColor
+                            : Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: homeController.sortBy.value != 'Email'
+                              ? AppColors.primaryColor
+                              : Colors.grey.shade300,
+                          width: homeController.sortBy.value != 'Email'
+                              ? 2
+                              : 1,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    items: homeController.sortOptions
+                        .map(
+                          (sort) => DropdownMenuItem(
+                            value: sort,
+                            child: Text(sort.toLowerCase().tr),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) =>
+                        homeController.setSortBy(value ?? 'Email'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                children: [
+                  Text('sort_order'.tr, style: const TextStyle(fontSize: 12)),
+                  Obx(
+                    () => Switch(
+                      value: homeController.sortDesc.value,
+                      activeColor: AppColors.primaryColor,
+
+                      onChanged: homeController.setSortDirection,
+                    ),
+                  ),
+                  Text('descending'.tr, style: const TextStyle(fontSize: 10)),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: homeController.applyFiltersUsers,
+                  icon: const Icon(Icons.search, size: 18),
+                  label: Text('apply_filters'.tr),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    search.clear();
+                    homeController.clearAllFilters();
+                  },
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: Text('clear_all_filters'.tr),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    foregroundColor: Colors.grey[700],
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

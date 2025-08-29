@@ -165,6 +165,8 @@ class AlertDetailController extends GetxController {
       userId: userId,
     );
 
+    print('hellllloooooooo biad');
+
     isAssigning.value = false;
 
     return result.fold(
@@ -187,6 +189,7 @@ class AlertDetailController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+
         return true;
       },
     );

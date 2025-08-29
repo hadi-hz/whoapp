@@ -139,6 +139,8 @@ class CreateTeamBottomSheet extends StatelessWidget {
   }
 
   Widget _buildMembersSection() {
+    final TextEditingController searchController = TextEditingController();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -162,6 +164,41 @@ class CreateTeamBottomSheet extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
+
+        // Search Box
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextFormField(
+            controller: searchController,
+            onChanged: (value) => homeController.setUserSearchQuery(value),
+            decoration: InputDecoration(
+              hintText: 'search_users'.tr,
+              hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              suffixIcon: Obx(
+                () => homeController.userSearchQuery.value.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        onPressed: () {
+                          searchController.clear();
+                          homeController.setUserSearchQuery('');
+                        },
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
         Obx(() {
           if (homeController.isLoadingUsers.value) {
             return const Center(
@@ -172,7 +209,10 @@ class CreateTeamBottomSheet extends StatelessWidget {
             );
           }
 
-          if (homeController.users.isEmpty) {
+          final filteredUsers =
+              homeController.filteredUsers; // باید در controller اضافه کنی
+
+          if (filteredUsers.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -184,7 +224,11 @@ class CreateTeamBottomSheet extends StatelessWidget {
                   children: [
                     Icon(Icons.person_off, size: 40, color: Colors.grey[400]),
                     const SizedBox(height: 8),
-                    Text('no_users_found'.tr),
+                    Text(
+                      homeController.userSearchQuery.value.isNotEmpty
+                          ? 'no_users_found_for_search'.tr
+                          : 'no_users_found'.tr,
+                    ),
                   ],
                 ),
               ),
@@ -198,9 +242,9 @@ class CreateTeamBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListView.builder(
-              itemCount: homeController.users.length,
+              itemCount: filteredUsers.length,
               itemBuilder: (context, index) {
-                final user = homeController.users[index];
+                final user = filteredUsers[index];
                 return Obx(
                   () => CheckboxListTile(
                     title: Text(user.fullName),

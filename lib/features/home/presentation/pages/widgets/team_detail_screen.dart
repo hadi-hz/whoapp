@@ -129,7 +129,7 @@ class TeamDetailsPage extends StatelessWidget {
   }
 
 Widget _buildMembersCard(TeamEntity team) {
-  // اگه members خالی باشه، هیچی برنگردون
+  
   if (team.members.isEmpty) {
     return const SizedBox.shrink();
   }

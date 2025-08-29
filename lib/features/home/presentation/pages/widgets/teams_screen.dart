@@ -21,10 +21,13 @@ class TeamsScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.only(bottom: 80 , start: 100 , end: 100),
+            padding: EdgeInsetsDirectional.only(
+              bottom: MediaQuery.of(context).size.height * 0.09,
+              start: 110,
+              end: 110,
+            ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                
                 backgroundColor: AppColors.primaryColor,
               ),
               onPressed: () {

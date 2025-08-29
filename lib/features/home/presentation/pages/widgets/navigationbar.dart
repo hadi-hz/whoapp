@@ -51,50 +51,82 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
           onPressed: () {
             Get.bottomSheet(
               Container(
+                height: MediaQuery.of(context).size.height * 0.68,
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
                 ),
-                child: Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    bottom: 40,
-                    start: 20,
-                    end: 20,
-                    top: 12,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
+                child: Column(
+                  children: [
+              
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.1),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(25),
+                        ),
+                      ),
+                      child: Row(
                         children: [
-                          SizedBox(
-                            width: context.width * 0.28,
-                            child: Divider(
-                              color: AppColors.textColor,
-                              thickness: 4,
-                              radius: BorderRadius.all(Radius.circular(22)),
+                          Icon(Icons.add_circle, color: AppColors.primaryColor),
+                          const SizedBox(width: 8),
+                          Text(
+                            'add_report'.tr,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryColor,
                             ),
                           ),
-                          ConstantSpace.largeVerticalSpacer,
-                          pickerImage(context),
-                          ConstantSpace.mediumVerticalSpacer,
-                          dropDownHealth(context),
-                          ConstantSpace.smallVerticalSpacer,
-                          patientName(context, controller.patientName),
-                          ConstantSpace.smallVerticalSpacer,
-                          description(context, controller.description),
-                          ConstantSpace.xLargeVerticalSpacer,
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              buttonSubmitReport(),
-                              buttonPickLocation(context),
-                            ],
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () => Get.back(),
+                            icon: const Icon(Icons.close),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                  
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          bottom: 40,
+                          start: 20,
+                          end: 20,
+                          top: 12,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              children: [
+                                pickerImage(context),
+                                ConstantSpace.mediumVerticalSpacer,
+                                dropDownHealth(context),
+                                ConstantSpace.smallVerticalSpacer,
+                                patientName(context, controller.patientName),
+                                ConstantSpace.smallVerticalSpacer,
+                                description(context, controller.description),
+                                ConstantSpace.xLargeVerticalSpacer,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(child: buttonSubmitReport()),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: buttonPickLocation(context),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               isScrollControlled: true,
@@ -124,58 +156,75 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  // باقی متدها همان است...
-
   Widget buttonSubmitReport() {
-    return BoxNeumorphysm(
-      backgroundColor: AppColors.primaryColor,
-      width: 170,
-      height: 60,
-      borderRadius: 12,
-      borderWidth: 5,
-      topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
-      bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
-      bottomRightOffset: const Offset(4, 4),
-      topLeftOffset: const Offset(-4, -4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'submit_report'.tr,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double screenWidth = MediaQuery.of(context).size.width;
+        double buttonWidth = screenWidth > 400 ? 170 : screenWidth * 0.4;
+
+        return Obx(
+          () => BoxNeumorphysm(
+            backgroundColor: AppColors.primaryColor,
+            width: buttonWidth,
+            height: 60,
+            borderRadius: 12,
+            borderWidth: 5,
+            topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
+            bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
+            bottomRightOffset: const Offset(4, 4),
+            topLeftOffset: const Offset(-4, -4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                controller.isLoading.value
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.background,
+                        ),
+                      )
+                    : Flexible(
+                        child: Text(
+                          'submit_report'.tr,
+                          style: TextStyle(
+                            fontSize: screenWidth > 400 ? 16 : 14,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              ],
             ),
+            onTap: () async {
+              String? validationError = _validateForm();
+              if (validationError != null) {
+                Get.snackbar(
+                  'validation_error'.tr,
+                  validationError,
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                  margin: const EdgeInsets.all(12),
+                  borderRadius: 8,
+                );
+                return;
+              }
+
+              if (_formKey.currentState!.validate()) {
+                final prefs = await SharedPreferences.getInstance();
+                final savedUserId = prefs.getString('userId') ?? '';
+
+                await controller.submitReport(
+                  authController.selectedAlertIndex.value,
+                );
+
+                await _refreshAlerts(savedUserId);
+              }
+            },
           ),
-        ],
-      ),
-      onTap: () async {
-        String? validationError = _validateForm();
-        if (validationError != null) {
-          Get.snackbar(
-            'validation_error'.tr,
-            validationError,
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            margin: const EdgeInsets.all(12),
-            borderRadius: 8,
-          );
-          return;
-        }
-
-        if (_formKey.currentState!.validate()) {
-          final prefs = await SharedPreferences.getInstance();
-          final savedUserId = prefs.getString('userId') ?? '';
-
-          await controller.submitReport(
-            authController.selectedAlertIndex.value,
-          );
-
-          // استفاده از AlertListController به جای homeController.fetchAlerts
-          await _refreshAlerts(savedUserId);
-        }
+        );
       },
     );
   }
@@ -185,11 +234,10 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     alertController.sortDescending.value = true;
     alertController.currentPage.value = 1;
     alertController.pageSize.value = 100;
-    
+
     await alertController.loadAlerts();
   }
 
-  // باقی متدها همان کد قبلی...
   void _showPickOptionsDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -431,51 +479,61 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
   }
 
   Widget buttonPickLocation(BuildContext context) {
-    return Obx(() {
-      return BoxNeumorphysm(
-        onTap: () async {
-          final LatLng? result = await Get.to<LatLng>(
-            () => MapPickerPage(
-              userLat: controller.currentLatGps.value,
-              userLng: controller.currentLngGps.value,
-            ),
-          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double screenWidth = MediaQuery.of(context).size.width;
+        double buttonWidth = screenWidth > 400 ? 170 : screenWidth * 0.4;
 
-          if (result != null) {
-            controller.selectedLat.value = result.latitude;
-            controller.selectedLng.value = result.longitude;
-          }
-        },
-        borderRadius: 12,
-        borderWidth: 5,
-        backgroundColor: controller.selectedLat.value != 0.0
-            ? Colors.green
-            : AppColors.primaryColor,
-        topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
-        bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
-        height: 60,
-        width: 170,
-        bottomRightOffset: const Offset(4, 4),
-        topLeftOffset: const Offset(-4, -4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            controller.selectedLat.value != 0.0
-                ? Icon(Icons.check_circle, color: AppColors.background)
-                : Icon(Icons.location_on, color: AppColors.background),
-            SizedBox(width: 8),
-            Text(
-              'location'.tr,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
+        return Obx(
+          () => BoxNeumorphysm(
+            onTap: () async {
+              final LatLng? result = await Get.to<LatLng>(
+                () => MapPickerPage(
+                  userLat: controller.currentLatGps.value,
+                  userLng: controller.currentLngGps.value,
+                ),
+              );
+
+              if (result != null) {
+                controller.selectedLat.value = result.latitude;
+                controller.selectedLng.value = result.longitude;
+              }
+            },
+            borderRadius: 12,
+            borderWidth: 5,
+            backgroundColor: controller.selectedLat.value != 0.0
+                ? Colors.green
+                : AppColors.primaryColor,
+            topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
+            bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
+            height: 60,
+            width: buttonWidth,
+            bottomRightOffset: const Offset(4, 4),
+            topLeftOffset: const Offset(-4, -4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                controller.selectedLat.value != 0.0
+                    ? Icon(Icons.check_circle, color: AppColors.background)
+                    : Icon(Icons.location_on, color: AppColors.background),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'location'.tr,
+                    style: TextStyle(
+                      fontSize: screenWidth > 400 ? 16 : 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    });
+          ),
+        );
+      },
+    );
   }
 
   Widget patientName(BuildContext context, TextEditingController controller) {
