@@ -68,302 +68,318 @@ class _ReportsPageState extends State<ReportsPage> {
             end: 16,
             start: 16,
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstantSpace.largeVerticalSpacer,
-                ConstantSpace.largeVerticalSpacer,
-                profileHeader(),
-                ConstantSpace.mediumVerticalSpacer,
-                searching(context, search),
-                ConstantSpace.mediumVerticalSpacer,
-                buildExpandableFiltersContainer(),
-                ConstantSpace.mediumVerticalSpacer,
-                SizedBox(
-                  height: context.height * 0.59,
-                  child: Obx(() {
-                    if (alertController.isLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (alertController.hasError.value) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.red,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              alertController.errorMessage.value,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => alertController.refreshAlerts(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryColor,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text('retry'.tr),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    if (alertController.alerts.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text('no_reports_found'.tr),
-                            if (alertController
-                                .searchQuery
-                                .value
-                                .isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                '${'no_results_for'.tr} "${alertController.searchQuery.value}"',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            if (alertController.selectedStatus.value != null ||
-                                alertController.selectedType.value != null ||
-                                alertController
-                                    .searchQuery
-                                    .value
-                                    .isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () {
-                                  search.clear();
-                                  alertController.clearFilters();
-                                },
-                                child: Text('clear_filters'.tr),
-                              ),
-                            ],
-                          ],
-                        ),
-                      );
-                    }
-
-                    Map<String, dynamic> getStatusData(int status) {
-                      switch (status) {
-                        case 0:
-                          return {'name': 'initial'.tr, 'color': Colors.green};
-                        case 1:
-                          return {
-                            'name': 'visited_by_admin'.tr,
-                            'color': Colors.blue,
-                          };
-                        case 2:
-                          return {
-                            'name': 'assigned_to_team'.tr,
-                            'color': Colors.orange,
-                          };
-                        case 3:
-                          return {
-                            'name': 'visited_by_team_member'.tr,
-                            'color': Colors.purple,
-                          };
-                        case 4:
-                          return {
-                            'name': 'team_start_processing'.tr,
-                            'color': Colors.teal,
-                          };
-                        case 5:
-                          return {
-                            'name': 'team_finish_processing'.tr,
-                            'color': Colors.yellow,
-                          };
-                        case 6:
-                          return {
-                            'name': 'admin_close'.tr,
-                            'color': Colors.red,
-                          };
-                        default:
-                          return {'name': 'Unknown', 'color': Colors.black};
+          child: RefreshIndicator(
+            onRefresh: () async {
+               alertController.refreshAlerts();
+            },
+            color: AppColors.primaryColor,
+            backgroundColor: Colors.white,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.largeVerticalSpacer,
+                  profileHeader(),
+                  ConstantSpace.mediumVerticalSpacer,
+                  searching(context, search),
+                  ConstantSpace.mediumVerticalSpacer,
+                  buildExpandableFiltersContainer(),
+                  ConstantSpace.mediumVerticalSpacer,
+                  SizedBox(
+                    height: context.height * 0.59,
+                    child: Obx(() {
+                      if (alertController.isLoading.value) {
+                        return const Center(child: CircularProgressIndicator());
                       }
-                    }
 
-                    return SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-
-                        children: alertController.alerts.map((alert) {
-                          final statusData = getStatusData(alert.alertStatus);
-
-                          return IntrinsicHeight(
-                            child: GestureDetector(
-                              onTap: () {
-                                Get.to(
-                                  AlertDetailPage(
-                                    alertId: alert.id,
-                                    alertType: alert.alertType,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                width:
-                                    (MediaQuery.of(context).size.width - 44) /
-                                    2,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    width: 2,
-                                    color: AppColors.borderColor,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
+                      if (alertController.hasError.value) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                alertController.errorMessage.value,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    alertController.refreshAlerts(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    homeController.role.value != 'Doctor'
-                                        ? Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.person,
-                                                size: 16,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: Text(
-                                                  alert.doctorName,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                child: Text('retry'.tr),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (alertController.alerts.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text('no_reports_found'.tr),
+                              if (alertController
+                                  .searchQuery
+                                  .value
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${'no_results_for'.tr} "${alertController.searchQuery.value}"',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                              if (alertController.selectedStatus.value !=
+                                      null ||
+                                  alertController.selectedType.value != null ||
+                                  alertController
+                                      .searchQuery
+                                      .value
+                                      .isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    search.clear();
+                                    alertController.clearFilters();
+                                  },
+                                  child: Text('clear_filters'.tr),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }
+
+                      Map<String, dynamic> getStatusData(int status) {
+                        switch (status) {
+                          case 0:
+                            return {
+                              'name': 'initial'.tr,
+                              'color': Colors.green,
+                            };
+                          case 1:
+                            return {
+                              'name': 'visited_by_admin'.tr,
+                              'color': Colors.blue,
+                            };
+                          case 2:
+                            return {
+                              'name': 'assigned_to_team'.tr,
+                              'color': Colors.orange,
+                            };
+                          case 3:
+                            return {
+                              'name': 'visited_by_team_member'.tr,
+                              'color': Colors.purple,
+                            };
+                          case 4:
+                            return {
+                              'name': 'team_start_processing'.tr,
+                              'color': Colors.teal,
+                            };
+                          case 5:
+                            return {
+                              'name': 'team_finish_processing'.tr,
+                              'color': Colors.yellow,
+                            };
+                          case 6:
+                            return {
+                              'name': 'admin_close'.tr,
+                              'color': Colors.red,
+                            };
+                          default:
+                            return {'name': 'Unknown', 'color': Colors.black};
+                        }
+                      }
+
+                      return SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+
+                          children: alertController.alerts.map((alert) {
+                            final statusData = getStatusData(alert.alertStatus);
+
+                            return IntrinsicHeight(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Get.to(
+                                    AlertDetailPage(
+                                      alertId: alert.id,
+                                      alertType: alert.alertType,
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width:
+                                      (MediaQuery.of(context).size.width - 44) /
+                                      2,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      width: 2,
+                                      color: AppColors.borderColor,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      homeController.role.value != 'Doctor'
+                                          ? Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.person,
+                                                  size: 16,
                                                 ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: Text(
+                                                    alert.doctorName,
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : SizedBox(),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.groups_2, size: 16),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              alert.teamName ?? 'no_team'.tr,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
                                               ),
-                                            ],
-                                          )
-                                        : SizedBox(),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.groups_2, size: 16),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            alert.teamName ?? 'no_team'.tr,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.calendar_month_rounded,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            DateFormat(
-                                              'yyyy-MM-dd',
-                                            ).format(alert.serverCreateTime),
-                                            style: const TextStyle(
-                                              fontSize: 12,
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_month_rounded,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              DateFormat(
+                                                'yyyy-MM-dd',
+                                              ).format(alert.serverCreateTime),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
 
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.qr_code_sharp,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Expanded(
-                                          child: Text(
-                                            alert.trackId ?? 'no_trackid'.tr,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w400,
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.qr_code_sharp,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              alert.trackId ?? 'no_trackid'.tr,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusData['color']
+                                              .withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: statusData['color'],
+                                            width: 1,
                                           ),
                                         ),
-                                      ],
-                                    ),
-
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: statusData['color'].withOpacity(
-                                          0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: statusData['color'],
-                                          width: 1,
+                                        child: Text(
+                                          statusData['name'],
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: statusData['color'],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      child: Text(
-                                        statusData['name'],
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: statusData['color'],
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  }),
-                ),
-              ],
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
