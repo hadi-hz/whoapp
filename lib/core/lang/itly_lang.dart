@@ -238,4 +238,6 @@ const Map<String, String> it = {
   'doctor_name': 'Nome dottore',
   'desc': 'Decrescente',
   'asc': 'Crescente',
+  'reports_available': 'Rapporti disponibili',
+  'open_map_direction': 'Apri mappa e direzione',
 };

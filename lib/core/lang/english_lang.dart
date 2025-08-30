@@ -234,5 +234,7 @@ const Map<String, String> en = {
 'doctor_name': 'Doctor Name',
 'desc': 'Descending',
 'asc': 'Ascending',
+'reports_available': 'Reports Available',
+'open_map_direction': 'Open Map and Direction',
 
 };

@@ -459,14 +459,6 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
       return 'no_location_selected'.tr;
     }
 
-    if (controller.pickedImages.isEmpty) {
-      return 'no_images_selected'.tr;
-    }
-
-    if (controller.patientName.text.trim().isEmpty) {
-      return 'enter_patient_name'.tr;
-    }
-
     if (controller.description.text.trim().isEmpty) {
       return 'enter_description'.tr;
     }

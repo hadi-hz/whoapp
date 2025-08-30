@@ -2,6 +2,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
@@ -18,7 +19,6 @@ import 'package:test3/features/get_alert_by_id/presentation/pages/map_get_locati
 import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import '../../../../core/const/const.dart';
-
 
 class AlertDetailPage extends StatefulWidget {
   final String alertId;
@@ -433,49 +433,52 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
 
             const SizedBox(height: 20),
 
-           Obx(() {
-  if (controller.isLoadingTeam.value) {
-    return const Center(child: CircularProgressIndicator());
-  }
+            Obx(() {
+              if (controller.isLoadingTeam.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-  if (controller.errorMessageTeam.value.isNotEmpty) {
-    return Text(
-      controller.errorMessageTeam.value,
-      style: const TextStyle(color: Colors.red),
-    );
-  }
+              if (controller.errorMessageTeam.value.isNotEmpty) {
+                return Text(
+                  controller.errorMessageTeam.value,
+                  style: const TextStyle(color: Colors.red),
+                );
+              }
 
-  if (controller.teams.isEmpty) {
-    return Text('no_teams_available'.tr);
-  }
+              if (controller.teams.isEmpty) {
+                return Text('no_teams_available'.tr);
+              }
 
-  return DropdownSearch<TeamsEntity>(
-    items: controller.teams,
-    selectedItem: controller.selectedTeam.value,
-    itemAsString: (team) => team.name,
-    onChanged: (team) => controller.selectedTeam.value = team,
-    popupProps: PopupProps.menu(
-      showSearchBox: true,
-      searchFieldProps: TextFieldProps(
-        decoration: InputDecoration(
-          hintText: 'search_teams'.tr,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    ),
-    dropdownDecoratorProps: DropDownDecoratorProps(
-      dropdownSearchDecoration: InputDecoration(
-        hintText: 'choose_team'.tr,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-    ),
-  );
-}),
+              return DropdownSearch<TeamsEntity>(
+                items: controller.teams,
+                selectedItem: controller.selectedTeam.value,
+                itemAsString: (team) => team.name,
+                onChanged: (team) => controller.selectedTeam.value = team,
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      hintText: 'search_teams'.tr,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    hintText: 'choose_team'.tr,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              );
+            }),
             const SizedBox(height: 30),
             Obx(
               () => ElevatedButton(
@@ -670,15 +673,24 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 alert.locationDescription!,
               ),
 
-
             ElevatedButton.icon(
-              icon: const Icon(Icons.map),
-              label: const Text("مشاهده روی نقشه"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+              ),
+              icon: Icon(Icons.map, color: AppColors.background),
+              label: Text(
+                "open map and direction",
+                style: TextStyle(color: AppColors.background),
+              ),
               onPressed: () {
-                Get.to(() => LocationMapPage(
-                  latitude: alert.latitude,
-                  longitude: alert.longitude,
-                ));
+                final destination = LatLng(alert.latitude, alert.longitude);
+                controller.openDirections(destination);
+                //Get.to(
+                //   () => LocationMapPage(
+                //     latitude: alert.latitude,
+                //     longitude: alert.longitude,
+                //   ),
+                // );
               },
             ),
           ],

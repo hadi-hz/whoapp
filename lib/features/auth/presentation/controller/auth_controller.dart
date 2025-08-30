@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/features/add_report/presentation/controller/add_report_controller.dart';
 import 'package:test3/features/auth/data/datasource/auth_remote_datasource.dart';
 import 'package:test3/features/auth/data/model/approved_request.dart';
 import 'package:test3/features/auth/data/model/login_request.dart';
@@ -21,6 +22,7 @@ import 'package:test3/features/auth/domain/usecase/login_with_google_usecase.dar
 import 'package:test3/features/auth/domain/usecase/register_usecase.dart';
 import 'package:test3/features/auth/presentation/pages/check_user_is_approved.dart';
 import 'package:test3/features/auth/presentation/pages/login_page.dart';
+import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/home.dart';
 
 class AuthController extends GetxController {
@@ -169,9 +171,13 @@ class AuthController extends GetxController {
 
   Future<void> quickLogout() async {
     final prefs = await SharedPreferences.getInstance();
+    final controller = Get.find<AddReportController>();
+    final homeController = Get.find<HomeController>();
     await prefs.clear();
 
     currentLoginUser.value = null;
+    controller.pickedImages.value = [];
+    homeController.selectedIndex.value = 1;
 
     Get.offAll(() => LoginPage());
 

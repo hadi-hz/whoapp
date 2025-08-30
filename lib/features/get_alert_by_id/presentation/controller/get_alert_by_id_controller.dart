@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/get_alert-by_id.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AlertDetailController extends GetxController {
   final GetAlertDetailUseCase getAlertDetailUseCase;
@@ -36,6 +38,17 @@ class AlertDetailController extends GetxController {
   }
 
   var userRole = ''.obs;
+
+
+
+    Future<void> openDirections(LatLng destination) async {
+    final url = 'https://www.google.com/maps/dir/?api=1'
+        '&destination=${destination.latitude},${destination.longitude}';
+    
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    }
+  }
 
   Future<void> fetchTeamByAlertType(int alertType) async {
     isLoadingTeam.value = true;

@@ -397,7 +397,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                           ),
-                          // محتوای قبلی
+
                           Expanded(
                             child: Form(
                               key: formKey,
@@ -432,7 +432,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                  );
+                  ).whenComplete(() {
+                    controller.name.clear();
+                    controller.lastName.clear();
+                    controller.imageFile.value = null;
+                  });
                 },
               ),
             ),

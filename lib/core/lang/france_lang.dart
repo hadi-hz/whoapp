@@ -234,4 +234,6 @@ const Map<String, String> fr = {
 'doctor_name': 'Nom du médecin',
 'desc': 'Décroissant',
 'asc': 'Croissant',
+'reports_available': 'Rapports disponibles',
+'open_map_direction': 'Ouvrir carte et direction',
 };
