@@ -929,8 +929,8 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         final alert = controller.alertDetail.value!.alert;
         final isStarted = alert.startTimeByTeam != null;
 
-        if (isStarted) {
-          return const SizedBox.shrink(); // دکمه End Processing حذف شد چون حالا در description section هست
+        if (isStarted || alert.alertStatus == 5 || alert.alertStatus == 6) {
+          return const SizedBox.shrink(); 
         } else {
           TeamStartProcessingController startProcessController;
           try {
