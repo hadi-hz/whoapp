@@ -6,11 +6,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_admin_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_team_member_usecase.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/team_finish_processing_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_admin_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_team_member-controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
@@ -19,6 +21,7 @@ import 'package:test3/features/get_alert_by_id/presentation/pages/map_get_locati
 import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import '../../../../core/const/const.dart';
+import 'dart:io';
 
 class AlertDetailPage extends StatefulWidget {
   final String alertId;
@@ -36,6 +39,26 @@ class AlertDetailPage extends StatefulWidget {
 
 class _AlertDetailPageState extends State<AlertDetailPage> {
   final AlertDetailController controller = Get.find<AlertDetailController>();
+
+  Future<bool> _isUserTeamRepresentative() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? currentUserId = prefs.getString('userId');
+
+    if (currentUserId == null || controller.alertDetail.value == null) {
+      return false;
+    }
+
+    final teamMembers = controller.alertDetail.value!.teamMembers;
+
+    for (final member in teamMembers) {
+      if (member.userId == currentUserId && member.isRepresentative) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,15 +68,13 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
       final String? savedRole = prefs.getString('role');
       final String? savedUserId = prefs.getString('userId');
 
-      print('savedRole : ${savedRole}');
-
       if (savedRole == 'Admin') {
         await controller.fetchTeamByAlertType(widget.alertType);
 
         final alertDetail = controller.alertDetail.value;
-        final currentStatus = alertDetail?.alert.alertStatus;
+        final currentStatus = alertDetail?.alert.visitedByAdminTime;
 
-        if (currentStatus != 1 && savedUserId != null) {
+        if (currentStatus == null && savedUserId != null) {
           final visitedController = Get.put(
             VisitedByAdminController(Get.find<VisitedByAdminUseCase>()),
           );
@@ -67,9 +88,8 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         }
       } else if (savedRole == 'ServiceProvider') {
         final alertDetail = controller.alertDetail.value;
-        final currentStatus = alertDetail?.alert.alertStatus;
 
-        if (currentStatus != 3 && savedUserId != null) {
+        if (savedUserId != null) {
           final visitedTeamController = Get.put(
             VisitedByTeamMemberController(
               Get.find<VisitedByTeamMemberUseCase>(),
@@ -132,39 +152,31 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             children: [
               _buildStatusCard(alert),
               ConstantSpace.mediumVerticalSpacer,
-
               _buildAlertInfoCard(alert),
               ConstantSpace.mediumVerticalSpacer,
-
               _buildDoctorInfoCard(alertDetail.doctor),
               ConstantSpace.mediumVerticalSpacer,
-
               _buildLocationCard(alert),
               ConstantSpace.mediumVerticalSpacer,
-
               if (alertDetail.doctorFiles.isNotEmpty) ...[
                 _buildImagesSection(alertDetail.doctorFiles),
                 ConstantSpace.mediumVerticalSpacer,
               ],
-
-              if (alert.teamId != null) ...[_buildTeamSection(alertDetail)],
-
+              if (alert.teamId != null) ...[
+                _buildTeamSection(alertDetail),
+                ConstantSpace.mediumVerticalSpacer,
+              ],
               alert.teamId == null && controller.userRole.value == 'Admin'
                   ? _buildTeamAssignmentButton(alertDetail)
                   : const SizedBox.shrink(),
-
               const SizedBox(height: 16),
               _buildServiceProviderButton(),
-
               const SizedBox(height: 16),
               controller.userRole.value == 'Admin'
                   ? _buildAdminDescriptionSection()
                   : SizedBox(),
-
               const SizedBox(height: 16),
-              controller.userRole.value == 'ServiceProvider'
-                  ? _buildTeamMemberDescriptionSection()
-                  : SizedBox(),
+              _buildTeamMemberDescriptionSection(),
             ],
           ),
         );
@@ -177,112 +189,211 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
       return const SizedBox.shrink();
     }
 
-    final UpdateAlertByTeamMemberController updateController = Get.put(
-      UpdateAlertByTeamMemberController(
-        Get.find<UpdateAlertByTeamMemberUseCase>(),
-      ),
-    );
+    final alert = controller.alertDetail.value?.alert;
+    final isStarted = alert?.startTimeByTeam != null;
 
-    return Obx(
-      () => Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: AppColors.borderColor, width: 1),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return FutureBuilder<bool>(
+      future: _isUserTeamRepresentative(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data! || !isStarted) {
+          return const SizedBox.shrink();
+        }
+
+        final TeamFinishProcessingController finishController = Get.put(
+          TeamFinishProcessingController(
+            Get.find<TeamFinishProcessingUseCase>(),
+          ),
+        );
+
+        return Obx(
+          () => Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: AppColors.borderColor, width: 1),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.edit_note, color: AppColors.primaryColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    'team_member_update'.tr,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      Icon(Icons.edit_note, color: AppColors.primaryColor),
+                      const SizedBox(width: 8),
+                      Text(
+                        'team_member_update'.tr,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Description Field
+                  TextFormField(
+                    controller: finishController.descriptionController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'enter_team_member_notes'.tr,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Text(
+                        'attached_images'.tr,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: () => finishController.pickImages(),
+                        icon: const Icon(Icons.add_photo_alternate, size: 18),
+                        label: Text('add_images'.tr),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor.withOpacity(
+                            0.1,
+                          ),
+                          foregroundColor: AppColors.primaryColor,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (finishController.selectedImages.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 100,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: finishController.selectedImages.length,
+                        itemBuilder: (context, index) {
+                          final image = finishController.selectedImages[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 90,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: AppColors.borderColor,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(image, fit: BoxFit.cover),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        finishController.removeImage(index),
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+
+                  if (finishController.errorMessage.value.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      finishController.errorMessage.value,
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: finishController.isFinishingProcess.value
+                          ? null
+                          : () async {
+                              if (!finishController.validateForm()) return;
+
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final userId = prefs.getString('userId');
+
+                              if (userId != null) {
+                                final success = await finishController
+                                    .teamFinishProcessing(
+                                      alertId: widget.alertId,
+                                      userId: userId,
+                                    );
+
+                                if (success) {
+                                  await controller.fetchAlertDetail(
+                                    widget.alertId,
+                                  );
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: finishController.isFinishingProcess.value
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              'end_processing'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-
-              TextFormField(
-                controller: updateController.descriptionController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'enter_team_member_notes'.tr,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-
-              if (updateController.errorMessage.value.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  updateController.errorMessage.value,
-                  style: const TextStyle(color: Colors.red, fontSize: 12),
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: updateController.isUpdating.value
-                      ? null
-                      : () async {
-                          if (!updateController.validateForm()) return;
-
-                          final prefs = await SharedPreferences.getInstance();
-                          final userId = prefs.getString('userId');
-
-                          if (userId != null) {
-                            final success = await updateController
-                                .updateAlertByTeamMember(
-                                  alertId: widget.alertId,
-                                  description: updateController
-                                      .descriptionController
-                                      .text
-                                      .trim(),
-                                  userId: userId,
-                                );
-
-                            if (success) {
-                              await controller.fetchAlertDetail(widget.alertId);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: updateController.isUpdating.value
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          'update_alert'.tr,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -355,10 +466,8 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                                 'description_required'.tr;
                             return;
                           }
-
                           final prefs = await SharedPreferences.getInstance();
                           final userId = prefs.getString('userId');
-
                           if (userId != null) {
                             final success = await updateController
                                 .updateAlertByAdmin(
@@ -369,7 +478,6 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                                       .trim(),
                                   userId: userId,
                                 );
-
                             if (success) {
                               await controller.fetchAlertDetail(widget.alertId);
                             }
@@ -415,40 +523,24 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            SizedBox(
-              width: context.width * 0.28,
-              child: Divider(
-                color: AppColors.textColor,
-                thickness: 4,
-                radius: BorderRadius.all(Radius.circular(22)),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
             Text(
               'select_team'.tr,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 20),
-
             Obx(() {
               if (controller.isLoadingTeam.value) {
                 return const Center(child: CircularProgressIndicator());
               }
-
               if (controller.errorMessageTeam.value.isNotEmpty) {
                 return Text(
                   controller.errorMessageTeam.value,
                   style: const TextStyle(color: Colors.red),
                 );
               }
-
               if (controller.teams.isEmpty) {
                 return Text('no_teams_available'.tr);
               }
-
               return DropdownSearch<TeamsEntity>(
                 items: controller.teams,
                 selectedItem: controller.selectedTeam.value,
@@ -488,7 +580,6 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                     ? () async {
                         final prefs = await SharedPreferences.getInstance();
                         final String? savedUserId = prefs.getString('userId');
-
                         await controller.assignTeamToAlert(
                           alertId: widget.alertId,
                           teamId: controller.selectedTeam.value!.id,
@@ -589,18 +680,16 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               controller.getAlertTypeName(alert.alertType),
             ),
             _buildInfoRow('description'.tr, alert.alertDescriptionByDoctor),
-            alert.alertDescriptionByAdmin != ''
-                ? _buildInfoRow(
-                    'description_Admin'.tr,
-                    alert.alertDescriptionByAdmin,
-                  )
-                : SizedBox(),
-            alert.alertDescriptionByServiceProvider != ''
-                ? _buildInfoRow(
-                    'description_ServiceProvider'.tr,
-                    alert.alertDescriptionByServiceProvider,
-                  )
-                : SizedBox(),
+            if (alert.alertDescriptionByAdmin.isNotEmpty)
+              _buildInfoRow(
+                'description_Admin'.tr,
+                alert.alertDescriptionByAdmin,
+              ),
+            if (alert.alertDescriptionByServiceProvider.isNotEmpty)
+              _buildInfoRow(
+                'description_ServiceProvider'.tr,
+                alert.alertDescriptionByServiceProvider,
+              ),
             _buildInfoRow(
               'created_date'.tr,
               _formatDateTime(alert.serverCreateTime),
@@ -665,32 +754,27 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               'gps_location'.tr,
               '${alert.latitudeGPS}, ${alert.longitudeGPS}',
             ),
-            if (alert.locationLabel != null)
+            if (alert.locationLabel != null && alert.locationLabel!.isNotEmpty)
               _buildInfoRow('location_label'.tr, alert.locationLabel!),
-            if (alert.locationDescription != null)
+            if (alert.locationDescription != null &&
+                alert.locationDescription!.isNotEmpty)
               _buildInfoRow(
                 'location_description'.tr,
                 alert.locationDescription!,
               ),
-
+            const SizedBox(height: 12),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
               ),
               icon: Icon(Icons.map, color: AppColors.background),
               label: Text(
-                "open map and direction",
+                'open_map_direction'.tr,
                 style: TextStyle(color: AppColors.background),
               ),
               onPressed: () {
                 final destination = LatLng(alert.latitude, alert.longitude);
                 controller.openDirections(destination);
-                //Get.to(
-                //   () => LocationMapPage(
-                //     latitude: alert.latitude,
-                //     longitude: alert.longitude,
-                //   ),
-                // );
               },
             ),
           ],
@@ -738,15 +822,14 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                           child: Image.network(
                             images[index],
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: const Icon(
-                                  Icons.error,
-                                  color: Colors.red,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.error,
+                                    color: Colors.red,
+                                  ),
                                 ),
-                              );
-                            },
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
                               return Container(
@@ -771,6 +854,8 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
   }
 
   Widget _buildTeamSection(alertDetail) {
+    final teamName =
+        alertDetail.team?.teamName ?? alertDetail.alert?.team?.name ?? '';
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -788,7 +873,13 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             ),
             const SizedBox(height: 12),
             if (alertDetail.team != null) ...[
-              _buildInfoRow('team_name'.tr, alertDetail.team!.name),
+              _buildInfoRow('team_name'.tr, teamName),
+              if (alertDetail.team!.teamDescription != null &&
+                  alertDetail.team!.teamDescription!.isNotEmpty)
+                _buildInfoRow(
+                  'description'.tr,
+                  alertDetail.team!.teamDescription!,
+                ),
             ] else ...[
               Text(
                 'no_team'.tr,
@@ -811,13 +902,106 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               ...alertDetail.teamMembers.map(
                 (member) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
-                  child: Text('• ${member.name} (${member.email})'),
+                  child: Text(
+                    '• ${member.name} ${member.lastname} (${member.email})',
+                  ),
                 ),
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildServiceProviderButton() {
+    if (controller.userRole.value != 'ServiceProvider') {
+      return const SizedBox.shrink();
+    }
+
+    return FutureBuilder<bool>(
+      future: _isUserTeamRepresentative(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!) {
+          return const SizedBox.shrink();
+        }
+
+        final alert = controller.alertDetail.value!.alert;
+        final isStarted = alert.startTimeByTeam != null;
+
+        if (isStarted) {
+          return const SizedBox.shrink(); // دکمه End Processing حذف شد چون حالا در description section هست
+        } else {
+          TeamStartProcessingController startProcessController;
+          try {
+            startProcessController = Get.find<TeamStartProcessingController>();
+          } catch (e) {
+            Get.lazyPut<TeamStartProcessingController>(
+              () => TeamStartProcessingController(
+                Get.find<TeamStartProcessingUseCase>(),
+              ),
+            );
+            startProcessController = Get.find<TeamStartProcessingController>();
+          }
+
+          return Obx(() {
+            return SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: startProcessController.isStartingProcess.value
+                    ? null
+                    : () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final String? savedUserId = prefs.getString('userId');
+
+                        if (savedUserId != null) {
+                          final success = await startProcessController
+                              .teamStartProcessing(
+                                alertId: widget.alertId,
+                                userId: savedUserId,
+                              );
+
+                          if (success) {
+                            await controller.fetchAlertDetail(widget.alertId);
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: startProcessController.isStartingProcess.value
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text('Starting...'),
+                        ],
+                      )
+                    : Text(
+                        'start_processing'.tr,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            );
+          });
+        }
+      },
     );
   }
 
@@ -890,91 +1074,5 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildServiceProviderButton() {
-    if (controller.userRole.value != 'ServiceProvider') {
-      return const SizedBox.shrink();
-    }
-
-    TeamStartProcessingController startProcessController;
-    try {
-      startProcessController = Get.find<TeamStartProcessingController>();
-    } catch (e) {
-      Get.lazyPut<TeamStartProcessingController>(
-        () => TeamStartProcessingController(
-          Get.find<TeamStartProcessingUseCase>(),
-        ),
-      );
-      startProcessController = Get.find<TeamStartProcessingController>();
-    }
-
-    return Obx(() {
-      if (controller.userRole.value != 'ServiceProvider') {
-        return const SizedBox.shrink();
-      }
-
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: startProcessController.isStartingProcess.value
-              ? null
-              : () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  final String? savedUserId = prefs.getString('userId');
-
-                  if (savedUserId != null) {
-                    final success = await startProcessController
-                        .teamStartProcessing(
-                          alertId: widget.alertId,
-                          userId: savedUserId,
-                        );
-
-                    if (success) {
-                      await controller.fetchAlertDetail(widget.alertId);
-                    }
-                  } else {
-                    Get.snackbar(
-                      'error'.tr,
-                      'User ID not found',
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: startProcessController.isStartingProcess.value
-              ? const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Text('Processing...'),
-                  ],
-                )
-              : Text(
-                  'start_processing'.tr,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-        ),
-      );
-    });
   }
 }

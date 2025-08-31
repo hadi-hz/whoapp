@@ -236,5 +236,13 @@ const Map<String, String> en = {
 'asc': 'Ascending',
 'reports_available': 'Reports Available',
 'open_map_direction': 'Open Map and Direction',
+'my_teams': 'My Teams',
+'reports': 'Reports',
+'start_processing': 'Start Processing',
+'team_member_update': 'Team Member Update',
+'enter_team_member_notes': 'Enter Team Member Notes',
+'update_alert': 'Update Alert',
+'end_processing': 'End Processing',
+
 
 };

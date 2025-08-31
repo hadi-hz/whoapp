@@ -240,4 +240,11 @@ const Map<String, String> it = {
   'asc': 'Crescente',
   'reports_available': 'Rapporti disponibili',
   'open_map_direction': 'Apri mappa e direzione',
+  'my_teams': 'Le mie squadre',
+  'reports': 'Rapporti',
+  'start_processing': 'Inizia elaborazione',
+'team_member_update': 'Aggiornamento membro team',
+'enter_team_member_notes': 'Inserisci note membro team',
+'update_alert': 'Aggiorna avviso',
+'end_processing': 'Termina elaborazione',
 };

@@ -8,6 +8,7 @@ import 'package:test3/features/home/presentation/pages/widgets/team_detail_scree
 class UserTeamsScreen extends StatelessWidget {
   final GetTeamsByUserController controller =
       Get.find<GetTeamsByUserController>();
+  final TextEditingController searchController = TextEditingController();
 
   UserTeamsScreen({Key? key}) : super(key: key);
 
@@ -16,56 +17,249 @@ class UserTeamsScreen extends StatelessWidget {
     controller.getTeamsByUserId();
 
     return Scaffold(
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.errorMessage.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(controller.errorMessage.value),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => controller.getTeamsByUserId(),
-                  child: Text('retry'.tr),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (controller.userTeams.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.groups_outlined, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                Text('no_teams_found'.tr),
-              ],
-            ),
-          );
-        }
-
-        return ListView.separated(
+      body: Container(
+        width: context.width,
+        height: context.height,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primaryColor.withOpacity(0.4),
+              AppColors.primaryColor.withOpacity(0.35),
+              AppColors.primaryColor.withOpacity(0.3),
+              AppColors.primaryColor.withOpacity(0.25),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+              AppColors.primaryColor.withOpacity(0),
+            ],
+          ),
+        ),
+        child: Padding(
           padding: const EdgeInsetsDirectional.only(
-            top: 70,
+            top: 16,
             end: 16,
             start: 16,
           ),
-          itemCount: controller.userTeams.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final team = controller.userTeams[index];
-            return _buildTeamCard(team);
-          },
-        );
-      }),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await controller.getTeamsByUserId();
+            },
+            color: AppColors.primaryColor,
+            backgroundColor: Colors.white,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: context.height - 32, // برای اینکه scroll کنه
+                child: Column(
+                  children: [
+                    ConstantSpace.largeVerticalSpacer,
+                    ConstantSpace.largeVerticalSpacer,
+                    profileHeader(),
+                    ConstantSpace.mediumVerticalSpacer,
+                    searching(context, searchController),
+                    ConstantSpace.mediumVerticalSpacer,
+                    Expanded(
+                      child: Obx(() {
+                        if (controller.isLoading.value) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (controller.errorMessage.value.isNotEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error, size: 64, color: Colors.red),
+                                const SizedBox(height: 16),
+                                Text(controller.errorMessage.value),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      controller.getTeamsByUserId(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: Text('retry'.tr),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final filteredTeams = controller.filteredTeams;
+
+                        if (filteredTeams.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  controller.searchQuery.value.isNotEmpty
+                                      ? Icons.search_off
+                                      : Icons.groups_outlined,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  controller.searchQuery.value.isNotEmpty
+                                      ? 'no_results_for'.tr +
+                                            ' "${controller.searchQuery.value}"'
+                                      : 'no_teams_found'.tr,
+                                ),
+                                if (controller
+                                    .searchQuery
+                                    .value
+                                    .isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () {
+                                      searchController.clear();
+                                      controller.clearSearch();
+                                    },
+                                    child: Text('clear_filters'.tr),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: filteredTeams.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final team = filteredTeams[index];
+                            return _buildTeamCard(team);
+                          },
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget profileHeader() {
+    return Row(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'my_teams'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
+            Obx(
+              () => Text(
+                '${controller.userTeams.length} ${'teams_available'.tr}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Container(
+          height: 55,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(54),
+            color: AppColors.backgroundColor,
+            border: Border.all(color: AppColors.borderColor, width: 1),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                const Icon(Icons.notifications_none_rounded),
+                ConstantSpace.mediumHorizontalSpacer,
+                CircleAvatar(
+                  backgroundColor: AppColors.primaryColor,
+                  radius: 24,
+                  child: Icon(Icons.person, color: AppColors.backgroundColor),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget searching(BuildContext context, TextEditingController searchCtrl) {
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: searchCtrl,
+        onChanged: (value) {
+          controller.onSearchChanged(value);
+        },
+        decoration: InputDecoration(
+          hintText: 'search_teams'.tr,
+          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          suffixIcon: Obx(() {
+            if (controller.searchQuery.value.isNotEmpty) {
+              return IconButton(
+                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                onPressed: () {
+                  searchCtrl.clear();
+                  controller.clearSearch();
+                },
+              );
+            }
+            return const Icon(Icons.search, color: Colors.grey);
+          }),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      ),
     );
   }
 
@@ -129,13 +323,7 @@ class UserTeamsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              team.description,
-              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,

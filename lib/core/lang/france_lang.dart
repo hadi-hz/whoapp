@@ -236,4 +236,12 @@ const Map<String, String> fr = {
 'asc': 'Croissant',
 'reports_available': 'Rapports disponibles',
 'open_map_direction': 'Ouvrir carte et direction',
+'my_teams': 'Mes équipes',
+'reports': 'Rapports',
+'start_processing': 'Commencer le traitement',
+'team_member_update': 'Mise à jour membre équipe',
+'enter_team_member_notes': 'Entrer notes membre équipe',
+'update_alert': 'Mettre à jour alerte',
+'end_processing': 'Terminer le traitement',
+
 };

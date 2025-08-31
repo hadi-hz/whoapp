@@ -150,7 +150,7 @@ class AlertListController extends GetxController {
     searchQuery.value = '';
     selectedStatus.value = null;
     selectedType.value = null;
-    selectedUserId.value = null;
+   userRole.value == 'Admin' ? selectedUserId.value = null : null;
     selectedTeamId.value = null;
     dateFrom.value = null;
     dateTo.value = null;

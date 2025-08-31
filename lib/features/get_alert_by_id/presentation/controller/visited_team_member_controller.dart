@@ -26,24 +26,24 @@ class VisitedByTeamMemberController extends GetxController {
 
       final response = await _visitedByTeamMemberUseCase.call(request);
 
-      Get.snackbar(
-        'success'.tr,
-        response.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      // Get.snackbar(
+      //   'success'.tr,
+      //   response.message,
+      //   snackPosition: SnackPosition.TOP,
+      //   backgroundColor: Colors.green,
+      //   colorText: Colors.white,
+      // );
 
       return true;
     } catch (e) {
       errorMessage.value = e.toString();
-      Get.snackbar(
-        'error'.tr,
-        'Failed to mark as visited: $e',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      // Get.snackbar(
+      //   'error'.tr,
+      //   'Failed to mark as visited: $e',
+      //   snackPosition: SnackPosition.TOP,
+      //   backgroundColor: Colors.red,
+      //   colorText: Colors.white,
+      // );
       return false;
     } finally {
       isMarking.value = false;

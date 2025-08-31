@@ -19,6 +19,7 @@ import 'package:test3/features/auth/presentation/pages/splashscreen_page.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/assign_team_datesource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_alert_by_id_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/update_by_admin_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/update_by_team_member_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_admin_datasource.dart';
@@ -26,12 +27,14 @@ import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_team_m
 import 'package:test3/features/get_alert_by_id/data/repositories/assign_team_repository.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_alert_by_id_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_team_by_alert_type_repository_impl.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/team_finish_processing_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/update_by_admin_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/update_by_team_member_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/visited_by_admin_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/visited_team_member_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/assign_team_repository.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/team_finish_precessing.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_admin.dart';
@@ -39,11 +42,13 @@ import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_te
 import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_admin_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_team_member_usecase.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/team_finish_processing_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_admin_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_team_member-controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
@@ -262,8 +267,9 @@ void main() async {
     () => TeamStartProcessingUseCase(Get.find<TeamStartProcessingRepository>()),
   );
 
-  Get.lazyPut<TeamStartProcessingController>(
-    () => TeamStartProcessingController(Get.find<TeamStartProcessingUseCase>()),
+  Get.put<TeamStartProcessingController>(
+    TeamStartProcessingController(Get.find<TeamStartProcessingUseCase>()),
+    permanent: true,
   );
 
   Get.lazyPut<ChangeLanguageRemoteDataSource>(
@@ -381,6 +387,26 @@ void main() async {
 
   Get.put<VisitedByTeamMemberController>(
     VisitedByTeamMemberController(Get.find<VisitedByTeamMemberUseCase>()),
+    permanent: true,
+  );
+
+  Get.lazyPut<TeamFinishProcessingRemoteDataSource>(
+    () => TeamFinishProcessingRemoteDataSourceImpl(Get.find<Dio>()),
+  );
+
+  Get.lazyPut<TeamFinishProcessingRepository>(
+    () => TeamFinishProcessingRepositoryImpl(
+      Get.find<TeamFinishProcessingRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut<TeamFinishProcessingUseCase>(
+    () =>
+        TeamFinishProcessingUseCase(Get.find<TeamFinishProcessingRepository>()),
+  );
+
+  Get.put<TeamFinishProcessingController>(
+    TeamFinishProcessingController(Get.find<TeamFinishProcessingUseCase>()),
     permanent: true,
   );
 

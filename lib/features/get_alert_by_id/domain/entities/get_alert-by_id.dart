@@ -1,4 +1,3 @@
-
 class AlertDetailEntity {
   final AlertEntity alert;
   final DoctorEntity doctor;
@@ -33,6 +32,8 @@ class AlertEntity {
   final String lastUpdateTime;
   final String? visitedByAdminTime;
   final String? visitedByServiceProviderTime;
+  final String? startTimeByTeam; 
+  final String? endTimeByTeam; 
   final double latitudeGPS;
   final double longitudeGPS;
   final double latitude;
@@ -60,6 +61,8 @@ class AlertEntity {
     required this.lastUpdateTime,
     this.visitedByAdminTime,
     this.visitedByServiceProviderTime,
+    this.startTimeByTeam, 
+    this.endTimeByTeam, 
     required this.latitudeGPS,
     required this.longitudeGPS,
     required this.latitude,
@@ -75,6 +78,39 @@ class AlertEntity {
   });
 }
 
+class TeamEntity {
+  final String id;
+  final String teamName; 
+  final String? teamDescription; 
+
+  const TeamEntity({
+    required this.id,
+    required this.teamName,
+    this.teamDescription,
+  });
+}
+
+class TeamMemberEntity {
+  final String teamMemberId; 
+  final String teamId; 
+  final String userId; 
+  final String name;
+  final String lastname;
+  final String email;
+  final bool isRepresentative; 
+
+  const TeamMemberEntity({
+    required this.teamMemberId,
+    required this.teamId,
+    required this.userId,
+    required this.name,
+    required this.lastname,
+    required this.email,
+    required this.isRepresentative,
+  });
+}
+
+// باقی entityها بدون تغییر
 class DoctorEntity {
   final String id;
   final String name;
@@ -145,31 +181,8 @@ class DoctorDetailEntity {
   });
 }
 
-class TeamEntity {
-  final String id;
-  final String name;
-
-  const TeamEntity({
-    required this.id,
-    required this.name,
-  });
-}
-
 class TeamDetailEntity {
- 
   const TeamDetailEntity();
-}
-
-class TeamMemberEntity {
-  final String id;
-  final String name;
-  final String email;
-
-  const TeamMemberEntity({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
 }
 
 class LogEntity {

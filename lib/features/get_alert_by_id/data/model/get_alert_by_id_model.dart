@@ -1,5 +1,3 @@
-
-
 import 'package:test3/features/get_alert_by_id/domain/entities/get_alert-by_id.dart';
 
 class AlertDetailModel extends AlertDetailEntity {
@@ -45,6 +43,8 @@ class AlertModel extends AlertEntity {
     required super.lastUpdateTime,
     super.visitedByAdminTime,
     super.visitedByServiceProviderTime,
+    super.startTimeByTeam,
+    super.endTimeByTeam,
     required super.latitudeGPS,
     required super.longitudeGPS,
     required super.latitude,
@@ -64,16 +64,21 @@ class AlertModel extends AlertEntity {
       doctorId: json['doctorId'] ?? '',
       doctor: DoctorDetailModel.fromJson(json['doctor'] ?? {}),
       teamId: json['teamId'],
-      team: json['team'] != null ? TeamDetailModel.fromJson(json['team']) : null,
+      team: json['team'] != null
+          ? TeamDetailModel.fromJson(json['team'])
+          : null,
       patientName: json['patientName'] ?? '',
       alertDescriptionByDoctor: json['alertDescriptionByDoctor'] ?? '',
       alertDescriptionByAdmin: json['alertDescriptionByAdmin'] ?? '',
-      alertDescriptionByServiceProvider: json['alertDescriptionByServiceProvider'] ?? '',
+      alertDescriptionByServiceProvider:
+          json['alertDescriptionByServiceProvider'] ?? '',
       localCreateTime: json['localCreateTime'] ?? '',
       serverCreateTime: json['serverCreateTime'] ?? '',
       lastUpdateTime: json['lastUpdateTime'] ?? '',
       visitedByAdminTime: json['visitedByAdminTime'],
       visitedByServiceProviderTime: json['visitedByServiceProviderTime'],
+      startTimeByTeam: json['startTimeByTeam'],
+      endTimeByTeam: json['endTimeByTeam'],
       latitudeGPS: (json['latitudeGPS'] ?? 0).toDouble(),
       longitudeGPS: (json['longitudeGPS'] ?? 0).toDouble(),
       latitude: (json['latitude'] ?? 0).toDouble(),
@@ -90,20 +95,85 @@ class AlertModel extends AlertEntity {
   }
 }
 
-class DoctorModel extends DoctorEntity {
-  const DoctorModel({
+class TeamModel extends TeamEntity {
+  const TeamModel({
     required super.id,
+    required super.teamName,
+    super.teamDescription,
+  });
+
+  factory TeamModel.fromJson(Map<String, dynamic> json) {
+    return TeamModel(
+      id: json['id'] ?? '',
+      teamName: json['teamName'] ?? '',
+      teamDescription: json['teamDescription'],
+    );
+  }
+}
+
+class TeamDetailModel extends TeamDetailEntity {
+  final String name;
+  final String? description;
+  final List<dynamic> members;
+  final bool isHealthcareCleaningAndDisinfection;
+  final bool isHouseholdCleaningAndDisinfection;
+  final bool isPatientsReferral;
+  final bool isSafeAndDignifiedBurial;
+  final String id;
+  final bool isDelete;
+  final String createTime;
+
+  const TeamDetailModel({
+    required this.name,
+    this.description,
+    required this.members,
+    required this.isHealthcareCleaningAndDisinfection,
+    required this.isHouseholdCleaningAndDisinfection,
+    required this.isPatientsReferral,
+    required this.isSafeAndDignifiedBurial,
+    required this.id,
+    required this.isDelete,
+    required this.createTime,
+  });
+
+  factory TeamDetailModel.fromJson(Map<String, dynamic> json) {
+    return TeamDetailModel(
+      name: json['name'] ?? '',
+      description: json['description'],
+      members: json['members'] ?? [],
+      isHealthcareCleaningAndDisinfection:
+          json['isHealthcareCleaningAndDisinfection'] ?? false,
+      isHouseholdCleaningAndDisinfection:
+          json['isHouseholdCleaningAndDisinfection'] ?? false,
+      isPatientsReferral: json['isPatientsReferral'] ?? false,
+      isSafeAndDignifiedBurial: json['isSafeAndDignifiedBurial'] ?? false,
+      id: json['id'] ?? '',
+      isDelete: json['isDelete'] ?? false,
+      createTime: json['createTime'] ?? '',
+    );
+  }
+}
+
+class TeamMemberModel extends TeamMemberEntity {
+  const TeamMemberModel({
+    required super.teamMemberId,
+    required super.teamId,
+    required super.userId,
     required super.name,
     required super.lastname,
     required super.email,
+    required super.isRepresentative,
   });
 
-  factory DoctorModel.fromJson(Map<String, dynamic> json) {
-    return DoctorModel(
-      id: json['id'] ?? '',
+  factory TeamMemberModel.fromJson(Map<String, dynamic> json) {
+    return TeamMemberModel(
+      teamMemberId: json['teamMemberId'] ?? '',
+      teamId: json['teamId'] ?? '',
+      userId: json['userId'] ?? '',
       name: json['name'] ?? '',
       lastname: json['lastname'] ?? '',
       email: json['email'] ?? '',
+      isRepresentative: json['isRepresentative'] ?? false,
     );
   }
 }
@@ -168,44 +238,6 @@ class DoctorDetailModel extends DoctorDetailEntity {
   }
 }
 
-class TeamModel extends TeamEntity {
-  const TeamModel({
-    required super.id,
-    required super.name,
-  });
-
-  factory TeamModel.fromJson(Map<String, dynamic> json) {
-    return TeamModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-    );
-  }
-}
-
-class TeamDetailModel extends TeamDetailEntity {
-  const TeamDetailModel();
-
-  factory TeamDetailModel.fromJson(Map<String, dynamic> json) {
-    return const TeamDetailModel();
-  }
-}
-
-class TeamMemberModel extends TeamMemberEntity {
-  const TeamMemberModel({
-    required super.id,
-    required super.name,
-    required super.email,
-  });
-
-  factory TeamMemberModel.fromJson(Map<String, dynamic> json) {
-    return TeamMemberModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-    );
-  }
-}
-
 class LogModel extends LogEntity {
   const LogModel({
     required super.status,
@@ -232,6 +264,24 @@ class UserModel extends UserEntity {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      lastname: json['lastname'] ?? '',
+      email: json['email'] ?? '',
+    );
+  }
+}
+
+class DoctorModel extends DoctorEntity {
+  const DoctorModel({
+    required super.id,
+    required super.name,
+    required super.lastname,
+    required super.email,
+  });
+
+  factory DoctorModel.fromJson(Map<String, dynamic> json) {
+    return DoctorModel(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       lastname: json['lastname'] ?? '',

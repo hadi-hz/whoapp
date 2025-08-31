@@ -28,6 +28,7 @@ class ApiEndpoints {
   static const String alertUpdateteammember= '/alert/alert-update-by-teammember';
   static const String visitedAdmin= '/alert/visited-by-admin';
   static const String visitedTeamMember= '/alert/visited-by-team-member';
+  static const String teamFinishProcessing= '/alert/team-finish-processing';
  
   
 }

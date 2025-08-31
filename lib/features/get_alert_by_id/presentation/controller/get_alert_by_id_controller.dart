@@ -178,7 +178,7 @@ class AlertDetailController extends GetxController {
       userId: userId,
     );
 
-    print('hellllloooooooo biad');
+
 
     isAssigning.value = false;
 

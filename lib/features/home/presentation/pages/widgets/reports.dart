@@ -276,10 +276,11 @@ class _ReportsPageState extends State<ReportsPage> {
                                                         TextOverflow.ellipsis,
                                                   ),
                                                 ),
+                                                 const SizedBox(height: 8),
                                               ],
                                             )
                                           : SizedBox(),
-                                      const SizedBox(height: 8),
+                                     
                                       Row(
                                         children: [
                                           const Icon(Icons.groups_2, size: 16),

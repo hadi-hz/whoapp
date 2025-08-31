@@ -7,7 +7,7 @@ class DioBase  {
   DioBase()
       : dio = Dio(
           BaseOptions(
-            baseUrl: "https://quail-credible-centrally.ngrok-free.app/api",
+            baseUrl: "https://gorgeous-repeatedly-haddock.ngrok-free.app/api",
             connectTimeout: const Duration(seconds: 30),
             receiveTimeout: const Duration(seconds: 30),
             headers: {
