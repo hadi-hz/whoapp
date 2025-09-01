@@ -270,5 +270,24 @@ const Map<String, String> en = {
   'type': 'Type',
   'all_teams': 'All teams',
   'all_users': 'All users',
-  "pull_down_to_check_status": "Pull down to check status"
+  "pull_down_to_check_status": "Pull down to check status",
+  "notifications": "Notifications",
+  "unread": "Unread",
+  "no_unread_notifications": "No unread notifications",
+  "no_notifications": "N o notifications",
+  "read": "Read",
+  "days_ago": "days ago",
+  "hours_ago": "hours ago",
+  "minutes_ago": "minutes ago",
+  "just_now": "Just now",
+  "failed_to_delete_notification": "Failed to delete notification",
+  "notification_deleted_successfully": "Notification deleted successfully",
+  "delete_all": "Delete All",
+  "are_you_sure_delete_all_notifications":
+      "Are you sure you want to delete all notifications? This action cannot be undone.",
+  "delete_all_notifications": "Delete All Notifications",
+  "delete": "Delete",
+  "are_you_sure_delete_notification":
+      "Are you sure you want to delete this notification?",
+  "delete_notification": "Delete Notification",
 };

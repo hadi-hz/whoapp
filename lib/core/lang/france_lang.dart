@@ -271,5 +271,24 @@ const Map<String, String> fr = {
   'type': 'Type',
   'all_teams': 'Toutes les équipes',
   'all_users': 'Tous les utilisateurs',
-  "pull_down_to_check_status": "Tirez vers le bas pour vérifier le statut"
+  "pull_down_to_check_status": "Tirez vers le bas pour vérifier le statut",
+  "notifications": "Notifications",
+  "unread": "Non lues",
+  "no_unread_notifications": "Aucune notification non lue",
+  "no_notifications": "Aucune notification",
+  "read": "Lu",
+  "days_ago": "jours",
+  "hours_ago": "heures",
+  "minutes_ago": "minutes",
+  "just_now": "À l'instant",
+  "failed_to_delete_notification": "Échec de la suppression de la notification",
+  "notification_deleted_successfully": "Notification supprimée avec succès",
+  "delete_all": "Tout supprimer",
+  "are_you_sure_delete_all_notifications":
+      "Êtes-vous sûr de vouloir supprimer toutes les notifications ? Cette action ne peut pas être annulée.",
+  "delete_all_notifications": "Supprimer toutes les notifications",
+  "delete": "Supprimer",
+  "are_you_sure_delete_notification":
+      "Êtes-vous sûr de vouloir supprimer cette notification ?",
+  "delete_notification": "Supprimer la notification",
 };

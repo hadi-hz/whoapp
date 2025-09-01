@@ -270,5 +270,25 @@ const Map<String, String> it = {
   'type': 'Tipo',
   'all_teams': 'Tutti i team',
   'all_users': 'Tutti gli utenti',
-  "pull_down_to_check_status": "Trascina verso il basso per controllare lo stato"
+  "pull_down_to_check_status":
+      "Trascina verso il basso per controllare lo stato",
+  "notifications": "Notifiche",
+  "unread": "Non lette",
+  "no_unread_notifications": "Nessuna notifica non letta",
+  "no_notifications": "Nessuna notifica",
+  "read": "Letto",
+  "days_ago": "giorni fa",
+  "hours_ago": "ore fa",
+  "minutes_ago": "minuti fa",
+  "just_now": "Adesso",
+  "failed_to_delete_notification": "Impossibile eliminare la notifica",
+  "notification_deleted_successfully": "Notifica eliminata con successo",
+  "delete_all": "Elimina tutto",
+  "are_you_sure_delete_all_notifications":
+      "Sei sicuro di voler eliminare tutte le notifiche? Questa azione non può essere annullata.",
+  "delete_all_notifications": "Elimina tutte le notifiche",
+  "delete": "Elimina",
+  "are_you_sure_delete_notification":
+      "Sei sicuro di voler eliminare questa notifica?",
+  "delete_notification": "Elimina notifica",
 };

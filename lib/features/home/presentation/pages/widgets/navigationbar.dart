@@ -34,7 +34,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
@@ -63,7 +63,9 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
+                        color: AppColors.primaryColor.withOpacity(
+                          isDark ? 0.2 : 0.1,
+                        ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(25),
                         ),
@@ -108,9 +110,17 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                                 ConstantSpace.mediumVerticalSpacer,
                                 dropDownHealth(context, isDark),
                                 ConstantSpace.smallVerticalSpacer,
-                                patientName(context, controller.patientName, isDark),
+                                patientName(
+                                  context,
+                                  controller.patientName,
+                                  isDark,
+                                ),
                                 ConstantSpace.smallVerticalSpacer,
-                                description(context, controller.description, isDark),
+                                description(
+                                  context,
+                                  controller.description,
+                                  isDark,
+                                ),
                                 ConstantSpace.xLargeVerticalSpacer,
                                 Row(
                                   mainAxisAlignment:
@@ -243,7 +253,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
 
   void _showPickOptionsDialog(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark ? Colors.grey[850] : Colors.white,
@@ -257,9 +267,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
               ),
               title: Text(
                 'take_photo'.tr,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                ),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
               ),
               onTap: () {
                 Navigator.of(context).pop();
@@ -273,9 +281,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
               ),
               title: Text(
                 'choose_from_gallery'.tr,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                ),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
               ),
               onTap: () {
                 Navigator.of(context).pop();
@@ -288,7 +294,11 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  Widget description(BuildContext context, TextEditingController controller, bool isDark) {
+  Widget description(
+    BuildContext context,
+    TextEditingController controller,
+    bool isDark,
+  ) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -301,14 +311,10 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         maxLines: 5,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-        ),
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
         decoration: InputDecoration(
           hintText: 'description'.tr,
-          hintStyle: TextStyle(
-            color: isDark ? Colors.grey[400] : Colors.grey,
-          ),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
@@ -361,7 +367,9 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: isDark ? Colors.grey[600]! : AppColors.textColor,
+                            color: isDark
+                                ? Colors.grey[600]!
+                                : AppColors.textColor,
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -436,7 +444,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: isDark 
+                  color: isDark
                       ? Colors.black.withOpacity(0.3)
                       : AppColors.innershadow.withOpacity(0.3),
                   blurRadius: 8,
@@ -467,7 +475,9 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                                   child: Text(
                                     service['name'],
                                     style: TextStyle(
-                                      color: isDark ? Colors.white : Colors.black,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black,
                                     ),
                                   ),
                                 ),
@@ -595,7 +605,11 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  Widget patientName(BuildContext context, TextEditingController controller, bool isDark) {
+  Widget patientName(
+    BuildContext context,
+    TextEditingController controller,
+    bool isDark,
+  ) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -608,14 +622,10 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         maxLines: 1,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-        ),
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
         decoration: InputDecoration(
           hintText: 'patient_name'.tr,
-          hintStyle: TextStyle(
-            color: isDark ? Colors.grey[400] : Colors.grey,
-          ),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

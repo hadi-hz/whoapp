@@ -11,6 +11,7 @@ import 'package:test3/features/home/presentation/controller/admin_close_alert_co
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/widgets/drop_down_widget.dart';
+import 'package:test3/features/home/presentation/pages/widgets/notification_page.dart';
 
 class ReportsPage extends StatefulWidget {
   ReportsPage({super.key});
@@ -119,7 +120,6 @@ class _ReportsPageState extends State<ReportsPage> {
                     AppColors.primaryColor.withOpacity(0.35),
                     AppColors.primaryColor.withOpacity(0.3),
                     AppColors.primaryColor.withOpacity(0.25),
-                  
                   ],
           ),
         ),
@@ -1231,6 +1231,8 @@ class _ReportsPageState extends State<ReportsPage> {
     }
   }
 
+  // قسمت profileHeader را این شکل تغییر دهید:
+
   Widget profileHeader(bool isDark) {
     return Row(
       children: [
@@ -1272,10 +1274,56 @@ class _ReportsPageState extends State<ReportsPage> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: isDark ? Colors.white70 : Colors.black,
-                ),
+                Obx(() {
+                  final unreadCount =
+                      controller.currentLoginUser.value?.unReadMessagesCount ??
+                      0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Get.to(NotificationPage());
+                        },
+                        child: Icon(
+                          Icons.notifications_none_rounded,
+                          color: isDark ? Colors.white70 : Colors.black,
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.grey[800]!
+                                    : AppColors.backgroundColor,
+                                width: 1,
+                              ),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
                 ConstantSpace.mediumHorizontalSpacer,
                 CircleAvatar(
                   backgroundColor: AppColors.primaryColor,
