@@ -4,5 +4,5 @@ import '../entities/team_entity.dart';
 
 abstract class TeamsRepository {
   Future<Either<String, List<TeamEntity>>> getAllTeams(TeamsFilterEntity filter);
-   Future<TeamEntity> getTeamById(String id);
+
 }

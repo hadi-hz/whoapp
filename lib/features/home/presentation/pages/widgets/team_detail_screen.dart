@@ -1,37 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:test3/core/const/const.dart';
-import 'package:test3/features/home/domain/entities/team_entity.dart';
-import 'package:test3/features/home/presentation/controller/home_controller.dart';
+import 'package:test3/features/home/presentation/controller/teams_by_id_controller.dart';
 
-class TeamDetailsPage extends StatelessWidget {
-  final HomeController homeController = Get.find<HomeController>();
+class TeamDetailsPage extends StatefulWidget {
   final String teamId;
 
-  TeamDetailsPage({Key? key, required this.teamId}) : super(key: key);
+  const TeamDetailsPage({Key? key, required this.teamId}) : super(key: key);
+
+  @override
+  State<TeamDetailsPage> createState() => _TeamDetailsPageState();
+}
+
+class _TeamDetailsPageState extends State<TeamDetailsPage> {
+  GetTeamByIdController? controller;
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      controller = Get.find<GetTeamByIdController>();
+      controller!.clearData();
+      controller!.fetchTeamById(widget.teamId);
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    homeController.getTeamById(teamId);
+    if (controller == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(),
       body: Obx(() {
-        if (homeController.isLoadingGetTeamById.value) {
+        if (controller!.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (homeController.errorMessageGetTeamById.value.isNotEmpty) {
+        if (controller!.errorMessage.value.isNotEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.error, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
-                Text(homeController.errorMessageGetTeamById.value),
+                Text(controller!.errorMessage.value),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => homeController.getTeamById(teamId),
+                  onPressed: () => controller!.fetchTeamById(widget.teamId),
                   child: Text('retry'.tr),
                 ),
               ],
@@ -39,19 +61,19 @@ class TeamDetailsPage extends StatelessWidget {
           );
         }
 
-        final team = homeController.currentTeam.value;
-        if (team == null) return const SizedBox();
+        final teamDetail = controller!.teamDetail.value;
+        if (teamDetail == null) return const SizedBox();
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoCard(team),
+              _buildInfoCard(teamDetail.team),
               const SizedBox(height: 16),
-              _buildServicesCard(team),
+              _buildServicesCard(teamDetail.team),
               const SizedBox(height: 16),
-              _buildMembersCard(team),
+              _buildMembersCard(teamDetail.members),
             ],
           ),
         );
@@ -59,7 +81,7 @@ class TeamDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(TeamEntity team) {
+  Widget _buildInfoCard(team) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -91,7 +113,7 @@ class TeamDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildServicesCard(TeamEntity team) {
+  Widget _buildServicesCard(team) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -128,63 +150,64 @@ class TeamDetailsPage extends StatelessWidget {
     );
   }
 
-Widget _buildMembersCard(TeamEntity team) {
-  
-  if (team.members.isEmpty) {
-    return const SizedBox.shrink();
+  Widget _buildMembersCard(members) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.people, color: AppColors.primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  'members'.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (members.isEmpty)
+              Text(
+                'no_members'.tr,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              )
+            else
+              Column(
+                children: members.map<Widget>((member) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, size: 20, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text('${member.name} ${member.lastname}'),
+                        ),
+                      
+                        if (member.isRepresentative) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.local_police_rounded , color: AppColors.connecting,)
+                      
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
-  return Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.people, color: AppColors.primaryColor),
-              const SizedBox(width: 8),
-              Text(
-                'members'.tr,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ]
-            ),
-          
-          const SizedBox(height: 12),
-          Column(
-            children: team.members.map<Widget>((member) {
-              String memberName;
-              if (member is String) {
-                memberName = member;
-              } else if (member is Map<String, dynamic>) {
-                memberName = member['name'] ?? 
-                            member['email'] ?? 
-                            'Unknown Member';
-              } else {
-                memberName = member.toString();
-              }
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Icon(Icons.person, size: 20, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Text(memberName),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    ),
-  );
-}
   Widget _buildInfoRow(String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +245,11 @@ Widget _buildMembersCard(TeamEntity team) {
   }
 
   String _formatDate(String dateStr) {
-    final date = DateTime.parse(dateStr);
-    return "${date.day}/${date.month}/${date.year}";
+    try {
+      final date = DateTime.parse(dateStr);
+      return "${date.day}/${date.month}/${date.year}";
+    } catch (e) {
+      return dateStr;
+    }
   }
 }

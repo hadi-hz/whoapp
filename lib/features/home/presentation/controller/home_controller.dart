@@ -18,7 +18,6 @@ class HomeController extends GetxController {
   final GetUserDetailUseCase getUserDetailUseCase;
   final AssignRoleUseCase assignRoleUseCase;
   final GetAllTeamsUseCase getAllTeamsUseCase;
-  final GetTeamByIdUseCase getTeamByIdUseCase;
 
   final Rx<TeamEntity?> currentTeam = Rx<TeamEntity?>(null);
   final RxBool isLoadingGetTeamById = false.obs;
@@ -136,7 +135,6 @@ class HomeController extends GetxController {
     required this.getUserDetailUseCase,
     required this.assignRoleUseCase,
     required this.getAllTeamsUseCase,
-    required this.getTeamByIdUseCase,
   });
 
   var isLoading = false.obs;
@@ -484,24 +482,5 @@ class HomeController extends GetxController {
     if (referralFilter.value != null) count++;
     if (burialFilter.value != null) count++;
     return count;
-  }
-
-  Future<void> getTeamById(String id) async {
-    try {
-      isLoadingGetTeamById.value = true;
-      errorMessageGetTeamById.value = '';
-
-      final team = await getTeamByIdUseCase.call(id);
-      currentTeam.value = team;
-    } catch (e) {
-      errorMessageGetTeamById.value = e.toString();
-    } finally {
-      isLoadingGetTeamById.value = false;
-    }
-  }
-
-  void clearTeam() {
-    currentTeam.value = null;
-    errorMessageGetTeamById.value = '';
   }
 }

@@ -68,72 +68,79 @@ class UsersScreen extends StatelessWidget {
               ConstantSpace.mediumVerticalSpacer,
 
               Expanded(
-                child: Obx(() {
-                  if (homeController.isLoadingUsers.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await homeController.fetchUsers();
+                  },
+                  color: AppColors.primaryColor,
+                  backgroundColor: Colors.white,
+                  child: Obx(() {
+                    if (homeController.isLoadingUsers.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  if (homeController.errorMessageUsers.value.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(homeController.errorMessage.value),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => homeController.fetchUsers(),
-                            child: Text('retry'.tr),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (homeController.users.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.people_outline,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          Text('no_users_found'.tr),
-                          if (homeController.nameFilter.value.isNotEmpty ||
-                              homeController.emailFilter.value.isNotEmpty ||
-                              homeController.roleFilter.value.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () {
-                                search.clear();
-                                homeController.clearAllFilters();
-                              },
-                              child: Text('clear_filters'.tr),
+                    if (homeController.errorMessageUsers.value.isNotEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(homeController.errorMessage.value),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => homeController.fetchUsers(),
+                              child: Text('retry'.tr),
                             ),
                           ],
-                        ],
-                      ),
-                    );
-                  }
+                        ),
+                      );
+                    }
 
-                  return ListView.separated(
-                    itemCount: homeController.users.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final user = homeController.users[index];
-                      return _buildUserCard(user);
-                    },
-                  );
-                }),
+                    if (homeController.users.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.people_outline,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text('no_users_found'.tr),
+                            if (homeController.nameFilter.value.isNotEmpty ||
+                                homeController.emailFilter.value.isNotEmpty ||
+                                homeController.roleFilter.value.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () {
+                                  search.clear();
+                                  homeController.clearAllFilters();
+                                },
+                                child: Text('clear_filters'.tr),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      itemCount: homeController.users.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final user = homeController.users[index];
+                        return _buildUserCard(user);
+                      },
+                    );
+                  }),
+                ),
               ),
             ],
           ),
@@ -628,7 +635,9 @@ class UsersScreen extends StatelessWidget {
               Expanded(
                 child: Obx(
                   () => DropdownButtonFormField<String>(
-                    value: homeController.sortBy.value.isEmpty ? null : homeController.sortBy.value,
+                    value: homeController.sortBy.value.isEmpty
+                        ? null
+                        : homeController.sortBy.value,
                     decoration: InputDecoration(
                       labelText: 'sort_by'.tr,
                       labelStyle: TextStyle(
@@ -652,9 +661,7 @@ class UsersScreen extends StatelessWidget {
                           color: homeController.sortBy.value != 'Email'
                               ? AppColors.primaryColor
                               : Colors.grey.shade300,
-                          width: homeController.sortBy.value != 'Email'
-                              ? 2
-                              : 1,
+                          width: homeController.sortBy.value != 'Email' ? 2 : 1,
                         ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(

@@ -220,10 +220,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             'last_name'.tr,
             user.lastname.isNotEmpty ? user.lastname : 'not_provided'.tr,
           ),
-          _buildInfoRow(
-            'phone_number'.tr,
-            user.phoneNumber.isNotEmpty ? user.phoneNumber : 'not_provided'.tr,
-          ),
+     
           _buildInfoRow('preferred_language'.tr, user.languageDisplayName),
         ],
       ),
@@ -608,7 +605,7 @@ Future<void> _assignRole(UserDetailEntity user) async {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 150,
             child: Text(
               label,
               style: const TextStyle(

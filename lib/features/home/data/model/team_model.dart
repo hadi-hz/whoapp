@@ -4,7 +4,7 @@ class TeamModel extends TeamEntity {
   TeamModel({
     required String name,
     required String description,
-    required List<dynamic> members,
+    required int memberCount,
     required bool isHealthcareCleaningAndDisinfection,
     required bool isHouseholdCleaningAndDisinfection,
     required bool isPatientsReferral,
@@ -13,25 +13,28 @@ class TeamModel extends TeamEntity {
     required bool isDelete,
     required String createTime,
   }) : super(
-          name: name,
-          description: description,
-          members: members,
-          isHealthcareCleaningAndDisinfection: isHealthcareCleaningAndDisinfection,
-          isHouseholdCleaningAndDisinfection: isHouseholdCleaningAndDisinfection,
-          isPatientsReferral: isPatientsReferral,
-          isSafeAndDignifiedBurial: isSafeAndDignifiedBurial,
-          id: id,
-          isDelete: isDelete,
-          createTime: createTime,
-        );
+         name: name,
+         description: description,
+         memberCount: memberCount,
+         isHealthcareCleaningAndDisinfection:
+             isHealthcareCleaningAndDisinfection,
+         isHouseholdCleaningAndDisinfection: isHouseholdCleaningAndDisinfection,
+         isPatientsReferral: isPatientsReferral,
+         isSafeAndDignifiedBurial: isSafeAndDignifiedBurial,
+         id: id,
+         isDelete: isDelete,
+         createTime: createTime,
+       );
 
   factory TeamModel.fromJson(Map<String, dynamic> json) {
     return TeamModel(
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      members: json['members'] ?? [],
-      isHealthcareCleaningAndDisinfection: json['isHealthcareCleaningAndDisinfection'] ?? false,
-      isHouseholdCleaningAndDisinfection: json['isHouseholdCleaningAndDisinfection'] ?? false,
+      memberCount: json['memberCount'],
+      isHealthcareCleaningAndDisinfection:
+          json['isHealthcareCleaningAndDisinfection'] ?? false,
+      isHouseholdCleaningAndDisinfection:
+          json['isHouseholdCleaningAndDisinfection'] ?? false,
       isPatientsReferral: json['isPatientsReferral'] ?? false,
       isSafeAndDignifiedBurial: json['isSafeAndDignifiedBurial'] ?? false,
       id: json['id'] ?? '',
@@ -44,8 +47,9 @@ class TeamModel extends TeamEntity {
     return {
       'name': name,
       'description': description,
-      'members': members,
-      'isHealthcareCleaningAndDisinfection': isHealthcareCleaningAndDisinfection,
+      'members': memberCount,
+      'isHealthcareCleaningAndDisinfection':
+          isHealthcareCleaningAndDisinfection,
       'isHouseholdCleaningAndDisinfection': isHouseholdCleaningAndDisinfection,
       'isPatientsReferral': isPatientsReferral,
       'isSafeAndDignifiedBurial': isSafeAndDignifiedBurial,
@@ -55,15 +59,12 @@ class TeamModel extends TeamEntity {
     };
   }
 
-
-
-
-   TeamEntity toEntity() {
+  TeamEntity toEntity() {
     return TeamEntity(
       id: id,
       name: name,
       description: description,
-      members: members,
+      memberCount: memberCount,
       isHealthcareCleaningAndDisinfection: isHealthcareCleaningAndDisinfection,
       isHouseholdCleaningAndDisinfection: isHouseholdCleaningAndDisinfection,
       isPatientsReferral: isPatientsReferral,

@@ -53,6 +53,7 @@ import 'package:test3/features/get_alert_by_id/presentation/controller/update_by
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_team_member-controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_team_member_controller.dart';
+import 'package:test3/features/home/data/datasource/admin_close_alert_datasource.dart';
 import 'package:test3/features/home/data/datasource/assign_role_datasource.dart';
 import 'package:test3/features/home/data/datasource/create_team_datasource.dart';
 import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
@@ -62,23 +63,28 @@ import 'package:test3/features/home/data/datasource/team_datasource.dart';
 import 'package:test3/features/home/data/datasource/team_start_processing_datasource.dart';
 import 'package:test3/features/home/data/datasource/user_detail_datasource.dart';
 import 'package:test3/features/home/data/datasource/users_datasource.dart';
+import 'package:test3/features/home/data/repositories/admin_close_alert_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/assign_role_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/create_team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/get_alert_impl.dart';
 import 'package:test3/features/home/data/repositories/get_teams_by_member_id_repository_impl.dart';
+import 'package:test3/features/home/data/repositories/team_by_id_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_start_processing_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/user_detail_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/users_repository_impl.dart';
+import 'package:test3/features/home/domain/repositories/admin_close_alert.dart';
 import 'package:test3/features/home/domain/repositories/assign_role_repository.dart';
 import 'package:test3/features/home/domain/repositories/create_team_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_alert_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_teams_by_member_id.dart';
+import 'package:test3/features/home/domain/repositories/team_by_id_repository.dart';
 import 'package:test3/features/home/domain/repositories/team_repository.dart';
 import 'package:test3/features/home/domain/repositories/team_start_processing_repository.dart';
 import 'package:test3/features/home/domain/repositories/user_detail_repository.dart';
 import 'package:test3/features/home/domain/repositories/users_repository.dart';
 import 'package:test3/features/home/domain/usecase/add_members_usecase.dart';
+import 'package:test3/features/home/domain/usecase/admin_close_alert_usecase.dart';
 import 'package:test3/features/home/domain/usecase/assign_role_usecase.dart';
 import 'package:test3/features/home/domain/usecase/create_team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/get_alert_usecase.dart';
@@ -88,11 +94,13 @@ import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/domain/usecase/team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/user_detail_ussecase.dart';
 import 'package:test3/features/home/domain/usecase/users_usecase.dart';
+import 'package:test3/features/home/presentation/controller/admin_close_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/create_team_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_teams_by_member_id_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
+import 'package:test3/features/home/presentation/controller/teams_by_id_controller.dart';
 import 'package:test3/features/home/presentation/pages/home.dart';
 import 'package:test3/features/profile/data/datasource/get_user_info_remote_datasource.dart';
 import 'package:test3/features/profile/data/repositories/get-user_info_repository_impl.dart';
@@ -108,6 +116,23 @@ void main() async {
   final hasToken = prefs.getString('token') != null;
 
   Get.put<Dio>(DioBase().dio);
+
+  Get.lazyPut<GetTeamByIdRemoteDataSource>(
+    () => GetTeamByIdRemoteDataSourceImpl(dio: Get.find<Dio>()),
+  );
+
+  Get.lazyPut<GetTeamByIdRepository>(
+    () => GetTeamByIdRepositoryImpl(
+      remoteDataSource: Get.find<GetTeamByIdRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut(() => GetTeamByIdUseCase(Get.find<GetTeamByIdRepository>()));
+
+  Get.put<GetTeamByIdController>(
+    GetTeamByIdController(getTeamByIdUseCase: Get.find()),
+    permanent: true,
+  );
 
   Get.put<AlertDetailRemoteDataSourceImpl>(AlertDetailRemoteDataSourceImpl());
   Get.put<AlertDetailRepositoryImpl>(
@@ -180,22 +205,13 @@ void main() async {
   );
 
   Get.lazyPut<TeamsRemoteDataSource>(() => TeamsRemoteDataSourceImpl());
-  Get.lazyPut<TeamRemoteDataSourceTeamId>(
-    () => TeamRemoteDataSourceImplTeamId(),
-  );
 
   Get.lazyPut<TeamsRepository>(
-    () => TeamsRepositoryImpl(
-      remoteDataSource: Get.find(),
-      remoteDataSourceTeamById: Get.find(),
-    ),
+    () => TeamsRepositoryImpl(remoteDataSource: Get.find()),
   );
 
   Get.lazyPut<GetAllTeamsUseCase>(
     () => GetAllTeamsUseCase(repository: Get.find()),
-  );
-  Get.lazyPut<GetTeamByIdUseCase>(
-    () => GetTeamByIdUseCase(Get.find<TeamsRepository>()),
   );
 
   Get.put(
@@ -204,7 +220,6 @@ void main() async {
       getAllUsersUseCase: Get.find(),
       getUserDetailUseCase: Get.find(),
       assignRoleUseCase: Get.find(),
-      getTeamByIdUseCase: Get.find(),
     ),
   );
 
@@ -410,6 +425,21 @@ void main() async {
     permanent: true,
   );
 
+  Get.lazyPut<AdminCloseAlertRemoteDataSource>(
+    () => AdminCloseAlertRemoteDataSourceImpl(dio: Get.find<Dio>()),
+  );
+
+  Get.lazyPut<AdminCloseAlertRepository>(
+    () => AdminCloseAlertRepositoryImpl(
+      remoteDataSource: Get.find<AdminCloseAlertRemoteDataSource>(),
+    ),
+  );
+
+  Get.lazyPut(() => CloseAlertUseCase(Get.find<AdminCloseAlertRepository>()));
+
+  Get.lazyPut<AdminCloseAlertController>(
+    () => AdminCloseAlertController(closeAlertUseCase: Get.find()),
+  );
   // runApp(
   //   DevicePreview(
   //     enabled: !kReleaseMode,

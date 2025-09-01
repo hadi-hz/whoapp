@@ -143,6 +143,7 @@ class AddReportController extends GetxController {
           longitudeGps: currentLngGps.value,
           localCreateTime: DateTime.now().toIso8601String(),
           images: pickedImages,
+
         );
 
         Get.snackbar(
@@ -334,7 +335,7 @@ class AddReportController extends GetxController {
             longitude: reportData['longitude'],
             latitudeGps: reportData['latitude_gps'],
             longitudeGps: reportData['longitude_gps'],
-            isOflineMode: false,
+            isOflineMode: true,
             localCreateTime: reportData['local_create_time'],
           );
 

@@ -25,9 +25,28 @@ class CreateTeamController extends GetxController {
   final RxBool isBurial = false.obs;
 
   final RxList<String> selectedMembers = <String>[].obs;
+  final RxString selectedRepresentative = ''.obs;
+
+  void setRepresentative(String userId) {
+    selectedRepresentative.value = userId;
+  }
 
   Future<void> createTeamWithMembers() async {
     if (!_validateForm()) return;
+
+    print('Selected members: ${selectedMembers.toList()}');
+  print('Representative: ${selectedRepresentative.value}');
+  
+    if (selectedMembers.isNotEmpty && selectedRepresentative.value.isEmpty) {
+      errorMessage.value = 'select_representative'.tr;
+      return;
+    }
+    if (selectedRepresentative.value.isNotEmpty &&
+        !selectedMembers.contains(selectedRepresentative.value)) {
+      errorMessage.value = 'representative_must_be_member'.tr;
+      return;
+    }
+
     print('selectedmemeber  :  ${selectedMembers.toList()}');
 
     try {
@@ -49,6 +68,7 @@ class CreateTeamController extends GetxController {
         final addMembersRequest = AddMembersRequest(
           teamId: createdTeam.id,
           userId: selectedMembers.toList(),
+          representativeId: selectedRepresentative.value,
         );
         await _addMembersUseCase.call(addMembersRequest);
       }
@@ -64,7 +84,7 @@ class CreateTeamController extends GetxController {
       );
 
       final homeController = Get.find<HomeController>();
-     await homeController.fetchTeams();
+      await homeController.fetchTeams();
     } catch (e) {
       errorMessage.value = e.toString();
     } finally {
@@ -101,6 +121,7 @@ class CreateTeamController extends GetxController {
     isBurial.value = false;
     selectedMembers.clear();
     errorMessage.value = '';
+    selectedRepresentative.value = '';
   }
 
   @override

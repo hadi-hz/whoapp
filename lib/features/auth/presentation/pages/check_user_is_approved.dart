@@ -13,14 +13,28 @@ class ApprovedUserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            cardIsApproved(context),
-            buttonCheckIsApproved(context, controller.currentUser.value!.id)
-          ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await controller.checkUserIsApproved(
+            userId: controller.currentUser.value!.id,
+          );
+        },
+        color: AppColors.primaryColor,
+        backgroundColor: Colors.white,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                cardIsApproved(context),
+                const SizedBox(height: 20),
+                _buildRefreshHint(context),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -48,7 +62,6 @@ class ApprovedUserPage extends StatelessWidget {
             height: 130,
             fit: BoxFit.cover,
           ),
-
           Text(
             'register_success'.tr,
             textAlign: TextAlign.center,
@@ -58,7 +71,6 @@ class ApprovedUserPage extends StatelessWidget {
               color: AppColors.background,
             ),
           ),
-
           InnerShadowContainer(
             width: context.width * 0.34,
             height: 40,
@@ -74,41 +86,75 @@ class ApprovedUserPage extends StatelessWidget {
     );
   }
 
-  Widget buttonCheckIsApproved(BuildContext context, String userId) {
-    return BoxNeumorphysm(
-      borderColor: Colors.white,
-      onTap: controller.isLoadingCheckIsApproved.value
-          ? () {}
-          : () {
-              controller.checkUserIsApproved(userId: userId);
-            },
-      borderRadius: 12,
-      borderWidth: 5,
-      backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
-      height: 60,
-      width: context.width * 0.82,
-      bottomRightOffset: const Offset(4, 4),
-      topLeftOffset: const Offset(-4, -4),
-      child: Center(
-        child: Obx(() {
-          return controller.isLoadingCheckIsApproved.value
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background),
-                )
-              : Text(
-                  'check_approved'.tr, 
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.background,
-                  ),
-                );
-        }),
-      ),
-    );
+  Widget _buildRefreshHint(BuildContext context) {
+    return Obx(() {
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: controller.isLoadingCheckIsApproved.value 
+              ? AppColors.primaryColor.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: controller.isLoadingCheckIsApproved.value 
+                ? AppColors.primaryColor
+                : Colors.grey.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            if (controller.isLoadingCheckIsApproved.value) ...[
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'checking_approval_status'.tr,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ] else ...[
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 1500),
+                child: Icon(
+                  Icons.refresh,
+                  color: Colors.grey[600],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'pull_down_to_check_status'.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'swipe_down_hint'.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }

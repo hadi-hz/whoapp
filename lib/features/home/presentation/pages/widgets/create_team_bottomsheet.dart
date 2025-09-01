@@ -4,11 +4,25 @@ import 'package:test3/core/const/const.dart';
 import 'package:test3/features/home/presentation/controller/create_team_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 
-class CreateTeamBottomSheet extends StatelessWidget {
+class CreateTeamBottomSheet extends StatefulWidget {
+  CreateTeamBottomSheet({Key? key}) : super(key: key);
+
+  @override
+  _CreateTeamBottomSheetState createState() => _CreateTeamBottomSheetState();
+}
+
+class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
   final CreateTeamController controller = Get.find<CreateTeamController>();
   final HomeController homeController = Get.find<HomeController>();
 
-  CreateTeamBottomSheet({Key? key}) : super(key: key);
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      homeController.fetchUsers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +109,6 @@ class CreateTeamBottomSheet extends StatelessWidget {
         labelText: 'description'.tr,
         hintText: 'enter_description'.tr,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-
         alignLabelWithHint: true,
       ),
     );
@@ -165,7 +178,6 @@ class CreateTeamBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // Search Box
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
@@ -209,10 +221,19 @@ class CreateTeamBottomSheet extends StatelessWidget {
             );
           }
 
-          final filteredUsers =
-              homeController.filteredUsers; // باید در controller اضافه کنی
+          final approvedUsers = homeController.users.where((user) {
+            if (!user.isApproved) return false;
 
-          if (filteredUsers.isEmpty) {
+            if (homeController.userSearchQuery.value.isNotEmpty) {
+              final query = homeController.userSearchQuery.value.toLowerCase();
+              return user.fullName.toLowerCase().contains(query) ||
+                  (user.email?.toLowerCase().contains(query) ?? false);
+            }
+
+            return true;
+          }).toList();
+
+          if (approvedUsers.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -226,8 +247,8 @@ class CreateTeamBottomSheet extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       homeController.userSearchQuery.value.isNotEmpty
-                          ? 'no_users_found_for_search'.tr
-                          : 'no_users_found'.tr,
+                          ? 'no_approved_users_found_for_search'.tr
+                          : 'no_approved_users_found'.tr,
                     ),
                   ],
                 ),
@@ -242,32 +263,90 @@ class CreateTeamBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListView.builder(
-              itemCount: filteredUsers.length,
+              itemCount: approvedUsers.length,
               itemBuilder: (context, index) {
-                final user = filteredUsers[index];
-                return Obx(
-                  () => CheckboxListTile(
-                    title: Text(user.fullName),
-                    subtitle: Text(user.email ?? ''),
-                    secondary: CircleAvatar(
-                      backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                      child: Text(
-                        user.fullName.isNotEmpty
-                            ? user.fullName[0].toUpperCase()
-                            : 'U',
-                        style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                final user = approvedUsers[index];
+                return Obx(() {
+                  final isMember = controller.selectedMembers.contains(user.id);
+                  final isRepresentative =
+                      controller.selectedRepresentative.value == user.id;
+
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    value: controller.selectedMembers.contains(user.id),
-                    onChanged: (value) =>
-                        controller.toggleMemberSelection(user.id),
-                    activeColor: AppColors.primaryColor,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                );
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: isMember,
+                          onChanged: (value) =>
+                              controller.toggleMemberSelection(user.id),
+                          activeColor: AppColors.primaryColor,
+                        ),
+
+                        CircleAvatar(
+                          backgroundColor: AppColors.primaryColor.withOpacity(
+                            0.1,
+                          ),
+                          child: Text(
+                            user.fullName.isNotEmpty
+                                ? user.fullName[0].toUpperCase()
+                                : 'U',
+                            style: TextStyle(
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user.fullName),
+                              Text(
+                                user.email ?? '',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Column(
+                          children: [
+                            Radio<String>(
+                              value: user.id,
+                              groupValue:
+                                  controller.selectedRepresentative.value,
+                              onChanged: isMember
+                                  ? (value) {
+                                      if (value != null) {
+                                        controller.setRepresentative(value);
+                                      }
+                                    }
+                                  : null,
+                              activeColor: AppColors.primaryColor,
+                            ),
+                            Text(
+                              'Rep',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: isMember
+                                    ? AppColors.primaryColor
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                });
               },
             ),
           );

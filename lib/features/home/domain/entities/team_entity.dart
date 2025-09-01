@@ -1,7 +1,7 @@
 class TeamEntity {
   final String name;
   final String description;
-  final List<dynamic> members;
+  final int memberCount;
   final bool isHealthcareCleaningAndDisinfection;
   final bool isHouseholdCleaningAndDisinfection;
   final bool isPatientsReferral;
@@ -13,7 +13,7 @@ class TeamEntity {
   TeamEntity({
     required this.name,
     required this.description,
-    required this.members,
+    required this.memberCount,
     required this.isHealthcareCleaningAndDisinfection,
     required this.isHouseholdCleaningAndDisinfection,
     required this.isPatientsReferral,
@@ -23,8 +23,6 @@ class TeamEntity {
     required this.createTime,
   });
 
-  int get membersCount => members.length;
-  
   List<String> get capabilities {
     List<String> caps = [];
     if (isHealthcareCleaningAndDisinfection) caps.add('Healthcare Cleaning');

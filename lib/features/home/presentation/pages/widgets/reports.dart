@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/const/const.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/pages/get_alert_detail.dart';
+import 'package:test3/features/home/presentation/controller/admin_close_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/widgets/drop_down_widget.dart';
@@ -23,6 +24,59 @@ class _ReportsPageState extends State<ReportsPage> {
   final controller = Get.find<AuthController>();
   final HomeController homeController = Get.find<HomeController>();
   final AlertListController alertController = Get.find<AlertListController>();
+
+  void _downloadPDF(String alertId) {
+    // TODO: پیاده‌سازی دانلود PDF
+    Get.snackbar(
+      'info'.tr,
+      'PDF download for alert: $alertId',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+  }
+
+  void _closeAlert(String alertId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedUserId = prefs.getString('userId');
+    Get.dialog(
+      AlertDialog(
+        title: Text('confirm_close'.tr),
+        content: Text('are_you_sure_close_alert'.tr),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
+          Obx(() {
+            final adminController = Get.find<AdminCloseAlertController>();
+            return ElevatedButton(
+              onPressed: adminController.isLoading.value
+                  ? null
+                  : () async {
+                      Get.back();
+                      final authController = Get.find<AuthController>();
+                      await adminController.closeAlert(
+                        alertId,
+                        savedUserId ?? '',
+                      );
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: adminController.isLoading.value
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'close_alert'.tr,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +124,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
           child: RefreshIndicator(
             onRefresh: () async {
-               alertController.refreshAlerts();
+              alertController.refreshAlerts();
             },
             color: AppColors.primaryColor,
             backgroundColor: Colors.white,
@@ -93,7 +147,6 @@ class _ReportsPageState extends State<ReportsPage> {
                       if (alertController.isLoading.value) {
                         return const Center(child: CircularProgressIndicator());
                       }
-
                       if (alertController.hasError.value) {
                         return Center(
                           child: Column(
@@ -124,7 +177,6 @@ class _ReportsPageState extends State<ReportsPage> {
                           ),
                         );
                       }
-
                       if (alertController.alerts.isEmpty) {
                         return Center(
                           child: Column(
@@ -176,37 +228,66 @@ class _ReportsPageState extends State<ReportsPage> {
                           case 0:
                             return {
                               'name': 'initial'.tr,
-                              'color': Colors.green,
+                              'color': homeController.role.value == 'Admin'
+                                  ? Colors.red
+                                  : Colors.green,
                             };
                           case 1:
                             return {
                               'name': 'visited_by_admin'.tr,
-                              'color': Colors.blue,
+                              'color': homeController.role.value == 'Admin'
+                                  ? Colors.orange
+                                  : Colors.blue,
                             };
                           case 2:
                             return {
                               'name': 'assigned_to_team'.tr,
-                              'color': Colors.orange,
+                              'color': homeController.role.value == 'Admin'
+                                  ? const Color.fromARGB(255, 208, 189, 13)
+                                  : homeController.role.value ==
+                                        'ServiceProvider'
+                                  ? Colors.red
+                                  : Colors.orange,
                             };
                           case 3:
                             return {
                               'name': 'visited_by_team_member'.tr,
-                              'color': Colors.purple,
+                              'color': homeController.role.value == 'Admin'
+                                  ? const Color.fromARGB(255, 208, 189, 13)
+                                  : homeController.role.value ==
+                                        'ServiceProvider'
+                                  ? const Color.fromARGB(255, 208, 189, 13)
+                                  : Colors.purple,
                             };
                           case 4:
                             return {
                               'name': 'team_start_processing'.tr,
-                              'color': Colors.teal,
+                              'color': homeController.role.value == 'Admin'
+                                  ? const Color.fromARGB(255, 208, 189, 13)
+                                  : homeController.role.value ==
+                                        'ServiceProvider'
+                                  ? Colors.orange
+                                  : Colors.teal,
                             };
                           case 5:
                             return {
                               'name': 'team_finish_processing'.tr,
-                              'color': Colors.yellow,
+                              'color': homeController.role.value == 'Admin'
+                                  ? Colors.orange
+                                  : homeController.role.value ==
+                                        'ServiceProvider'
+                                  ? const Color.fromARGB(255, 208, 189, 13)
+                                  : const Color.fromARGB(255, 208, 189, 13),
                             };
                           case 6:
                             return {
                               'name': 'admin_close'.tr,
-                              'color': Colors.red,
+                              'color': homeController.role.value == 'Admin'
+                                  ? Colors.green
+                                  : homeController.role.value ==
+                                        'ServiceProvider'
+                                  ? Colors.green
+                                  : Colors.red,
                             };
                           default:
                             return {'name': 'Unknown', 'color': Colors.black};
@@ -217,163 +298,9 @@ class _ReportsPageState extends State<ReportsPage> {
                         child: Wrap(
                           spacing: 12,
                           runSpacing: 12,
-
                           children: alertController.alerts.map((alert) {
                             final statusData = getStatusData(alert.alertStatus);
-
-                            return IntrinsicHeight(
-                              child: GestureDetector(
-                                onTap: () {
-                                  Get.to(
-                                    AlertDetailPage(
-                                      alertId: alert.id,
-                                      alertType: alert.alertType,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width:
-                                      (MediaQuery.of(context).size.width - 44) /
-                                      2,
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      width: 2,
-                                      color: AppColors.borderColor,
-                                    ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 6,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      homeController.role.value != 'Doctor'
-                                          ? Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.person,
-                                                  size: 16,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Expanded(
-                                                  child: Text(
-                                                    alert.doctorName,
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                                 const SizedBox(height: 8),
-                                              ],
-                                            )
-                                          : SizedBox(),
-                                     
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.groups_2, size: 16),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              alert.teamName ?? 'no_team'.tr,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_month_rounded,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              DateFormat(
-                                                'yyyy-MM-dd',
-                                              ).format(alert.serverCreateTime),
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.qr_code_sharp,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              alert.trackId ?? 'no_trackid'.tr,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 12),
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: statusData['color']
-                                              .withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          border: Border.all(
-                                            color: statusData['color'],
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          statusData['name'],
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: statusData['color'],
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
+                            return _buildAlertCard(alert, statusData);
                           }).toList(),
                         ),
                       );
@@ -382,6 +309,195 @@ class _ReportsPageState extends State<ReportsPage> {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlertCard(alert, statusData) {
+    return IntrinsicHeight(
+      child: GestureDetector(
+        onTap: () {
+          Get.to(
+            AlertDetailPage(alertId: alert.id, alertType: alert.alertType),
+          );
+        },
+        child: Container(
+          width: (MediaQuery.of(context).size.width - 44) / 2,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(width: 2, color: AppColors.borderColor),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              homeController.role.value != 'Doctor'
+                  ? Row(
+                      children: [
+                        const Icon(Icons.person, size: 16),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            alert.doctorName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    )
+                  : SizedBox(),
+
+              if (homeController.role.value != 'Doctor')
+                const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  const Icon(Icons.groups_2, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      alert.teamName ?? 'no_team'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  const Icon(Icons.calendar_month_rounded, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      DateFormat('yyyy-MM-dd').format(alert.serverCreateTime),
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  const Icon(Icons.qr_code_sharp, size: 16),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      alert.trackId ?? 'no_trackid'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusData['color'].withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: statusData['color'], width: 1),
+                ),
+                child: Text(
+                  statusData['name'],
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusData['color'],
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              if (alert.alertStatus == 5 &&
+                  homeController.role.value == 'Admin') ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _closeAlert(alert.id),
+                        icon: const Icon(Icons.close, size: 16),
+                        label: Text(
+                          'Close'.tr,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          minimumSize: const Size(0, 32),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else if (alert.alertStatus == 6 &&
+                  homeController.role.value == 'Admin') ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _downloadPDF(alert.id),
+                        icon: const Icon(
+                          Icons.download_for_offline_rounded,
+                          size: 22,
+                        ),
+                        label: Text(
+                          'Download',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -487,14 +603,12 @@ class _ReportsPageState extends State<ReportsPage> {
                     const Spacer(),
                     Obx(() {
                       int activeFilters = 0;
-
                       if (alertController.selectedStatus.value != null)
                         activeFilters++;
                       if (alertController.selectedType.value != null)
                         activeFilters++;
                       if (alertController.searchQuery.value.isNotEmpty)
                         activeFilters++;
-
                       return activeFilters > 0
                           ? Container(
                               margin: const EdgeInsets.only(right: 8),
@@ -561,7 +675,6 @@ class _ReportsPageState extends State<ReportsPage> {
                   child: DropdownFilter(
                     hint: 'filter_by_status'.tr,
                     selectedValue: alertController.selectedStatus.value,
-
                     items: alertController.statusOptions,
                     onChanged: (value) =>
                         alertController.onStatusChanged(value),
@@ -572,7 +685,6 @@ class _ReportsPageState extends State<ReportsPage> {
                   child: DropdownFilter(
                     hint: 'filter_by_type'.tr,
                     selectedValue: alertController.selectedType.value,
-
                     items: alertController.typeOptions,
                     onChanged: (value) => alertController.onTypeChanged(value),
                   ),
@@ -580,9 +692,7 @@ class _ReportsPageState extends State<ReportsPage> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           if (alertController.userRole.value == 'Admin') ...[
             Row(
               children: [
@@ -665,10 +775,8 @@ class _ReportsPageState extends State<ReportsPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
           ],
-
           Text(
             'date_range_filter'.tr,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -789,9 +897,7 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Text(
             'sort_options'.tr,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -886,22 +992,17 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    search.clear();
-                    alertController.clearFilters();
-                  },
-                  icon: const Icon(Icons.clear_all, size: 18),
-                  label: Text('clear_all_filters'.tr),
+                  onPressed: () => alertController.refreshAlerts(),
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text('apply_filters'.tr),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                    foregroundColor: Colors.grey[700],
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -913,15 +1014,19 @@ class _ReportsPageState extends State<ReportsPage> {
                   ),
                 ),
               ),
+
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => alertController.refreshAlerts(),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text('apply_filters'.tr),
+                  onPressed: () {
+                    search.clear();
+                    alertController.clearFilters();
+                  },
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: Text('clear_all_filters'.tr),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    foregroundColor: Colors.grey[700],
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -950,7 +1055,6 @@ class _ReportsPageState extends State<ReportsPage> {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-
     if (picked != null) {
       if (isFromDate) {
         alertController.onDateRangeChanged(

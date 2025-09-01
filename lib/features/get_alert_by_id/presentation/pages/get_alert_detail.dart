@@ -96,12 +96,13 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             ),
           );
 
-          await visitedTeamController.markAsVisitedByTeamMember(
-            alertId: widget.alertId,
-            userId: savedUserId,
-          );
-
-          await controller.fetchAlertDetail(widget.alertId);
+          if (alertDetail?.alert.alertStatus != 6) {
+            await visitedTeamController.markAsVisitedByTeamMember(
+              alertId: widget.alertId,
+              userId: savedUserId,
+            );
+            await controller.fetchAlertDetail(widget.alertId);
+          }
         }
       }
     });
@@ -166,7 +167,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 _buildTeamSection(alertDetail),
                 ConstantSpace.mediumVerticalSpacer,
               ],
-              alert.teamId == null && controller.userRole.value == 'Admin'
+              alert.alertStatus < 2 && controller.userRole.value == 'Admin'
                   ? _buildTeamAssignmentButton(alertDetail)
                   : const SizedBox.shrink(),
               const SizedBox(height: 16),
@@ -185,17 +186,30 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
   }
 
   Widget _buildTeamMemberDescriptionSection() {
-    if (controller.userRole.value != 'ServiceProvider') {
-      return const SizedBox.shrink();
-    }
-
     final alert = controller.alertDetail.value?.alert;
     final isStarted = alert?.startTimeByTeam != null;
+
+    if (controller.userRole.value != 'ServiceProvider' ||
+        alert?.alertStatus == 6) {
+      return const SizedBox.shrink();
+    }
 
     return FutureBuilder<bool>(
       future: _isUserTeamRepresentative(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || !snapshot.data! || !isStarted) {
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final isRepresentative = snapshot.data!;
+
+        // Hide completely if not started
+        if (!isStarted) {
+          return const SizedBox.shrink();
+        }
+
+        // Hide if already finished (status 5)
+        if (alert?.alertStatus == 5) {
           return const SizedBox.shrink();
         }
 
@@ -232,10 +246,10 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Description Field
                   TextFormField(
                     controller: finishController.descriptionController,
                     maxLines: 3,
+                    enabled: isRepresentative,
                     decoration: InputDecoration(
                       hintText: 'enter_team_member_notes'.tr,
                       border: OutlineInputBorder(
@@ -256,20 +270,27 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                         ),
                       ),
                       const Spacer(),
-                      ElevatedButton.icon(
-                        onPressed: () => finishController.pickImages(),
-                        icon: const Icon(Icons.add_photo_alternate, size: 18),
-                        label: Text('add_images'.tr),
+                      ElevatedButton(
+                        onPressed: isRepresentative
+                            ? () => _showPickOptionsDialogTeamMember(
+                                context,
+                                finishController,
+                              )
+                            : null,
+                        child: Icon(
+                          Icons.add_photo_alternate,
+                          size: 22,
+                          color: Colors.white,
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryColor.withOpacity(
-                            0.1,
-                          ),
-                          foregroundColor: AppColors.primaryColor,
-                          elevation: 0,
+                          backgroundColor: isRepresentative
+                              ? AppColors.primaryColor
+                              : Colors.grey,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
                           ),
+                          shape: CircleBorder(),
                         ),
                       ),
                     ],
@@ -294,7 +315,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: AppColors.borderColor,
+                                      color: AppColors.textColor,
                                     ),
                                   ),
                                   child: ClipRRect(
@@ -306,13 +327,18 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                                   top: 4,
                                   right: 4,
                                   child: GestureDetector(
-                                    onTap: () =>
-                                        finishController.removeImage(index),
+                                    onTap: isRepresentative
+                                        ? () => finishController.removeImage(
+                                            index,
+                                          )
+                                        : null,
                                     child: Container(
                                       width: 24,
                                       height: 24,
                                       decoration: BoxDecoration(
-                                        color: Colors.red,
+                                        color: isRepresentative
+                                            ? Colors.red
+                                            : Colors.grey,
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -343,7 +369,9 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: finishController.isFinishingProcess.value
+                      onPressed:
+                          (finishController.isFinishingProcess.value ||
+                              !isRepresentative)
                           ? null
                           : () async {
                               if (!finishController.validateForm()) return;
@@ -367,7 +395,9 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
+                        backgroundColor: isRepresentative
+                            ? Colors.orange
+                            : Colors.grey,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: finishController.isFinishingProcess.value
@@ -388,6 +418,42 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                             ),
                     ),
                   ),
+
+                  // Guide box for non-representatives
+                  if (!isRepresentative) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'only_representative_can_finish'.tr,
+                              style: TextStyle(
+                                color: Colors.orange[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -398,7 +464,10 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
   }
 
   Widget _buildAdminDescriptionSection() {
-    if (controller.userRole.value != 'Admin') {
+    final alert = controller.alertDetail.value?.alert;
+    if (controller.userRole.value != 'Admin' ||
+        alert == null ||
+        alert.alertStatus == 6) {
       return const SizedBox.shrink();
     }
 
@@ -746,6 +815,45 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
+
+            // Map Preview
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderColor),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(alert.latitude, alert.longitude),
+                    zoom: 15.0,
+                  ),
+                  markers: {
+                    Marker(
+                      markerId:  MarkerId('alert_location'.tr),
+                      position: LatLng(alert.latitude, alert.longitude),
+                      infoWindow: InfoWindow(
+                        title: 'alert_location'.tr,
+                        snippet: 'selected_by_doctor'.tr,
+                      ),
+                    ),
+                  },
+                  zoomControlsEnabled: false,
+                  myLocationButtonEnabled: false,
+                  mapToolbarEnabled: false,
+                  onTap: (position) {
+                   
+                    final destination = LatLng(alert.latitude, alert.longitude);
+                    controller.openDirections(destination);
+                  },
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
             _buildInfoRow(
               'selected_location'.tr,
               '${alert.latitude}, ${alert.longitude}',
@@ -767,7 +875,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
               ),
-              icon: Icon(Icons.map, color: AppColors.background),
+              icon: Icon(Icons.directions, color: AppColors.background),
               label: Text(
                 'open_map_direction'.tr,
                 style: TextStyle(color: AppColors.background),
@@ -922,85 +1030,124 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
     return FutureBuilder<bool>(
       future: _isUserTeamRepresentative(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || !snapshot.data!) {
+        if (!snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
         final alert = controller.alertDetail.value!.alert;
         final isStarted = alert.startTimeByTeam != null;
+        final isRepresentative = snapshot.data!;
 
+        // Hide completely if status conditions not met
         if (isStarted || alert.alertStatus == 5 || alert.alertStatus == 6) {
-          return const SizedBox.shrink(); 
-        } else {
-          TeamStartProcessingController startProcessController;
-          try {
-            startProcessController = Get.find<TeamStartProcessingController>();
-          } catch (e) {
-            Get.lazyPut<TeamStartProcessingController>(
-              () => TeamStartProcessingController(
-                Get.find<TeamStartProcessingUseCase>(),
-              ),
-            );
-            startProcessController = Get.find<TeamStartProcessingController>();
-          }
+          return const SizedBox.shrink();
+        }
 
-          return Obx(() {
-            return SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: startProcessController.isStartingProcess.value
-                    ? null
-                    : () async {
-                        final prefs = await SharedPreferences.getInstance();
-                        final String? savedUserId = prefs.getString('userId');
+        TeamStartProcessingController startProcessController;
+        try {
+          startProcessController = Get.find<TeamStartProcessingController>();
+        } catch (e) {
+          Get.lazyPut<TeamStartProcessingController>(
+            () => TeamStartProcessingController(
+              Get.find<TeamStartProcessingUseCase>(),
+            ),
+          );
+          startProcessController = Get.find<TeamStartProcessingController>();
+        }
 
-                        if (savedUserId != null) {
-                          final success = await startProcessController
-                              .teamStartProcessing(
-                                alertId: widget.alertId,
-                                userId: savedUserId,
-                              );
+        return Column(
+          children: [
+            Obx(() {
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed:
+                      (startProcessController.isStartingProcess.value ||
+                          !isRepresentative)
+                      ? null
+                      : () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          final String? savedUserId = prefs.getString('userId');
 
-                          if (success) {
-                            await controller.fetchAlertDetail(widget.alertId);
+                          if (savedUserId != null) {
+                            final success = await startProcessController
+                                .teamStartProcessing(
+                                  alertId: widget.alertId,
+                                  userId: savedUserId,
+                                );
+
+                            if (success) {
+                              await controller.fetchAlertDetail(widget.alertId);
+                            }
                           }
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isRepresentative
+                        ? AppColors.primaryColor
+                        : Colors.grey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: startProcessController.isStartingProcess.value
-                    ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                  child: startProcessController.isStartingProcess.value
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             ),
+                            SizedBox(width: 12),
+                            Text('Starting...'),
+                          ],
+                        )
+                      : Text(
+                          'start_processing'.tr,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          SizedBox(width: 12),
-                          Text('Starting...'),
-                        ],
-                      )
-                    : Text(
-                        'start_processing'.tr,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        ),
+                ),
+              );
+            }),
+
+            if (!isRepresentative) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'only_representative_can_start'.tr,
+                        style: TextStyle(
+                          color: Colors.orange[700],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
+                    ),
+                  ],
+                ),
               ),
-            );
-          });
-        }
+            ],
+          ],
+        );
       },
     );
   }
@@ -1069,6 +1216,37 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 icon: const Icon(Icons.close, color: Colors.white, size: 30),
                 style: IconButton.styleFrom(backgroundColor: Colors.black54),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPickOptionsDialogTeamMember(
+    BuildContext context,
+    TeamFinishProcessingController finishController,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text('take_photo'.tr),
+              onTap: () {
+                Navigator.of(context).pop();
+                finishController.pickImageFromCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo),
+              title: Text('choose_from_gallery'.tr),
+              onTap: () {
+                Navigator.of(context).pop();
+                finishController.pickImageFromGallery();
+              },
             ),
           ],
         ),

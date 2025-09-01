@@ -69,8 +69,8 @@ class _LoginPageState extends State<LoginPage> {
                       inputEmail(context, controller.emailLogin),
                       ConstantSpace.mediumVerticalSpacer,
                       inputPassword(context, controller.passwordLogin),
-                      ConstantSpace.mediumVerticalSpacer,
                       ConstantSpace.smallVerticalSpacer,
+
                       Padding(
                         padding: const EdgeInsetsDirectional.symmetric(
                           horizontal: 16,
@@ -175,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'hello'.tr + "!", 
+          'hello'.tr + "!",
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
@@ -191,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'welcome'.tr, 
+          'welcome'.tr,
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -207,7 +207,7 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         ConstantSpace.mediumHorizontalSpacer,
         Text(
-          'sign_in'.tr, 
+          'sign_in'.tr,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -218,56 +218,54 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
- Widget inputEmail(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'email'.tr,
-    prefixIcon: const Icon(Icons.email),
-    validator: (value) {
-     
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'email_required'.tr;
-      }
-      if (!GetUtils.isEmail(trimmedValue)) {
-        return 'email_invalid'.tr;
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+  Widget inputEmail(BuildContext context, controller) {
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'email'.tr,
+      prefixIcon: const Icon(Icons.email),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
 
-Widget inputPassword(BuildContext context, controller) {
-  return TextFieldInnerShadow(
-    borderRadius: 16,
-    controller: controller,
-    hintText: 'password'.tr,
-    prefixIcon: const Icon(Icons.lock),
-    validator: (value) {
-      
-      String trimmedValue = (value ?? '').trim();
-      
-      if (trimmedValue.isEmpty) {
-        return 'password_required'.tr;
-      }
-      if (trimmedValue.length < 6) {
-        return 'password_min_length'.tr; 
-      }
-      return null;
-    },
-    width: MediaQuery.sizeOf(context).width * 0.82,
-  );
-}
+        if (trimmedValue.isEmpty) {
+          return 'email_required'.tr;
+        }
+        if (!GetUtils.isEmail(trimmedValue)) {
+          return 'email_invalid'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
+
+  Widget inputPassword(BuildContext context, controller) {
+    return TextFieldInnerShadow(
+      borderRadius: 16,
+      controller: controller,
+      hintText: 'password'.tr,
+      prefixIcon: const Icon(Icons.lock),
+      validator: (value) {
+        String trimmedValue = (value ?? '').trim();
+
+        if (trimmedValue.isEmpty) {
+          return 'password_required'.tr;
+        }
+        if (trimmedValue.length < 6) {
+          return 'password_min_length'.tr;
+        }
+        return null;
+      },
+      width: MediaQuery.sizeOf(context).width * 0.82,
+    );
+  }
 
   Widget loginInformation() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'enter_login_info'.tr, 
+          'enter_login_info'.tr,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
         ),
         const SizedBox(width: 8),
@@ -301,7 +299,9 @@ Widget inputPassword(BuildContext context, controller) {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.primaryColor),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -313,7 +313,7 @@ Widget inputPassword(BuildContext context, controller) {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'login_google'.tr, 
+                      'login_google'.tr,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -362,7 +362,7 @@ Widget inputPassword(BuildContext context, controller) {
                   child: CircularProgressIndicator(color: AppColors.background),
                 )
               : Text(
-                  'login'.tr, 
+                  'login'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -383,7 +383,7 @@ Widget inputPassword(BuildContext context, controller) {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
-              'or'.tr, 
+              'or'.tr,
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
@@ -402,7 +402,7 @@ Widget inputPassword(BuildContext context, controller) {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'no_account'.tr, 
+          'no_account'.tr,
           style: TextStyle(
             fontSize: 16,
             color: AppColors.textSecondryColor,
@@ -419,7 +419,7 @@ Widget inputPassword(BuildContext context, controller) {
             );
           },
           child: Text(
-            'sign_up'.tr, 
+            'sign_up'.tr,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -433,11 +433,9 @@ Widget inputPassword(BuildContext context, controller) {
 
   Widget forgotPassword() {
     return TextButton(
-      onPressed: () {
-        
-      },
+      onPressed: () {},
       child: Text(
-        'forgot_password'.tr, 
+        'forgot_password'.tr,
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w400,

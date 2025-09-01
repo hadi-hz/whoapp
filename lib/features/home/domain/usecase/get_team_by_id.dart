@@ -1,12 +1,13 @@
-import 'package:test3/features/home/domain/entities/team_entity.dart';
-import 'package:test3/features/home/domain/repositories/team_repository.dart';
+import 'package:dartz/dartz.dart';
+import 'package:test3/features/home/domain/repositories/team_by_id_repository.dart';
+import '../entities/team_by_id_response_entity.dart';
 
 class GetTeamByIdUseCase {
-  final TeamsRepository repository;
+  final GetTeamByIdRepository repository;
 
   GetTeamByIdUseCase(this.repository);
 
-  Future<TeamEntity> call(String id) async {
-    return await repository.getTeamById(id);
+  Future<Either<String, TeamByIdResponseEntity>> call(String teamId) async {
+    return await repository.getTeamById(teamId);
   }
 }

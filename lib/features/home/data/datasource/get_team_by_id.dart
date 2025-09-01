@@ -1,28 +1,39 @@
+
+
 import 'package:dio/dio.dart';
 import 'package:test3/core/network/api_endpoints.dart';
-import 'package:test3/core/network/dio_baseurl.dart';
-import 'package:test3/features/home/data/model/team_model.dart';
+import 'package:test3/features/home/data/model/team_by_id_response_model.dart';
 
-abstract class TeamRemoteDataSourceTeamId {
-  Future<TeamModel> getTeamById(String id);
+abstract class GetTeamByIdRemoteDataSource {
+  Future<TeamByIdResponseModel> getTeamById(String teamId);
 }
 
-class TeamRemoteDataSourceImplTeamId implements TeamRemoteDataSourceTeamId {
-  final Dio _dio = DioBase().dio;
-  
+class GetTeamByIdRemoteDataSourceImpl implements GetTeamByIdRemoteDataSource {
+  final Dio dio;
 
-  TeamRemoteDataSourceImplTeamId();
+  GetTeamByIdRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<TeamModel> getTeamById(String id) async {
+  Future<TeamByIdResponseModel> getTeamById(String teamId) async {
     try {
-      final response = await _dio.post(
+      final response = await dio.post(
         ApiEndpoints.teamsGetbyId,
-        queryParameters: {'id': id},
+        queryParameters: {'id': teamId},
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+          },
+        ),
       );
-      return TeamModel.fromJson(response.data);
-    } catch (e) {
-      throw Exception('Failed to get team: $e');
+
+      return TeamByIdResponseModel.fromJson(response.data);
+    } on DioError catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to get team details: ${e.response!.statusCode}');
+      } else {
+        throw Exception('Network error: ${e.message}');
+      }
     }
   }
 }

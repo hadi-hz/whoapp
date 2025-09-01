@@ -16,44 +16,6 @@ class TeamsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.only(
-              bottom: MediaQuery.of(context).size.height * 0.09,
-              start: 110,
-              end: 110,
-            ),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-              ),
-              onPressed: () {
-                Get.bottomSheet(
-                  CreateTeamBottomSheet(),
-                  isScrollControlled: true,
-                );
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, color: AppColors.background),
-                  Text(
-                    'add_team'.tr,
-                    style: TextStyle(
-                      color: AppColors.background,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
       body: Container(
         width: context.width,
         height: context.height,
@@ -95,88 +57,138 @@ class TeamsScreen extends StatelessWidget {
             end: 16,
             start: 16,
           ),
-          child: Column(
-            children: [
-              ConstantSpace.largeVerticalSpacer,
-              ConstantSpace.largeVerticalSpacer,
-              profileHeader(),
-              ConstantSpace.mediumVerticalSpacer,
-              searching(context, search),
-              ConstantSpace.mediumVerticalSpacer,
-              buildExpandableFiltersContainer(),
-              ConstantSpace.mediumVerticalSpacer,
-
-              Expanded(
-                child: Obx(() {
-                  if (homeController.isLoadingTeam.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (homeController.errorMessageTeam.value.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red,
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await homeController.fetchTeams();
+            },
+            color: AppColors.primaryColor,
+            backgroundColor: Colors.white,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.largeVerticalSpacer,
+                  profileHeader(),
+                  ConstantSpace.mediumVerticalSpacer,
+                  searching(context, search),
+                  ConstantSpace.mediumVerticalSpacer,
+                  buildExpandableFiltersContainer(),
+                  ConstantSpace.smallVerticalSpacer,
+                  Padding(
+                    padding: EdgeInsetsDirectional.only(bottom: 12),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadiusGeometry.all(
+                            Radius.circular(4),
                           ),
-                          const SizedBox(height: 16),
-                          Text(homeController.errorMessageTeam.value),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => homeController.fetchTeams(),
-                            child: Text('retry'.tr),
-                          ),
-                        ],
+                        ),
+                        backgroundColor: AppColors.primaryColor,
                       ),
-                    );
-                  }
-
-                  if (homeController.filteredTeams.isEmpty) {
-                    return Center(
-                      child: Column(
+                      onPressed: () {
+                        Get.bottomSheet(
+                          CreateTeamBottomSheet(),
+                          isScrollControlled: true,
+                        );
+                      },
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.groups_outlined,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          Text('no_teams_found'.tr),
-                          if (homeController.nameFilterTeam.value.isNotEmpty ||
-                              homeController.healthcareFilter.value != null ||
-                              homeController.householdFilter.value != null ||
-                              homeController.referralFilter.value != null ||
-                              homeController.burialFilter.value != null) ...[
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () {
-                                search.clear();
-                                homeController.clearAllFiltersTeam();
-                              },
-                              child: Text('clear_filters'.tr),
+                          Icon(Icons.add, color: AppColors.background),
+                          Text(
+                            'add_team'.tr,
+                            style: TextStyle(
+                              color: AppColors.background,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
+                          ),
                         ],
                       ),
-                    );
-                  }
+                    ),
+                  ),
+                  SizedBox(
+                    height: context.height * 0.6,
+                    child: Obx(() {
+                      if (homeController.isLoadingTeam.value) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  return ListView.separated(
-                    itemCount: homeController.filteredTeams.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final team = homeController.filteredTeams[index];
-                      return _buildTeamCard(team);
-                    },
-                  );
-                }),
+                      if (homeController.errorMessageTeam.value.isNotEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(homeController.errorMessageTeam.value),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => homeController.fetchTeams(),
+                                child: Text('retry'.tr),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (homeController.filteredTeams.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.groups_outlined,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text('no_teams_found'.tr),
+                              if (homeController
+                                      .nameFilterTeam
+                                      .value
+                                      .isNotEmpty ||
+                                  homeController.healthcareFilter.value !=
+                                      null ||
+                                  homeController.householdFilter.value !=
+                                      null ||
+                                  homeController.referralFilter.value != null ||
+                                  homeController.burialFilter.value !=
+                                      null) ...[
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    search.clear();
+                                    homeController.clearAllFiltersTeam();
+                                  },
+                                  child: Text('clear_filters'.tr),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: homeController.filteredTeams.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final team = homeController.filteredTeams[index];
+                          return _buildTeamCard(team);
+                        },
+                      );
+                    }),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -219,9 +231,7 @@ class TeamsScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(width: 16),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,22 +244,17 @@ class TeamsScreen extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: 4),
-
                   Text(
-                    '${team.membersCount} ${'members'.tr}',
+                    '${team.memberCount} ${'members'.tr}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: 8),
                 ],
               ),
             ),
-
             const SizedBox(width: 12),
-
             Column(
               children: [
                 Icon(Icons.calendar_today, color: Colors.grey[600], size: 20),
@@ -314,7 +319,6 @@ class TeamsScreen extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-
                     Obx(() {
                       int activeFilters = 0;
                       if (homeController.nameFilterTeam.value.isNotEmpty)
@@ -365,7 +369,6 @@ class TeamsScreen extends StatelessWidget {
               ),
             ),
           ),
-
           Obx(
             () => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
@@ -516,9 +519,7 @@ class TeamsScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Row(
             children: [
               Expanded(
@@ -542,9 +543,7 @@ class TeamsScreen extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Row(
             children: [
               Expanded(

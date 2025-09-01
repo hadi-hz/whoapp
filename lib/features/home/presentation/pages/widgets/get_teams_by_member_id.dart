@@ -67,7 +67,7 @@ class UserTeamsScreen extends StatelessWidget {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(
-                height: context.height - 32, // برای اینکه scroll کنه
+                height: context.height * 0.88,
                 child: Column(
                   children: [
                     ConstantSpace.largeVerticalSpacer,

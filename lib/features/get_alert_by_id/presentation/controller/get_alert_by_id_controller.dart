@@ -39,12 +39,11 @@ class AlertDetailController extends GetxController {
 
   var userRole = ''.obs;
 
-
-
-    Future<void> openDirections(LatLng destination) async {
-    final url = 'https://www.google.com/maps/dir/?api=1'
+  Future<void> openDirections(LatLng destination) async {
+    final url =
+        'https://www.google.com/maps/dir/?api=1'
         '&destination=${destination.latitude},${destination.longitude}';
-    
+
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     }
@@ -131,19 +130,39 @@ class AlertDetailController extends GetxController {
   Color getStatusColor(int status) {
     switch (status) {
       case 0:
-        return Colors.green;
+        return userRole.value == 'Admin' ? Colors.red : Colors.green;
       case 1:
-        return Colors.blue;
+        return userRole.value == 'Admin' ? Colors.orange : Colors.blue;
       case 2:
-        return Colors.orange;
+        return userRole.value == 'Admin'
+            ? const Color.fromARGB(255, 208, 189, 13)
+            : userRole.value == 'ServiceProvider'
+            ? Colors.red
+            : Colors.orange;
       case 3:
-        return Colors.purple;
+        return userRole.value == 'Admin'
+            ? const Color.fromARGB(255, 208, 189, 13)
+            : userRole.value == 'ServiceProvider'
+            ? const Color.fromARGB(255, 208, 189, 13)
+            : Colors.purple;
       case 4:
-        return Colors.teal;
+        return userRole.value == 'Admin'
+            ? const Color.fromARGB(255, 208, 189, 13)
+            : userRole.value == 'ServiceProvider'
+            ? Colors.orange
+            : Colors.teal;
       case 5:
-        return Colors.yellow;
+        return userRole.value == 'Admin'
+            ? Colors.orange
+            : userRole.value == 'ServiceProvider'
+            ? const Color.fromARGB(255, 208, 189, 13)
+            : const Color.fromARGB(255, 208, 189, 13);
       case 6:
-        return Colors.red;
+        return userRole.value == 'Admin'
+            ? Colors.green
+            : userRole.value == 'ServiceProvider'
+            ? Colors.green
+            : Colors.red;
       default:
         return Colors.black;
     }
@@ -177,8 +196,6 @@ class AlertDetailController extends GetxController {
       teamId: teamId,
       userId: userId,
     );
-
-
 
     isAssigning.value = false;
 

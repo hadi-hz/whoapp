@@ -89,4 +89,20 @@ class TeamFinishProcessingController extends GetxController {
     descriptionController.dispose();
     super.onClose();
   }
+
+
+
+  Future<void> pickImageFromCamera() async {
+  final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera);
+  if (pickedFile != null) {
+    selectedImages.add(File(pickedFile.path));
+  }
+}
+
+Future<void> pickImageFromGallery() async {
+  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+  if (pickedFile != null) {
+    selectedImages.add(File(pickedFile.path));
+  }
+}
 }
