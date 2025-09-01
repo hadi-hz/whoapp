@@ -34,7 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     final data = response.data;
 
-    return   LoginEntity(
+    return LoginEntity(
       id: data['id'] ?? '',
       email: data['email'] ?? '',
       name: data['name'] ?? '',
@@ -42,15 +42,11 @@ class AuthRepositoryImpl implements AuthRepository {
       isUserApproved: data['isUserApproved'] ?? false,
       roles: List<String>.from(data['roles'] ?? []),
       message: data['message'] ?? '',
-      profileImageUrl: data['profileImageUrl'] ?? ''
+      profileImageUrl: data['profileImageUrl'] ?? '',
+      preferredLanguage: data['preferredLanguage'] ?? 0,
+      unReadMessagesCount: data['unReadMessagesCount'] ?? 0,
     );
   }
-
-
-
-
-
-
 
   @override
   Future<ApprovedEntity> checkUserIsApproved(ApprovedRequest request) async {
@@ -58,7 +54,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     final data = response.data;
 
-    return   ApprovedEntity(
+    return ApprovedEntity(
       id: data['id'] ?? '',
       email: data['email'] ?? '',
       name: data['name'] ?? '',
@@ -68,13 +64,6 @@ class AuthRepositoryImpl implements AuthRepository {
       message: data['message'] ?? '',
     );
   }
-
-
-
-
-
-
-
 
   @override
   Future<AuthEntity> loginWithGoogle({
@@ -92,9 +81,7 @@ class AuthRepositoryImpl implements AuthRepository {
     return result;
   }
 
-
-
-   @override
+  @override
   Future<Either<String, EnumsResponse>> getAllEnums() async {
     try {
       final result = await remoteDataSource.getAllEnums();

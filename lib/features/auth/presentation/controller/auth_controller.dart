@@ -20,6 +20,7 @@ import 'package:test3/features/auth/domain/usecase/enum_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/login_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/login_with_google_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/register_usecase.dart';
+import 'package:test3/features/auth/presentation/controller/translation_controller.dart';
 import 'package:test3/features/auth/presentation/pages/check_user_is_approved.dart';
 import 'package:test3/features/auth/presentation/pages/login_page.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
@@ -113,18 +114,23 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
 
-    final request = RegisterRequest(
-      name: name,
-      lastname: lastname,
-      phoneNumber: phoneNumber,
-      email: email,
-      password: password,
-      deviceTokenId: "string",
-      platform: 0,
-      preferredLanguage: 0,
-    );
-
     try {
+ 
+      final languageController = Get.find<LanguageController>();
+      final selectedLanguage = await languageController.getSelectedLanguageForRegister();
+      final languageCode = languageController.getLanguageCode(selectedLanguage);
+
+      final request = RegisterRequest(
+        name: name,
+        lastname: lastname,
+        phoneNumber: phoneNumber,
+        email: email,
+        password: password,
+        deviceTokenId: "string",
+        platform: 0,
+        preferredLanguage: languageCode,
+      );
+
       final user = await _registerUseCase(request);
       currentUser.value = user;
 
@@ -214,7 +220,12 @@ class AuthController extends GetxController {
       final loginUser = await _loginUseCase(request);
       currentLoginUser.value = loginUser;
 
+      print("currentLoginUser ID: ${currentLoginUser.value?.preferredLanguage}");
       print("currentLoginUser ID: ${currentLoginUser.value?.id}");
+
+    
+      final languageController = Get.find<LanguageController>();
+      await languageController.setLanguageFromLogin(loginUser.preferredLanguage ?? 0);
 
       if (loginUser.isUserApproved) {
         Get.snackbar(

@@ -14,7 +14,7 @@ class LanguageController extends GetxController {
   final RxBool isChangingLanguage = false.obs;
   final RxString errorMessage = ''.obs;
 
-  int _getLanguageCode(String locale) {
+  int getLanguageCode(String locale) {
     switch (locale) {
       case 'en':
         return 0;
@@ -27,6 +27,33 @@ class LanguageController extends GetxController {
     }
   }
 
+  String _getLanguageString(int code) {
+    switch (code) {
+      case 0:
+        return 'en';
+      case 1:
+        return 'fr';
+      case 2:
+        return 'it';
+      default:
+        return 'en';
+    }
+  }
+
+
+  Future<String> getSelectedLanguageForRegister() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('selectedLanguage') ?? 'en';
+  }
+
+  
+  Future<void> setLanguageFromLogin(int languageCode) async {
+    final languageString = _getLanguageString(languageCode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedLanguage', languageString);
+    Get.updateLocale(Locale(languageString));
+  }
+
   Future<void> changeLanguage(String languageCode) async {
     try {
       isChangingLanguage.value = true;
@@ -35,15 +62,27 @@ class LanguageController extends GetxController {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('userId');
 
+
       if (userId == null) {
-        throw Exception('User ID not found');
+        Get.updateLocale(Locale(languageCode));
+        await prefs.setString('selectedLanguage', languageCode);
+        
+        Get.snackbar(
+          'success'.tr,
+          'Language changed successfully',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return;
       }
 
+   
       Get.updateLocale(Locale(languageCode));
 
       final request = ChangeLanguageRequest(
         userId: userId,
-        newLanguage: _getLanguageCode(languageCode),
+        newLanguage: getLanguageCode(languageCode),
       );
 
       final response = await _changeLanguageUseCase.call(request);
