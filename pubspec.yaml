@@ -54,11 +54,21 @@ dependencies:
   dropdown_search: ^5.0.6
   device_preview: ^1.2.0
   url_launcher: ^6.3.1
+  firebase_messaging: ^15.2.8
+  firebase_core: ^3.15.2
   
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#0000"   # رنگ پس‌زمینه
+  adaptive_icon_foreground: "assets/icon/icon.png" # بخش اصلی آیکن
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

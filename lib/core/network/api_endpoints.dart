@@ -5,6 +5,7 @@ class ApiEndpoints {
   static const String alertCreate = "/alert/create";
   static const String getAllAlert = "/alert/get-all";
   static const String loginWithGoogle = "/auth/login-by-google";
+  static const String registerWithGoogle = "/auth/register-by-google";
   static const String changepassword = "/auth/change-password";
   static const String getUserInfo = "/user/get-user-info";
   static const String updateProfile = "/user/update-profile";

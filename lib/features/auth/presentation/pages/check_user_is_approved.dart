@@ -12,6 +12,9 @@ class ApprovedUserPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -20,7 +23,7 @@ class ApprovedUserPage extends StatelessWidget {
           );
         },
         color: AppColors.primaryColor,
-        backgroundColor: Colors.white,
+        backgroundColor: theme.cardColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Container(
@@ -28,11 +31,7 @@ class ApprovedUserPage extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                cardIsApproved(context),
-                const SizedBox(height: 20),
-                _buildRefreshHint(context),
-              ],
+              children: [cardIsApproved(context)],
             ),
           ),
         ),
@@ -41,13 +40,18 @@ class ApprovedUserPage extends StatelessWidget {
   }
 
   Widget cardIsApproved(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return BoxNeumorphysm(
       backgroundColor: AppColors.primaryColor,
       width: context.width,
-      height: context.height * 0.45,
-      borderColor: AppColors.textColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      height: context.height * 0.55,
+      borderColor: isDark ? theme.dividerColor : AppColors.textColor,
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       bottomRightOffset: const Offset(4, 4),
       topLeftOffset: const Offset(-4, -4),
       onTap: () {},
@@ -66,9 +70,9 @@ class ApprovedUserPage extends StatelessWidget {
             'register_success'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.background,
+              color: theme.colorScheme.onPrimary,
             ),
           ),
           InnerShadowContainer(
@@ -76,85 +80,76 @@ class ApprovedUserPage extends StatelessWidget {
             height: 40,
             blur: 8,
             offset: const Offset(5, 5),
-            shadowColor: AppColors.innershadow,
-            backgroundColor: AppColors.background,
+            shadowColor: isDark
+                ? theme.shadowColor.withOpacity(0.5)
+                : AppColors.innershadow,
+            backgroundColor: isDark ? theme.cardColor : AppColors.background,
             borderRadius: 20,
             child: Lottie.asset('assets/lottie/loading.json'),
           ),
+          Obx(() => _buildStatusSection(context)),
         ],
       ),
     );
   }
 
-  Widget _buildRefreshHint(BuildContext context) {
-    return Obx(() {
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: controller.isLoadingCheckIsApproved.value 
-              ? AppColors.primaryColor.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: controller.isLoadingCheckIsApproved.value 
-                ? AppColors.primaryColor
-                : Colors.grey.withOpacity(0.3),
-            width: 1,
-          ),
+  Widget _buildStatusSection(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: controller.isLoadingCheckIsApproved.value
+            ? theme.colorScheme.onPrimary.withOpacity(0.1)
+            : theme.colorScheme.onPrimary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.onPrimary.withOpacity(0.2),
+          width: 1,
         ),
-        child: Column(
-          children: [
-            if (controller.isLoadingCheckIsApproved.value) ...[
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+      ),
+      child: Column(
+        children: [
+          if (controller.isLoadingCheckIsApproved.value) ...[
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.onPrimary,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'checking_approval_status'.tr,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primaryColor,
-                ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'checking_approval_status'.tr,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onPrimary,
               ),
-            ] else ...[
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 1500),
-                child: Icon(
-                  Icons.refresh,
-                  color: Colors.grey[600],
-                  size: 24,
-                ),
+            ),
+          ] else ...[
+            Icon(
+              Icons.refresh_rounded,
+              color: theme.colorScheme.onPrimary.withOpacity(0.7),
+              size: 20,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'pull_down_to_check_status'.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onPrimary.withOpacity(0.8),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'pull_down_to_check_status'.tr,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'swipe_down_hint'.tr,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
+            ),
           ],
-        ),
-      );
-    });
+        ],
+      ),
+    );
   }
 }

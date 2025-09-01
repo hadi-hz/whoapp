@@ -30,8 +30,11 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       extendBody: true,
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: Obx(() {
         return IndexedStack(
           index: homeController.selectedIndex.value,
@@ -43,7 +46,6 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
           ],
         );
       }),
-
       bottomNavigationBar: Obx(
         () => AnimatedBottomNavigationBar(
           height: 70,

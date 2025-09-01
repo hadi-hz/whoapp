@@ -15,6 +15,8 @@ class TeamsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: Container(
         width: context.width,
@@ -23,32 +25,21 @@ class TeamsScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryColor.withOpacity(0.4),
-              AppColors.primaryColor.withOpacity(0.35),
-              AppColors.primaryColor.withOpacity(0.3),
-              AppColors.primaryColor.withOpacity(0.25),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-            ],
+            colors: isDark
+                ? [
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.2),
+                    AppColors.primaryColor.withOpacity(0.1),
+                    Colors.black,
+                    Colors.black,
+                  ]
+                : [
+                    AppColors.primaryColor.withOpacity(0.4),
+                    AppColors.primaryColor.withOpacity(0.35),
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.25),
+                    Colors.white,
+                  ],
           ),
         ),
         child: Padding(
@@ -62,29 +53,28 @@ class TeamsScreen extends StatelessWidget {
               await homeController.fetchTeams();
             },
             color: AppColors.primaryColor,
-            backgroundColor: Colors.white,
+            backgroundColor: isDark ? Colors.grey[800] : Colors.white,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   ConstantSpace.largeVerticalSpacer,
                   ConstantSpace.largeVerticalSpacer,
-                  profileHeader(),
+                  profileHeader(isDark),
                   ConstantSpace.mediumVerticalSpacer,
-                  searching(context, search),
+                  searching(context, search, isDark),
                   ConstantSpace.mediumVerticalSpacer,
-                  buildExpandableFiltersContainer(),
+                  buildExpandableFiltersContainer(isDark),
                   ConstantSpace.smallVerticalSpacer,
                   Padding(
                     padding: EdgeInsetsDirectional.only(bottom: 12),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadiusGeometry.all(
-                            Radius.circular(4),
-                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
                       ),
                       onPressed: () {
                         Get.bottomSheet(
@@ -95,11 +85,12 @@ class TeamsScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add, color: AppColors.background),
+                          Icon(Icons.add, color: Colors.white),
+                          const SizedBox(width: 8),
                           Text(
                             'add_team'.tr,
-                            style: TextStyle(
-                              color: AppColors.background,
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -112,7 +103,11 @@ class TeamsScreen extends StatelessWidget {
                     height: context.height * 0.6,
                     child: Obx(() {
                       if (homeController.isLoadingTeam.value) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primaryColor,
+                          ),
+                        );
                       }
 
                       if (homeController.errorMessageTeam.value.isNotEmpty) {
@@ -120,16 +115,25 @@ class TeamsScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.error_outline,
                                 size: 64,
-                                color: Colors.red,
+                                color: isDark ? Colors.red[300] : Colors.red,
                               ),
                               const SizedBox(height: 16),
-                              Text(homeController.errorMessageTeam.value),
+                              Text(
+                                homeController.errorMessageTeam.value,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () => homeController.fetchTeams(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
+                                ),
                                 child: Text('retry'.tr),
                               ),
                             ],
@@ -142,13 +146,18 @@ class TeamsScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.groups_outlined,
                                 size: 64,
-                                color: Colors.grey,
+                                color: isDark ? Colors.grey[400] : Colors.grey,
                               ),
                               const SizedBox(height: 16),
-                              Text('no_teams_found'.tr),
+                              Text(
+                                'no_teams_found'.tr,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
                               if (homeController
                                       .nameFilterTeam
                                       .value
@@ -181,7 +190,7 @@ class TeamsScreen extends StatelessWidget {
                             const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final team = homeController.filteredTeams[index];
-                          return _buildTeamCard(team);
+                          return _buildTeamCard(team, isDark);
                         },
                       );
                     }),
@@ -195,7 +204,7 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamCard(TeamEntity team) {
+  Widget _buildTeamCard(TeamEntity team, bool isDark) {
     return GestureDetector(
       onTap: () {
         Get.to(() => TeamDetailsPage(teamId: team.id));
@@ -203,14 +212,19 @@ class TeamsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(width: 1, color: AppColors.borderColor),
-          boxShadow: const [
+          border: Border.all(
+            width: 1, 
+            color: isDark ? Colors.grey[700]! : AppColors.borderColor,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black12,
               blurRadius: 6,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -221,14 +235,16 @@ class TeamsScreen extends StatelessWidget {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderColor, width: 1),
-              ),
-              child: Container(
-                child: Icon(
-                  Icons.groups,
-                  color: AppColors.primaryColor,
-                  size: 30,
+                border: Border.all(
+                  color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+                  width: 1,
                 ),
+                color: AppColors.primaryColor.withOpacity(0.1),
+              ),
+              child: Icon(
+                Icons.groups,
+                color: AppColors.primaryColor,
+                size: 30,
               ),
             ),
             const SizedBox(width: 16),
@@ -238,16 +254,20 @@ class TeamsScreen extends StatelessWidget {
                 children: [
                   Text(
                     team.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${team.memberCount} ${'members'.tr}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 14, 
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
@@ -257,14 +277,18 @@ class TeamsScreen extends StatelessWidget {
             const SizedBox(width: 12),
             Column(
               children: [
-                Icon(Icons.calendar_today, color: Colors.grey[600], size: 20),
+                Icon(
+                  Icons.calendar_today, 
+                  color: isDark ? Colors.grey[400] : Colors.grey[600], 
+                  size: 20,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   team.formattedCreateTime,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
               ],
@@ -275,14 +299,20 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget buildExpandableFiltersContainer() {
+  Widget buildExpandableFiltersContainer(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -301,7 +331,7 @@ class TeamsScreen extends StatelessWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
                   borderRadius: homeController.isFiltersExpandedTeam.value
                       ? const BorderRadius.vertical(top: Radius.circular(16))
                       : BorderRadius.circular(16),
@@ -377,7 +407,7 @@ class TeamsScreen extends StatelessWidget {
                 opacity: homeController.isFiltersExpandedTeam.value ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
                 child: homeController.isFiltersExpandedTeam.value
-                    ? buildFiltersContent()
+                    ? buildFiltersContent(isDark)
                     : null,
               ),
             ),
@@ -387,22 +417,24 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget searching(BuildContext context, TextEditingController controller) {
+  Widget searching(BuildContext context, TextEditingController controller, bool isDark) {
     return Obx(
       () => Container(
         width: MediaQuery.sizeOf(context).width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white,
+          color: isDark ? Colors.grey[850] : Colors.white,
           border: Border.all(
             color: homeController.nameFilterTeam.value.isNotEmpty
                 ? AppColors.primaryColor
-                : AppColors.borderColor,
+                : (isDark ? Colors.grey[700]! : AppColors.borderColor),
             width: homeController.nameFilterTeam.value.isNotEmpty ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -410,12 +442,18 @@ class TeamsScreen extends StatelessWidget {
         ),
         child: TextFormField(
           controller: controller,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onChanged: (value) {
             homeController.setNameFilterTeam(value);
           },
           decoration: InputDecoration(
             hintText: 'search_teams'.tr,
-            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+            hintStyle: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey, 
+              fontSize: 14,
+            ),
             suffixIcon: homeController.nameFilterTeam.value.isNotEmpty
                 ? IconButton(
                     icon: Icon(
@@ -428,13 +466,16 @@ class TeamsScreen extends StatelessWidget {
                       homeController.setNameFilterTeam("");
                     },
                   )
-                : const Icon(Icons.search, color: Colors.grey),
+                : Icon(
+                    Icons.search, 
+                    color: isDark ? Colors.grey[400] : Colors.grey,
+                  ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isDark ? Colors.grey[850] : Colors.white,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 12,
@@ -445,7 +486,7 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget profileHeader() {
+  Widget profileHeader(bool isDark) {
     return Row(
       children: [
         Column(
@@ -453,13 +494,20 @@ class TeamsScreen extends StatelessWidget {
           children: [
             Text(
               'teams_management'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 4),
             Obx(
               () => Text(
                 '${homeController.totalTeams} ${'teams_available'.tr}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 12, 
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
             ),
           ],
@@ -469,14 +517,20 @@ class TeamsScreen extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(54),
-            color: AppColors.backgroundColor,
-            border: Border.all(color: AppColors.borderColor, width: 1),
+            color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+              width: 1,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                const Icon(Icons.notifications_none_rounded),
+                Icon(
+                  Icons.notifications_none_rounded,
+                  color: isDark ? Colors.white70 : Colors.black,
+                ),
                 ConstantSpace.mediumHorizontalSpacer,
                 CircleAvatar(
                   backgroundColor: AppColors.primaryColor,
@@ -491,9 +545,13 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget buildFiltersContent() {
+  Widget buildFiltersContent(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
       child: Column(
         children: [
           Row(
@@ -504,7 +562,8 @@ class TeamsScreen extends StatelessWidget {
                   homeController.healthcareFilter,
                   homeController.setHealthcareFilter,
                   Icons.local_hospital,
-                  Colors.blue,
+                  isDark ? Colors.blue[300]! : Colors.blue,
+                  isDark,
                 ),
               ),
               const SizedBox(width: 12),
@@ -514,7 +573,8 @@ class TeamsScreen extends StatelessWidget {
                   homeController.householdFilter,
                   homeController.setHouseholdFilter,
                   Icons.home,
-                  Colors.green,
+                  isDark ? Colors.green[300]! : Colors.green,
+                  isDark,
                 ),
               ),
             ],
@@ -528,7 +588,8 @@ class TeamsScreen extends StatelessWidget {
                   homeController.referralFilter,
                   homeController.setReferralFilter,
                   Icons.person_search,
-                  Colors.orange,
+                  isDark ? Colors.orange[300]! : Colors.orange,
+                  isDark,
                 ),
               ),
               const SizedBox(width: 12),
@@ -538,7 +599,8 @@ class TeamsScreen extends StatelessWidget {
                   homeController.burialFilter,
                   homeController.setBurialFilter,
                   Icons.psychology,
-                  Colors.purple,
+                  isDark ? Colors.purple[300]! : Colors.purple,
+                  isDark,
                 ),
               ),
             ],
@@ -571,8 +633,10 @@ class TeamsScreen extends StatelessWidget {
                   icon: const Icon(Icons.clear_all, size: 18),
                   label: Text('clear_all_filters'.tr),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                    foregroundColor: Colors.grey[700],
+                    backgroundColor: isDark 
+                        ? Colors.grey[700] 
+                        : Colors.grey.withOpacity(0.2),
+                    foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -594,6 +658,7 @@ class TeamsScreen extends StatelessWidget {
     Function(bool?) onChanged,
     IconData icon,
     Color color,
+    bool isDark,
   ) {
     return Obx(
       () => Container(
@@ -603,11 +668,11 @@ class TeamsScreen extends StatelessWidget {
           border: Border.all(
             color: filterValue.value != null
                 ? AppColors.primaryColor
-                : Colors.grey.shade300,
+                : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
             width: filterValue.value != null ? 2 : 1,
           ),
           color: filterValue.value != null
-              ? AppColors.primaryColor.withOpacity(0.1)
+              ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
               : Colors.transparent,
         ),
         child: Column(
@@ -624,7 +689,7 @@ class TeamsScreen extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: filterValue.value != null
                           ? AppColors.primaryColor
-                          : Colors.grey[700],
+                          : (isDark ? Colors.grey[400] : Colors.grey[700]),
                     ),
                   ),
                 ),
@@ -634,9 +699,9 @@ class TeamsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildFilterOption('all'.tr, null, filterValue, onChanged),
-                _buildFilterOption('yes'.tr, true, filterValue, onChanged),
-                _buildFilterOption('no'.tr, false, filterValue, onChanged),
+                _buildFilterOption('all'.tr, null, filterValue, onChanged, isDark),
+                _buildFilterOption('yes'.tr, true, filterValue, onChanged, isDark),
+                _buildFilterOption('no'.tr, false, filterValue, onChanged, isDark),
               ],
             ),
           ],
@@ -650,6 +715,7 @@ class TeamsScreen extends StatelessWidget {
     bool? value,
     Rxn<bool> currentValue,
     Function(bool?) onChanged,
+    bool isDark,
   ) {
     final isSelected = currentValue.value == value;
     return GestureDetector(
@@ -660,14 +726,18 @@ class TeamsScreen extends StatelessWidget {
           color: isSelected ? AppColors.primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSelected ? AppColors.primaryColor : Colors.grey.shade300,
+            color: isSelected 
+                ? AppColors.primaryColor 
+                : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 10,
-            color: isSelected ? Colors.white : Colors.grey[600],
+            color: isSelected 
+                ? Colors.white 
+                : (isDark ? Colors.grey[400] : Colors.grey[600]),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),

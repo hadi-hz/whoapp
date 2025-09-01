@@ -21,21 +21,21 @@ class AnimatedBottomNavServiceProvider extends StatelessWidget {
   AnimatedBottomNavServiceProvider({super.key});
 
   final HomeController homeController = Get.find<HomeController>();
-
   final AddReportController controller = Get.find<AddReportController>();
-
   final authController = Get.find<AuthController>();
 
   final iconList = <IconData>[
     Icons.person,
     Icons.list_alt_rounded,
     Icons.groups_2,
- 
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: Obx(() {
         return IndexedStack(
           index: homeController.selectedIndex.value,
@@ -43,11 +43,9 @@ class AnimatedBottomNavServiceProvider extends StatelessWidget {
             ProfilePage(),
             ReportsPage(),
             UserTeamsScreen(),
-         
           ],
         );
       }),
-
       bottomNavigationBar: Obx(
         () => AnimatedBottomNavigationBar(
           height: 70,
@@ -55,11 +53,9 @@ class AnimatedBottomNavServiceProvider extends StatelessWidget {
           icons: iconList,
           activeIndex: homeController.selectedIndex.value,
           gapLocation: GapLocation.none,
-
           onTap: homeController.changePage,
           backgroundColor: AppColors.primaryColor,
           activeColor: AppColors.backgroundColor,
-
           inactiveColor: AppColors.backgroundColor.withOpacity(0.6),
           leftCornerRadius: 12,
           rightCornerRadius: 12,

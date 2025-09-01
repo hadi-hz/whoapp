@@ -1,10 +1,12 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/network/dio_baseurl.dart';
+import 'package:test3/core/theme/theme_controller.dart';
 import 'package:test3/features/add_report/data/datasource/alert_remote_datasource.dart';
 import 'package:test3/features/add_report/data/repositories/alert_repository_impl.dart';
 import 'package:test3/features/add_report/presentation/controller/add_report_controller.dart';
@@ -111,11 +113,16 @@ import 'package:test3/features/profile/presentation/controller/profile_controlle
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
   final prefs = await SharedPreferences.getInstance();
   final hasToken = prefs.getString('token') != null;
 
+  
+
   Get.put<Dio>(DioBase().dio);
+
+   final themeController = Get.put(ThemeController());
 
   Get.lazyPut<GetTeamByIdRemoteDataSource>(
     () => GetTeamByIdRemoteDataSourceImpl(dio: Get.find<Dio>()),
@@ -447,20 +454,25 @@ void main() async {
   //   ),
   // );
 
-  runApp(MainApp(showSplash: !hasToken));
+  runApp(MainApp(showSplash: !hasToken , themeController: themeController));
 }
 
 class MainApp extends StatelessWidget {
   final bool showSplash;
-  const MainApp({super.key, this.showSplash = true});
+  final ThemeController themeController;
+  
+  MainApp({super.key, this.showSplash = true, required this.themeController});
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    return Obx(() => GetMaterialApp(
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeController.themeMode.value,
       translations: AppTranslations(),
       locale: const Locale('en'),
       fallbackLocale: const Locale('en'),
       home: showSplash ? SplashScreenPage() : HomePage(),
-    );
+    ));
   }
 }

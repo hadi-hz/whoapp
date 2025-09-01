@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/core/theme/theme_controller.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
@@ -35,11 +36,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
       body: Stack(
         children: [
           Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
@@ -50,13 +53,13 @@ class _ProfilePageState extends State<ProfilePage> {
               height: screenHeight,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  const BoxShadow(
-                    color: Colors.black12,
+                  BoxShadow(
+                    color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
                     blurRadius: 10,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -65,20 +68,35 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: [ChangeLang()],
+                    children: [
+                      const ChangeLang(),
+                      Obx(() {
+                        return IconButton(
+                          icon: Icon(
+                            Get.find<ThemeController>().themeMode.value == ThemeMode.light
+                                ? Icons.dark_mode
+                                : Icons.light_mode,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            Get.find<ThemeController>().toggleTheme();
+                          },
+                        );
+                      }),
+                    ],
                   ),
                   ConstantSpace.mediumVerticalSpacer,
-                  userNameBox(),
+                  userNameBox(context),
                   ConstantSpace.largeVerticalSpacer,
-                  fullNameBox(),
+                  fullNameBox(context),
                   ConstantSpace.largeVerticalSpacer,
-                  emailBox(),
+                  emailBox(context),
                   ConstantSpace.largeVerticalSpacer,
-                  roleBox(),
+                  roleBox(context),
                   ConstantSpace.largeVerticalSpacer,
-                  changePasswordButton(),
+                  changePasswordButton(context),
                   ConstantSpace.largeVerticalSpacer,
-                  Row(children: [logoutButton()]),
+                  Row(children: [logoutButton(context)]),
                 ],
               ),
             ),
@@ -86,14 +104,16 @@ class _ProfilePageState extends State<ProfilePage> {
           Positioned(
             top: screenHeight * 0.23 - 25,
             left: (screenWidth / 2) - 50,
-            child: profileCircle(),
+            child: profileCircle(context),
           ),
         ],
       ),
     );
   }
 
-  Widget userNameBox() {
+  Widget userNameBox(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Obx(() {
       return Row(
         children: [
@@ -108,13 +128,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   color: AppColors.primaryColor,
                 ),
               ),
-
               Text(
                 '${controller.userInfo.value?.name ?? ''}',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.primaryColor,
+                  color: theme.textTheme.bodyMedium?.color,
                 ),
               ),
             ],
@@ -124,32 +143,69 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  Widget fullNameBox() {
+  Widget fullNameBox(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Obx(() {
       return Row(
         children: [
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Text(
+                'lastname'.tr.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              Text(
+                '${controller.userInfo.value?.lastname ?? ''}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget emailBox(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Obx(() {
+      return Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'email'.tr.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              Row(
                 children: [
                   Text(
-                    'lastname'.tr.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-
-                  Text(
-                    '${controller.userInfo.value?.lastname ?? ''}',
+                    '${controller.userInfo.value?.email ?? ''}',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.primaryColor,
+                      color: theme.textTheme.bodyMedium?.color,
                     ),
                   ),
+                  ConstantSpace.smallHorizontalSpacer,
+                  controller.userInfo.value?.emailConfirmed == true
+                      ? const Icon(Icons.check_circle, color: Colors.green)
+                      : const Icon(Icons.error, color: Colors.red),
                 ],
               ),
             ],
@@ -159,76 +215,30 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  Widget emailBox() {
+  Widget roleBox(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Obx(() {
       return Row(
         children: [
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'email'.tr.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-
-                  Row(
-                    children: [
-                      Text(
-                        '${controller.userInfo.value?.email ?? ''}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                      ConstantSpace.smallHorizontalSpacer,
-                      controller.userInfo.value?.emailConfirmed == true
-                          ? Icon(Icons.check_circle, color: Colors.green)
-                          : Icon(Icons.error, color: Colors.red),
-                    ],
-                  ),
-                ],
+              Text(
+                'role'.tr.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
               ),
-            ],
-          ),
-        ],
-      );
-    });
-  }
-
-  Widget roleBox() {
-    return Obx(() {
-      return Row(
-        children: [
-          Column(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'role'.tr.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-
-                  Text(
-                    '${controller.userInfo.value?.roles.first ?? ''}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ],
+              Text(
+                '${controller.userInfo.value?.roles.first ?? ''}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
               ),
             ],
           ),
@@ -250,15 +260,17 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget bodyTitles(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       width: MediaQuery.sizeOf(context).width,
       height: 500,
-      color: AppColors.primaryColor,
+      color: isDark ? theme.primaryColor : AppColors.primaryColor,
       child: Column(
         children: [
           ConstantSpace.largeVerticalSpacer,
           ConstantSpace.largeVerticalSpacer,
-
           Obx(
             () => Row(
               children: [
@@ -280,15 +292,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(
-                      () => animatedText(controller.showHello.value, title()),
-                    ),
-                    Obx(
-                      () => animatedText(
-                        controller.showWelcome.value,
-                        description(),
-                      ),
-                    ),
+                    Obx(() => animatedText(controller.showHello.value, title(context))),
+                    Obx(() => animatedText(controller.showWelcome.value, description(context))),
                   ],
                 ),
               ],
@@ -299,7 +304,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget profileCircle() {
+  Widget profileCircle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Obx(() {
       final file = controller.imageFile.value;
       final networkUrl = controller.userInfo.value?.profileImageUrl;
@@ -310,12 +318,12 @@ class _ProfilePageState extends State<ProfilePage> {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color.fromARGB(255, 223, 221, 221),
+              color: isDark ? theme.cardColor : const Color.fromARGB(255, 223, 221, 221),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -332,14 +340,13 @@ class _ProfilePageState extends State<ProfilePage> {
                               return Icon(
                                 Icons.person,
                                 size: 50,
-                                color: Colors.white,
+                                color: theme.iconTheme.color,
                               );
                             },
                           )
-                        : Icon(Icons.person, size: 50, color: Colors.white)),
+                        : Icon(Icons.person, size: 50, color: theme.iconTheme.color)),
             ),
           ),
-
           Positioned(
             bottom: 0,
             right: 0,
@@ -349,20 +356,18 @@ class _ProfilePageState extends State<ProfilePage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primaryColor,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: theme.cardColor, width: 2),
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: Icon(Icons.edit, size: 18, color: Colors.white),
+                icon: const Icon(Icons.edit, size: 18, color: Colors.white),
                 onPressed: () {
                   Get.bottomSheet(
                     Container(
                       height: MediaQuery.of(context).size.height * 0.55,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(25),
-                        ),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
                       ),
                       child: Column(
                         children: [
@@ -370,16 +375,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppColors.primaryColor.withOpacity(0.1),
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(25),
-                              ),
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
                             ),
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.person_add,
-                                  color: AppColors.primaryColor,
-                                ),
+                                Icon(Icons.person_add, color: AppColors.primaryColor),
                                 const SizedBox(width: 8),
                                 Text(
                                   'edit_profile'.tr,
@@ -392,12 +392,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const Spacer(),
                                 IconButton(
                                   onPressed: () => Get.back(),
-                                  icon: const Icon(Icons.close),
+                                  icon: Icon(Icons.close, color: theme.iconTheme.color),
                                 ),
                               ],
                             ),
                           ),
-
                           Expanded(
                             child: Form(
                               key: formKey,
@@ -411,16 +410,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: SingleChildScrollView(
                                   child: Column(
                                     children: [
-                                      chooseImageProfile(),
+                                      chooseImageProfile(context),
                                       ConstantSpace.mediumVerticalSpacer,
                                       inputName(context, controller.name),
                                       ConstantSpace.mediumVerticalSpacer,
-                                      inputLastName(
-                                        context,
-                                        controller.lastName,
-                                      ),
+                                      inputLastName(context, controller.lastName),
                                       ConstantSpace.largeVerticalSpacer,
-                                      buttonSaveProfile(),
+                                      buttonSaveProfile(context),
                                     ],
                                   ),
                                 ),
@@ -446,7 +442,10 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  Widget chooseImageProfile() {
+  Widget chooseImageProfile(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Stack(
       children: [
         Obx(
@@ -456,12 +455,12 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               border: Border.all(width: 3, color: AppColors.primaryColor),
               shape: BoxShape.circle,
-              color: const Color.fromARGB(255, 223, 221, 221),
+              color: isDark ? theme.cardColor : const Color.fromARGB(255, 223, 221, 221),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
                   blurRadius: 10,
-                  offset: Offset(0, 4),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
@@ -470,7 +469,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ? Icon(
                       Icons.person,
                       size: 50,
-                      color: AppColors.backgroundColor,
+                      color: theme.iconTheme.color,
                     )
                   : Image.file(
                       controller.imageFile.value as File,
@@ -479,7 +478,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
-
         Positioned(
           bottom: 0,
           right: 0,
@@ -489,15 +487,11 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.primaryColor,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: theme.cardColor, width: 2),
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(
-                Icons.add_a_photo_rounded,
-                size: 18,
-                color: Colors.white,
-              ),
+              icon: const Icon(Icons.add_a_photo_rounded, size: 18, color: Colors.white),
               onPressed: controller.pickImage,
             ),
           ),
@@ -506,7 +500,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget title() {
+  Widget title(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -515,14 +511,16 @@ class _ProfilePageState extends State<ProfilePage> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget description() {
+  Widget description(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -531,7 +529,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
@@ -544,22 +542,7 @@ class _ProfilePageState extends State<ProfilePage> {
       controller: controller,
       hintText: 'name'.tr,
       prefixIcon: const Icon(Icons.person),
-      validator: (p0) {
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width * 0.82,
-    );
-  }
-
-  Widget inputEmail(BuildContext context, controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      hintText: 'email'.tr,
-      prefixIcon: const Icon(Icons.email),
-      validator: (p0) {
-        return null;
-      },
+      validator: (p0) => null,
       width: MediaQuery.sizeOf(context).width * 0.82,
     );
   }
@@ -570,21 +553,21 @@ class _ProfilePageState extends State<ProfilePage> {
       controller: controller,
       hintText: 'lastname'.tr,
       prefixIcon: const Icon(Icons.person),
-      validator: (p0) {
-        return null;
-      },
+      validator: (p0) => null,
       width: MediaQuery.sizeOf(context).width * 0.82,
     );
   }
 
-  Widget changePasswordButton() {
+  Widget changePasswordButton(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return InkWell(
       onTap: () {
         Get.bottomSheet(
           Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
             ),
             child: Form(
               key: formKeyChangePassword,
@@ -601,19 +584,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     SizedBox(
                       width: context.width * 0.28,
                       child: Divider(
-                        color: AppColors.textColor,
+                        color: theme.dividerColor,
                         thickness: 4,
-                        radius: BorderRadius.all(Radius.circular(22)),
+                        radius: const BorderRadius.all(Radius.circular(22)),
                       ),
                     ),
                     ConstantSpace.mediumVerticalSpacer,
-                    changePasswordInformation(),
+                    changePasswordInformation(context),
                     ConstantSpace.largeVerticalSpacer,
                     inputCurrentPassword(context, controller.currentPassword),
                     ConstantSpace.mediumVerticalSpacer,
                     inputNewPassword(context, controller.newPassword),
                     ConstantSpace.largeVerticalSpacer,
-                    buttonChangePassword(),
+                    buttonChangePassword(context),
                   ],
                 ),
               ),
@@ -673,20 +656,28 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget changePasswordInformation() {
+  Widget changePasswordInformation(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'enter_new_password'.tr,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
-        const SizedBox(width: 8),
       ],
     );
   }
 
-  Widget buttonChangePassword() {
+  Widget buttonChangePassword(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
       onTap: controller.isLoadingChangePassword.value
           ? () {}
@@ -696,15 +687,15 @@ class _ProfilePageState extends State<ProfilePage> {
               if (formKeyChangePassword.currentState!.validate()) {
                 controller.changePassword(userId ?? '');
               }
-              controller.currentPassword.clear();
-              controller.newPassword.clear();
             },
       borderRadius: 12,
-      borderColor: AppColors.background,
+      borderColor: isDark ? theme.dividerColor : AppColors.background,
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: 200,
       bottomRightOffset: const Offset(4, 4),
@@ -715,14 +706,14 @@ class _ProfilePageState extends State<ProfilePage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background),
+                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary),
                 )
               : Text(
                   'change_password'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.background,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 );
         }),
@@ -730,45 +721,30 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget buttonSaveProfile() {
+  Widget buttonSaveProfile(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
       onTap: () async {
-        if (controller.isLoadingUpdate.value) {
-          return;
-        }
-
+        if (controller.isLoadingUpdate.value) return;
         if (formKey.currentState?.validate() ?? false) {
           final prefs = await SharedPreferences.getInstance();
           final userId = prefs.getString('userId');
-
           if (userId != null && userId.isNotEmpty) {
             await controller.updateProfile(userId);
             controller.fetchUserProfile(userId);
-          } else {
-            Get.snackbar(
-              'error'.tr,
-              'user_id_not_found'.tr,
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.redAccent,
-              colorText: Colors.white,
-            );
           }
-        } else {
-          Get.snackbar(
-            'validation_error'.tr,
-            'check_required_fields'.tr,
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-          );
         }
       },
       borderRadius: 12,
-      borderColor: AppColors.background,
+      borderColor: isDark ? theme.dividerColor : AppColors.background,
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: 200,
       bottomRightOffset: const Offset(4, 4),
@@ -779,14 +755,14 @@ class _ProfilePageState extends State<ProfilePage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background),
+                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary),
                 )
               : Text(
                   'save_profile'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.background,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 );
         }),
@@ -794,11 +770,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget logoutButton() {
+  Widget logoutButton(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return GestureDetector(
-      onTap: () => _showLogoutDialog(),
+      onTap: () => _showLogoutDialog(context),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.red,
           borderRadius: BorderRadius.circular(8),
@@ -806,36 +784,51 @@ class _ProfilePageState extends State<ProfilePage> {
             BoxShadow(
               color: Colors.red.withOpacity(0.3),
               blurRadius: 4,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.logout, color: Colors.white),
-            SizedBox(width: 8),
-            Text('logout'.tr, style: TextStyle(color: Colors.white)),
+            const Icon(Icons.logout, color: Colors.white),
+            const SizedBox(width: 8),
+            Text('logout'.tr, style: const TextStyle(color: Colors.white)),
           ],
         ),
       ),
     );
   }
 
-  void _showLogoutDialog() {
+  void _showLogoutDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    
     Get.dialog(
       AlertDialog(
-        title: Text('confirm_logout'.tr),
-        content: Text('are_you_sure_logout'.tr),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text(
+          'confirm_logout'.tr,
+          style: TextStyle(color: theme.textTheme.titleLarge?.color),
+        ),
+        content: Text(
+          'are_you_sure_logout'.tr,
+          style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+        ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'cancel'.tr,
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+            ),
+          ),
           ElevatedButton(
             onPressed: () {
               Get.back();
               authController.quickLogout();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text('logout'.tr, style: TextStyle(color: Colors.white)),
+            child:  Text('logout'.tr, style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

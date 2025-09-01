@@ -270,4 +270,5 @@ const Map<String, String> it = {
   'type': 'Tipo',
   'all_teams': 'Tutti i team',
   'all_users': 'Tutti gli utenti',
+  "pull_down_to_check_status": "Trascina verso il basso per controllare lo stato"
 };

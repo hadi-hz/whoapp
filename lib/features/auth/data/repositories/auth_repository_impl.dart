@@ -2,11 +2,14 @@ import 'package:dartz/dartz.dart';
 import 'package:test3/features/auth/data/datasource/auth_remote_datasource.dart';
 import 'package:test3/features/auth/data/model/approved_request.dart';
 import 'package:test3/features/auth/data/model/login_request.dart';
+import 'package:test3/features/auth/data/model/register_google_request_model.dart';
 import 'package:test3/features/auth/data/model/register_request.dart';
 import 'package:test3/features/auth/domain/entities/approved.dart';
 import 'package:test3/features/auth/domain/entities/auth_by_google.dart';
 import 'package:test3/features/auth/domain/entities/enum.dart';
 import 'package:test3/features/auth/domain/entities/login.dart';
+import 'package:test3/features/auth/domain/entities/login_google.dart';
+import 'package:test3/features/auth/domain/entities/register_google.dart';
 import 'package:test3/features/auth/domain/entities/user.dart';
 import 'package:test3/features/auth/domain/repositories/auth_repository.dart';
 
@@ -66,7 +69,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthEntity> loginWithGoogle({
+  Future<LoginGoogleEntity> loginWithGoogle({
     required String idToken,
     required String deviceTokenId,
     required int platform,
@@ -90,4 +93,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(e.toString());
     }
   }
+
+  Future<RegisterGoogleEntity> registerWithGoogle(RegisterGoogleRequest request) async {
+  return await remoteDataSource.registerWithGoogle(request);
+}
 }

@@ -17,7 +17,6 @@ import 'package:test3/features/get_alert_by_id/presentation/controller/update_by
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_team_member-controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_team_member_controller.dart';
-import 'package:test3/features/get_alert_by_id/presentation/pages/map_get_location.dart';
 import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import '../../../../core/const/const.dart';

@@ -1,5 +1,6 @@
 
 import 'package:test3/features/auth/domain/entities/auth_by_google.dart';
+import 'package:test3/features/auth/domain/entities/login_google.dart';
 import 'package:test3/features/auth/domain/repositories/auth_repository.dart';
 
 class LoginWithGoogleUseCase {
@@ -7,7 +8,7 @@ class LoginWithGoogleUseCase {
 
   LoginWithGoogleUseCase(this.repository);
 
-  Future<AuthEntity> call({
+  Future<LoginGoogleEntity> call({
     required String idToken,
     required String deviceTokenId,
     required int platform,

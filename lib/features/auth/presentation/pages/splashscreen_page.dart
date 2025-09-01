@@ -39,7 +39,9 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
 
       controller.getCurrentLocation();
 
-      if (savedUserId != null && savedUserId.isNotEmpty) {
+      if (savedUserId != null &&
+          savedUserId.isNotEmpty &&
+          authController.currentLoginUser.value?.isUserApproved == true) {
         Get.offAll(
           () => HomePage(),
           transition: Transition.downToUp,

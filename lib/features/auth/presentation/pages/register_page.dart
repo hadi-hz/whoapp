@@ -28,39 +28,35 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: AppColors.background,
+        backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
         body: Form(
           key: formKey,
           child: Stack(
             children: [
               bodyTitles(context),
-
               Align(
                 alignment: Alignment.bottomCenter,
                 child: SingleChildScrollView(
                   child: Container(
                     width: screenWidth,
                     height: screenHeight * 0.72,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 24,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(30),
-                      ),
+                      color: theme.cardColor,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        loginInformation(),
+                        loginInformation(context),
                         ConstantSpace.mediumVerticalSpacer,
                         inputName(context, controller.name),
                         ConstantSpace.smallVerticalSpacer,
@@ -70,13 +66,13 @@ class _RegisterPageState extends State<RegisterPage> {
                         ConstantSpace.smallVerticalSpacer,
                         inputPassword(context, controller.password),
                         ConstantSpace.mediumVerticalSpacer,
-                        buttonRegister(),
+                        buttonRegister(context),
                         ConstantSpace.mediumVerticalSpacer,
-                        secondSection(),
+                        secondSection(context),
                         ConstantSpace.mediumVerticalSpacer,
-                        buttonRegisterGoogle(),
+                        buttonRegisterGoogle(context),
                         ConstantSpace.mediumVerticalSpacer,
-                        SignInButton(),
+                        SignInButton(context),
                       ],
                     ),
                   ),
@@ -102,10 +98,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget bodyTitles(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       width: MediaQuery.sizeOf(context).width,
       height: 224,
-      color: AppColors.primaryColor,
+      color: isDark ? theme.primaryColor : AppColors.primaryColor,
       child: Column(
         children: [
           ConstantSpace.xLargeVerticalSpacer,
@@ -114,24 +113,11 @@ class _RegisterPageState extends State<RegisterPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(
-                    () =>
-                        animatedText(controller.showHello.value, helloTitle()),
-                  ),
+                  Obx(() => animatedText(controller.showHello.value, helloTitle(context))),
                   ConstantSpace.tinyVerticalSpacer,
-                  Obx(
-                    () => animatedText(
-                      controller.showWelcome.value,
-                      welcomeTitle(),
-                    ),
-                  ),
+                  Obx(() => animatedText(controller.showWelcome.value, welcomeTitle(context))),
                   ConstantSpace.tinyVerticalSpacer,
-                  Obx(
-                    () => animatedText(
-                      controller.showSignIn.value,
-                      signUpTitle(),
-                    ),
-                  ),
+                  Obx(() => animatedText(controller.showSignIn.value, signUpTitle(context))),
                 ],
               ),
               const Spacer(),
@@ -161,7 +147,9 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget helloTitle() {
+  Widget helloTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -170,14 +158,16 @@ class _RegisterPageState extends State<RegisterPage> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget welcomeTitle() {
+  Widget welcomeTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -186,14 +176,16 @@ class _RegisterPageState extends State<RegisterPage> {
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget signUpTitle() {
+  Widget signUpTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -202,7 +194,7 @@ class _RegisterPageState extends State<RegisterPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
@@ -217,7 +209,6 @@ class _RegisterPageState extends State<RegisterPage> {
       prefixIcon: const Icon(Icons.person),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'firstname_required'.tr;
         }
@@ -238,7 +229,6 @@ class _RegisterPageState extends State<RegisterPage> {
       prefixIcon: const Icon(Icons.person),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'lastname_required'.tr;
         }
@@ -259,7 +249,6 @@ class _RegisterPageState extends State<RegisterPage> {
       prefixIcon: const Icon(Icons.email),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'email_required'.tr;
         }
@@ -280,7 +269,6 @@ class _RegisterPageState extends State<RegisterPage> {
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'password_required'.tr;
         }
@@ -293,13 +281,19 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget loginInformation() {
+  Widget loginInformation(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'enter_register_info'.tr,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
         const SizedBox(width: 8),
         const ChangeLang(),
@@ -307,7 +301,10 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget buttonRegister() {
+  Widget buttonRegister(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
       onTap: controller.isLoading.value
           ? () {}
@@ -323,11 +320,13 @@ class _RegisterPageState extends State<RegisterPage> {
               }
             },
       borderRadius: 12,
-      borderColor: AppColors.background,
+      borderColor: isDark ? theme.dividerColor : AppColors.background,
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: 200,
       bottomRightOffset: const Offset(4, 4),
@@ -338,14 +337,16 @@ class _RegisterPageState extends State<RegisterPage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.onPrimary,
+                  ),
                 )
               : Text(
                   'register_account'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.background,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 );
         }),
@@ -353,34 +354,36 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget buttonRegisterGoogle() {
+  Widget buttonRegisterGoogle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
-      onTap: controller.isLoadingGoogle.value
+      onTap: controller.isLoadingGoogleRegister.value
           ? () {}
           : () {
-              print(controller.token.value);
-              print(controller.userEmail.value);
-
-              controller.loginWithGoogle();
+              controller.registerWithGoogle();
             },
       borderRadius: 12,
       borderWidth: 5,
-      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      backgroundColor: isDark 
+          ? theme.cardColor
+          : const Color.fromARGB(255, 228, 238, 241),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: context.width * 0.82,
       bottomRightOffset: const Offset(4, 4),
       topLeftOffset: const Offset(-4, -4),
       child: Center(
         child: Obx(() {
-          return controller.isLoadingGoogle.value
+          return controller.isLoadingGoogleRegister.value
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryColor,
-                  ),
+                  child: CircularProgressIndicator(color: AppColors.primaryColor),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -392,10 +395,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Register in with Google'.tr,
-                      style: const TextStyle(
+                      'register_google'.tr,
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
+                        color: theme.textTheme.bodyLarge?.color,
                       ),
                     ),
                   ],
@@ -405,30 +409,34 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget secondSection() {
+  Widget secondSection(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          Expanded(child: Divider(thickness: 2, color: theme.dividerColor)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               'or'.tr,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: theme.textTheme.bodyMedium?.color,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          Expanded(child: Divider(thickness: 2, color: theme.dividerColor)),
         ],
       ),
     );
   }
 
-  Widget SignInButton() {
+  Widget SignInButton(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -436,7 +444,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'have_account'.tr,
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.borderColor,
+            color: theme.textTheme.bodyMedium?.color,
             fontWeight: FontWeight.w600,
           ),
         ),

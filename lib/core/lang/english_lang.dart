@@ -270,4 +270,5 @@ const Map<String, String> en = {
   'type': 'Type',
   'all_teams': 'All teams',
   'all_users': 'All users',
+  "pull_down_to_check_status": "Pull down to check status"
 };

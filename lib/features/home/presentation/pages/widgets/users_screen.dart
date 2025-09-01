@@ -14,6 +14,8 @@ class UsersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: Container(
         width: context.width,
@@ -22,32 +24,21 @@ class UsersScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryColor.withOpacity(0.4),
-              AppColors.primaryColor.withOpacity(0.35),
-              AppColors.primaryColor.withOpacity(0.3),
-              AppColors.primaryColor.withOpacity(0.25),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-            ],
+            colors: isDark
+                ? [
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.2),
+                    AppColors.primaryColor.withOpacity(0.1),
+                    Colors.black,
+                    Colors.black,
+                  ]
+                : [
+                    AppColors.primaryColor.withOpacity(0.4),
+                    AppColors.primaryColor.withOpacity(0.35),
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.25),
+                    Colors.white,
+                  ],
           ),
         ),
         child: Padding(
@@ -60,11 +51,11 @@ class UsersScreen extends StatelessWidget {
             children: [
               ConstantSpace.largeVerticalSpacer,
               ConstantSpace.largeVerticalSpacer,
-              profileHeader(),
+              profileHeader(isDark),
               ConstantSpace.mediumVerticalSpacer,
-              searching(context, search),
+              searching(context, search, isDark),
               ConstantSpace.mediumVerticalSpacer,
-              buildExpandableFiltersContainer(),
+              buildExpandableFiltersContainer(isDark),
               ConstantSpace.mediumVerticalSpacer,
 
               Expanded(
@@ -73,10 +64,14 @@ class UsersScreen extends StatelessWidget {
                     await homeController.fetchUsers();
                   },
                   color: AppColors.primaryColor,
-                  backgroundColor: Colors.white,
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.white,
                   child: Obx(() {
                     if (homeController.isLoadingUsers.value) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                      );
                     }
 
                     if (homeController.errorMessageUsers.value.isNotEmpty) {
@@ -84,16 +79,25 @@ class UsersScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.error_outline,
                               size: 64,
-                              color: Colors.red,
+                              color: isDark ? Colors.red[300] : Colors.red,
                             ),
                             const SizedBox(height: 16),
-                            Text(homeController.errorMessage.value),
+                            Text(
+                              homeController.errorMessage.value,
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () => homeController.fetchUsers(),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
                               child: Text('retry'.tr),
                             ),
                           ],
@@ -106,13 +110,18 @@ class UsersScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.people_outline,
                               size: 64,
-                              color: Colors.grey,
+                              color: isDark ? Colors.grey[400] : Colors.grey,
                             ),
                             const SizedBox(height: 16),
-                            Text('no_users_found'.tr),
+                            Text(
+                              'no_users_found'.tr,
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
                             if (homeController.nameFilter.value.isNotEmpty ||
                                 homeController.emailFilter.value.isNotEmpty ||
                                 homeController.roleFilter.value.isNotEmpty) ...[
@@ -136,7 +145,7 @@ class UsersScreen extends StatelessWidget {
                           const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final user = homeController.users[index];
-                        return _buildUserCard(user);
+                        return _buildUserCard(user, isDark);
                       },
                     );
                   }),
@@ -149,7 +158,7 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUserCard(UserEntity user) {
+  Widget _buildUserCard(UserEntity user, bool isDark) {
     return GestureDetector(
       onTap: () {
         Get.to(() => UserDetailScreen(userId: user.id));
@@ -157,14 +166,19 @@ class UsersScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(width: 1, color: AppColors.borderColor),
-          boxShadow: const [
+          border: Border.all(
+            width: 1, 
+            color: isDark ? Colors.grey[700]! : AppColors.borderColor,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black12,
               blurRadius: 6,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -175,7 +189,10 @@ class UsersScreen extends StatelessWidget {
               height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.borderColor, width: 1),
+                border: Border.all(
+                  color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+                  width: 1,
+                ),
               ),
               child: ClipOval(
                 child: user.profileImageUrl.isNotEmpty
@@ -212,9 +229,10 @@ class UsersScreen extends StatelessWidget {
                 children: [
                   Text(
                     user.fullName.isNotEmpty ? user.fullName : 'no_name'.tr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppColors.textColor,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -223,7 +241,10 @@ class UsersScreen extends StatelessWidget {
 
                   Text(
                     user.email,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 14, 
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
 
@@ -234,10 +255,10 @@ class UsersScreen extends StatelessWidget {
                       spacing: 6,
                       children: user.roles.map((role) {
                         Color roleColor = role == 'Admin'
-                            ? Colors.purple
+                            ? (isDark ? Colors.purple[300]! : Colors.purple)
                             : role == 'Doctor'
-                            ? Colors.blue
-                            : Colors.grey;
+                            ? (isDark ? Colors.blue[300]! : Colors.blue)
+                            : (isDark ? Colors.grey[400]! : Colors.grey);
 
                         return Container(
                           padding: const EdgeInsets.symmetric(
@@ -245,7 +266,7 @@ class UsersScreen extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: roleColor.withOpacity(0.1),
+                            color: roleColor.withOpacity(isDark ? 0.2 : 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: roleColor.withOpacity(0.5),
@@ -293,15 +314,20 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget buildExpandableFiltersContainer() {
+  Widget buildExpandableFiltersContainer(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
-
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -320,7 +346,7 @@ class UsersScreen extends StatelessWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
                   borderRadius: homeController.isFiltersExpanded.value
                       ? const BorderRadius.vertical(top: Radius.circular(16))
                       : BorderRadius.circular(16),
@@ -398,7 +424,7 @@ class UsersScreen extends StatelessWidget {
                 opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
                 child: homeController.isFiltersExpanded.value
-                    ? buildFiltersContent()
+                    ? buildFiltersContent(isDark)
                     : null,
               ),
             ),
@@ -408,16 +434,21 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget searching(BuildContext context, TextEditingController controller) {
+  Widget searching(BuildContext context, TextEditingController controller, bool isDark) {
     return Container(
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-        border: Border.all(color: AppColors.borderColor, width: 1),
+        color: isDark ? Colors.grey[850] : Colors.white,
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -425,30 +456,43 @@ class UsersScreen extends StatelessWidget {
       ),
       child: TextFormField(
         controller: controller,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+        ),
         onChanged: (value) {
           homeController.setNameFilter(value);
         },
         decoration: InputDecoration(
           hintText: 'search_by_name_or_email'.tr,
-          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey, 
+            fontSize: 14,
+          ),
           suffixIcon: Obx(() {
             if (homeController.nameFilter.value.isNotEmpty) {
               return IconButton(
-                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                icon: Icon(
+                  Icons.clear, 
+                  size: 20, 
+                  color: isDark ? Colors.grey[400] : Colors.grey,
+                ),
                 onPressed: () {
                   controller.clear();
                   homeController.setNameFilter("");
                 },
               );
             }
-            return const Icon(Icons.search, color: Colors.grey);
+            return Icon(
+              Icons.search, 
+              color: isDark ? Colors.grey[400] : Colors.grey,
+            );
           }),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: isDark ? Colors.grey[850] : Colors.white,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -458,7 +502,7 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget profileHeader() {
+  Widget profileHeader(bool isDark) {
     return Row(
       children: [
         Column(
@@ -466,13 +510,20 @@ class UsersScreen extends StatelessWidget {
           children: [
             Text(
               'users_management'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 4),
             Obx(
               () => Text(
                 '${homeController.totalUsers} ${'users_available'.tr}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 12, 
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
             ),
           ],
@@ -482,14 +533,20 @@ class UsersScreen extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(54),
-            color: AppColors.backgroundColor,
-            border: Border.all(color: AppColors.borderColor, width: 1),
+            color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+              width: 1,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                const Icon(Icons.notifications_none_rounded),
+                Icon(
+                  Icons.notifications_none_rounded,
+                  color: isDark ? Colors.white70 : Colors.black,
+                ),
                 ConstantSpace.mediumHorizontalSpacer,
                 CircleAvatar(
                   backgroundColor: AppColors.primaryColor,
@@ -504,9 +561,13 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget buildFiltersContent() {
+  Widget buildFiltersContent(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+      ),
       child: Column(
         children: [
           Row(
@@ -517,19 +578,23 @@ class UsersScreen extends StatelessWidget {
                     value: homeController.roleFilter.value.isEmpty
                         ? null
                         : homeController.roleFilter.value,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    dropdownColor: isDark ? Colors.grey[800] : Colors.white,
                     decoration: InputDecoration(
                       labelText: 'filter_by_role'.tr,
                       labelStyle: TextStyle(
                         color: homeController.roleFilter.value.isNotEmpty
                             ? AppColors.primaryColor
-                            : Colors.grey,
+                            : (isDark ? Colors.grey[400] : Colors.grey),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
                           color: homeController.roleFilter.value.isNotEmpty
                               ? AppColors.primaryColor
-                              : Colors.grey,
+                              : (isDark ? Colors.grey[600]! : Colors.grey),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -544,12 +609,14 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.roleFilter.value.isNotEmpty
                               ? AppColors.primaryColor
-                              : Colors.grey.shade300,
+                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
                           width: homeController.roleFilter.value.isNotEmpty
                               ? 2
                               : 1,
                         ),
                       ),
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[800] : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -575,19 +642,23 @@ class UsersScreen extends StatelessWidget {
                 child: Obx(
                   () => DropdownButtonFormField<bool?>(
                     value: homeController.isApprovedFilter.value,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    dropdownColor: isDark ? Colors.grey[800] : Colors.white,
                     decoration: InputDecoration(
                       labelText: 'filter_by_approval'.tr,
                       labelStyle: TextStyle(
                         color: homeController.isApprovedFilter.value != null
                             ? AppColors.primaryColor
-                            : Colors.grey,
+                            : (isDark ? Colors.grey[400] : Colors.grey),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
                           color: homeController.isApprovedFilter.value != null
                               ? AppColors.primaryColor
-                              : Colors.grey,
+                              : (isDark ? Colors.grey[600]! : Colors.grey),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -602,12 +673,14 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.isApprovedFilter.value != null
                               ? AppColors.primaryColor
-                              : Colors.grey.shade300,
+                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
                           width: homeController.isApprovedFilter.value != null
                               ? 2
                               : 1,
                         ),
                       ),
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[800] : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -638,12 +711,16 @@ class UsersScreen extends StatelessWidget {
                     value: homeController.sortBy.value.isEmpty
                         ? null
                         : homeController.sortBy.value,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    dropdownColor: isDark ? Colors.grey[800] : Colors.white,
                     decoration: InputDecoration(
                       labelText: 'sort_by'.tr,
                       labelStyle: TextStyle(
                         color: homeController.sortBy.value != 'Email'
                             ? AppColors.primaryColor
-                            : Colors.grey,
+                            : (isDark ? Colors.grey[400] : Colors.grey),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -660,10 +737,12 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.sortBy.value != 'Email'
                               ? AppColors.primaryColor
-                              : Colors.grey.shade300,
+                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
                           width: homeController.sortBy.value != 'Email' ? 2 : 1,
                         ),
                       ),
+                      filled: true,
+                      fillColor: isDark ? Colors.grey[800] : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -685,16 +764,29 @@ class UsersScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Column(
                 children: [
-                  Text('sort_order'.tr, style: const TextStyle(fontSize: 12)),
+                  Text(
+                    'sort_order'.tr, 
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.black87,
+                    ),
+                  ),
                   Obx(
                     () => Switch(
                       value: homeController.sortDesc.value,
                       activeColor: AppColors.primaryColor,
-
+                      inactiveThumbColor: isDark ? Colors.grey[600] : Colors.grey[300],
+                      inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[200],
                       onChanged: homeController.setSortDirection,
                     ),
                   ),
-                  Text('descending'.tr, style: const TextStyle(fontSize: 10)),
+                  Text(
+                    'descending'.tr, 
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark ? Colors.grey[400] : Colors.black87,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -729,8 +821,10 @@ class UsersScreen extends StatelessWidget {
                   icon: const Icon(Icons.clear_all, size: 18),
                   label: Text('clear_all_filters'.tr),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                    foregroundColor: Colors.grey[700],
+                    backgroundColor: isDark 
+                        ? Colors.grey[700] 
+                        : Colors.grey.withOpacity(0.2),
+                    foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(

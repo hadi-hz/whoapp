@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,6 +20,7 @@ import 'package:test3/features/auth/domain/usecase/approved_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/enum_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/login_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/login_with_google_usecase.dart';
+import 'package:test3/features/auth/domain/usecase/register_google_usecase.dart';
 import 'package:test3/features/auth/domain/usecase/register_usecase.dart';
 import 'package:test3/features/auth/presentation/controller/translation_controller.dart';
 import 'package:test3/features/auth/presentation/pages/check_user_is_approved.dart';
@@ -31,11 +33,13 @@ class AuthController extends GetxController {
   RxBool showWelcome = false.obs;
   RxBool showSignIn = false.obs;
   RxBool isLoadingGoogle = false.obs;
+  RxBool isLoadingGoogleRegister = false.obs;
 
   late final RegisterUseCase _registerUseCase;
   late final LoginUseCase _loginUseCase;
   late final ApprovedUseCase _approvedUseCase;
   late final LoginWithGoogleUseCase _loginWithGoogleUseCase;
+  late final RegisterGoogleUseCase _registerGoogleUseCase;
 
   final TextEditingController name = TextEditingController();
   final TextEditingController lastName = TextEditingController();
@@ -45,6 +49,7 @@ class AuthController extends GetxController {
   var userEmail = "".obs;
   var token = "".obs;
   RxString? userName = "".obs;
+  var fcmToken = "".obs;
 
   final TextEditingController emailLogin = TextEditingController();
   final TextEditingController passwordLogin = TextEditingController();
@@ -69,6 +74,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _initializeFCM();
 
     final remoteDataSource = AuthRemoteDataSourceImpl();
     final repository = AuthRepositoryImpl(remoteDataSource);
@@ -76,6 +82,21 @@ class AuthController extends GetxController {
     _loginUseCase = LoginUseCase(repository);
     _approvedUseCase = ApprovedUseCase(repository);
     _loginWithGoogleUseCase = LoginWithGoogleUseCase(repository);
+    _registerGoogleUseCase = RegisterGoogleUseCase(repository);
+  }
+
+  Future<void> _initializeFCM() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final token = await messaging.getToken();
+      if (token != null) {
+        fcmToken.value = token;
+        print("FCM Token: $token");
+      }
+    } catch (e) {
+      print("FCM Token Error: $e");
+      fcmToken.value = "default-token";
+    }
   }
 
   void runAnimations() {
@@ -115,9 +136,9 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
- 
       final languageController = Get.find<LanguageController>();
-      final selectedLanguage = await languageController.getSelectedLanguageForRegister();
+      final selectedLanguage = await languageController
+          .getSelectedLanguageForRegister();
       final languageCode = languageController.getLanguageCode(selectedLanguage);
 
       final request = RegisterRequest(
@@ -126,7 +147,7 @@ class AuthController extends GetxController {
         phoneNumber: phoneNumber,
         email: email,
         password: password,
-        deviceTokenId: "string",
+        deviceTokenId: fcmToken.value,
         platform: 0,
         preferredLanguage: languageCode,
       );
@@ -212,7 +233,7 @@ class AuthController extends GetxController {
     final request = LoginRequest(
       email: email,
       password: password,
-      deviceTokenId: "string",
+      deviceTokenId: fcmToken.value,
       platform: 0,
     );
 
@@ -220,12 +241,15 @@ class AuthController extends GetxController {
       final loginUser = await _loginUseCase(request);
       currentLoginUser.value = loginUser;
 
-      print("currentLoginUser ID: ${currentLoginUser.value?.preferredLanguage}");
+      print(
+        "currentLoginUser ID: ${currentLoginUser.value?.preferredLanguage}",
+      );
       print("currentLoginUser ID: ${currentLoginUser.value?.id}");
 
-    
       final languageController = Get.find<LanguageController>();
-      await languageController.setLanguageFromLogin(loginUser.preferredLanguage ?? 0);
+      await languageController.setLanguageFromLogin(
+        loginUser.preferredLanguage ?? 0,
+      );
 
       if (loginUser.isUserApproved) {
         Get.snackbar(
@@ -380,37 +404,54 @@ class AuthController extends GetxController {
 
       userEmail.value = googleUser.email;
 
-      final AuthEntity response = await _loginWithGoogleUseCase(
+      final response = await _loginWithGoogleUseCase(
         idToken: idToken,
-        deviceTokenId: "test-device-id",
+        deviceTokenId: fcmToken.value,
         platform: 0,
       );
 
-      token.value = response.accessToken;
-      userName?.value = googleUser.displayName ?? '';
-
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', response.userId ?? googleUser.id);
-      await prefs.setString('userName', googleUser.displayName ?? '');
-      await prefs.setString('userEmail', googleUser.email);
-      await prefs.setString('token', response.accessToken);
+      await prefs.setString('userId', response.id);
+      await prefs.setString('userName', response.name);
+      await prefs.setString('userEmail', response.email);
 
-      Get.snackbar(
-        'success'.tr,
-        '${'welcome_back'.tr}, ${googleUser.displayName}!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        duration: const Duration(seconds: 3),
-      );
+      if (response.isUserApproved == true) {
+        Get.snackbar(
+          'success'.tr,
+          '${'welcome_back'.tr}, ${googleUser.displayName}!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
 
-      Get.offAll(
-        () => HomePage(),
-        transition: Transition.downToUp,
-        duration: const Duration(milliseconds: 400),
-      );
+        Get.offAll(
+          () => HomePage(),
+          transition: Transition.downToUp,
+          duration: const Duration(milliseconds: 400),
+        );
+
+        print(
+          "✅ Login Success: ${googleUser.displayName} (${googleUser.email})",
+        );
+      } else {
+        Get.snackbar(
+          'not_approved'.tr,
+          '${'not_approved_yet'.tr}, ${googleUser.displayName}.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orangeAccent,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          duration: const Duration(seconds: 3),
+        );
+
+        print(
+          "⚠️ Not Approved: ${googleUser.displayName} (${googleUser.email})",
+        );
+      }
     } catch (e) {
       Get.snackbar(
         'error'.tr,
@@ -426,6 +467,77 @@ class AuthController extends GetxController {
       );
     } finally {
       isLoadingGoogle.value = false;
+    }
+  }
+
+  Future<void> registerWithGoogle() async {
+    try {
+      isLoadingGoogleRegister.value = true;
+
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        isLoadingGoogleRegister.value = false;
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        throw Exception('google_token_failed'.tr);
+      }
+
+      final response = await _registerGoogleUseCase(
+        idToken: idToken,
+        deviceTokenId: fcmToken.value,
+        platform: 0,
+      );
+
+      currentUser.value = User(
+        id: response.id,
+        message: response.message,
+        email: response.email,
+      );
+      print("✅ User ID saved: ${response.id}");
+      print("✅ User ID saved: ${currentUser.value?.id}");
+      userEmail.value = response.email;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', response.id);
+
+      await prefs.setString('userEmail', response.email);
+
+      Get.snackbar(
+        'success'.tr,
+        '${'register_success_for'.tr} ${response.email}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
+
+      Get.to(
+        () => ApprovedUserPage(),
+        transition: Transition.downToUp,
+        duration: const Duration(milliseconds: 400),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'error'.tr,
+        e.toString().contains('google_token_failed')
+            ? e.toString()
+            : 'register_failed'.tr,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      isLoadingGoogleRegister.value = false;
     }
   }
 }

@@ -7,6 +7,7 @@ class DropdownFilter extends StatelessWidget {
   final List<Map<String, dynamic>> items;
   final Function(int?) onChanged;
   final double? width;
+  final bool isDark;
 
   const DropdownFilter({
     super.key,
@@ -15,6 +16,7 @@ class DropdownFilter extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.width,
+    this.isDark = false,
   });
 
   @override
@@ -23,12 +25,16 @@ class DropdownFilter extends StatelessWidget {
       width: width ?? MediaQuery.sizeOf(context).width * 0.4,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(
+          color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -39,23 +45,31 @@ class DropdownFilter extends StatelessWidget {
           isExpanded: true,
           hint: Text(
             hint,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: Colors.grey,
+              color: isDark ? Colors.grey[400] : Colors.grey,
             ),
           ),
           value: selectedValue,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+          style: TextStyle(
+            color: isDark ? Colors.black : Colors.white,
+          ),
+          dropdownColor: isDark ? Colors.grey[800] : Colors.white,
+          icon: Icon(
+            Icons.keyboard_arrow_down, 
+            size: 20,
+            color: isDark ? Colors.grey[400] : Colors.grey,
+          ),
           onChanged: onChanged,
           items: items.map((item) {
             return DropdownMenuItem<int?>(
               value: item['value'],
               child: Text(
-                
                 item['label']?.toString() ?? item['name']?.toString() ?? 'Unknown',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),

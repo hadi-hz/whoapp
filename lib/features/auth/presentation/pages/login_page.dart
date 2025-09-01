@@ -30,12 +30,14 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
         body: Stack(
           children: [
             Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
@@ -46,47 +48,43 @@ class _LoginPageState extends State<LoginPage> {
                 child: Container(
                   width: screenWidth,
                   height: screenHeight,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      const BoxShadow(
-                        color: Colors.black12,
+                      BoxShadow(
+                        color: isDark 
+                            ? Colors.black.withOpacity(0.3)
+                            : Colors.black12,
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      loginInformation(),
+                      loginInformation(context),
                       ConstantSpace.xLargeVerticalSpacer,
                       inputEmail(context, controller.emailLogin),
                       ConstantSpace.mediumVerticalSpacer,
                       inputPassword(context, controller.passwordLogin),
                       ConstantSpace.smallVerticalSpacer,
-
                       Padding(
-                        padding: const EdgeInsetsDirectional.symmetric(
-                          horizontal: 16,
-                        ),
+                        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
                         child: Row(
-                          children: [const Spacer(), forgotPassword()],
+                          children: [const Spacer(), forgotPassword(context)],
                         ),
                       ),
                       ConstantSpace.mediumVerticalSpacer,
-                      buttonLogin(),
+                      buttonLogin(context),
                       ConstantSpace.mediumVerticalSpacer,
-                      secondSection(),
+                      secondSection(context),
                       ConstantSpace.mediumVerticalSpacer,
-                      buttonLoginGoogle(),
+                      buttonLoginGoogle(context),
                       ConstantSpace.mediumVerticalSpacer,
-                      registerUserButton(),
+                      registerUserButton(context),
                     ],
                   ),
                 ),
@@ -111,10 +109,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget bodyTitles(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       width: MediaQuery.sizeOf(context).width,
       height: 224,
-      color: AppColors.primaryColor,
+      color: isDark ? theme.primaryColor : AppColors.primaryColor,
       child: Column(
         children: [
           ConstantSpace.xLargeVerticalSpacer,
@@ -123,24 +124,11 @@ class _LoginPageState extends State<LoginPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(
-                    () =>
-                        animatedText(controller.showHello.value, helloTitle()),
-                  ),
+                  Obx(() => animatedText(controller.showHello.value, helloTitle(context))),
                   ConstantSpace.tinyVerticalSpacer,
-                  Obx(
-                    () => animatedText(
-                      controller.showWelcome.value,
-                      welcomeTitle(),
-                    ),
-                  ),
+                  Obx(() => animatedText(controller.showWelcome.value, welcomeTitle(context))),
                   ConstantSpace.tinyVerticalSpacer,
-                  Obx(
-                    () => animatedText(
-                      controller.showSignIn.value,
-                      signInTitle(),
-                    ),
-                  ),
+                  Obx(() => animatedText(controller.showSignIn.value, signInTitle(context))),
                 ],
               ),
               const Spacer(),
@@ -170,7 +158,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget helloTitle() {
+  Widget helloTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -179,14 +169,16 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget welcomeTitle() {
+  Widget welcomeTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -195,14 +187,16 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget signInTitle() {
+  Widget signInTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       children: [
         ConstantSpace.mediumHorizontalSpacer,
@@ -211,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: AppColors.backgroundColor,
+            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
@@ -226,7 +220,6 @@ class _LoginPageState extends State<LoginPage> {
       prefixIcon: const Icon(Icons.email),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'email_required'.tr;
         }
@@ -247,7 +240,6 @@ class _LoginPageState extends State<LoginPage> {
       prefixIcon: const Icon(Icons.lock),
       validator: (value) {
         String trimmedValue = (value ?? '').trim();
-
         if (trimmedValue.isEmpty) {
           return 'password_required'.tr;
         }
@@ -260,13 +252,19 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget loginInformation() {
+  Widget loginInformation(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'enter_login_info'.tr,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
         ),
         const SizedBox(width: 8),
         const ChangeLang(),
@@ -274,21 +272,25 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buttonLoginGoogle() {
+  Widget buttonLoginGoogle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
       onTap: controller.isLoadingGoogle.value
           ? () {}
           : () {
-              print(controller.token.value);
-              print(controller.userEmail.value);
-
               controller.loginWithGoogle();
             },
       borderRadius: 12,
       borderWidth: 5,
-      backgroundColor: const Color.fromARGB(255, 228, 238, 241),
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      backgroundColor: isDark 
+          ? theme.cardColor
+          : const Color.fromARGB(255, 228, 238, 241),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: context.width * 0.82,
       bottomRightOffset: const Offset(4, 4),
@@ -299,9 +301,7 @@ class _LoginPageState extends State<LoginPage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.primaryColor,
-                  ),
+                  child: CircularProgressIndicator(color: AppColors.primaryColor),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -314,9 +314,10 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(width: 8),
                     Text(
                       'login_google'.tr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
+                        color: theme.textTheme.bodyLarge?.color,
                       ),
                     ),
                   ],
@@ -326,15 +327,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buttonLogin() {
+  Widget buttonLogin(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return BoxNeumorphysm(
-      borderColor: Colors.white,
+      borderColor: isDark ? theme.dividerColor : Colors.white,
       onTap: controller.isLoadingLogin.value
           ? () {}
           : () {
-              print(controller.emailLogin.text);
-              print(controller.passwordLogin.text);
-
               if (formKey.currentState!.validate()) {
                 controller.loginUser(
                   email: controller.emailLogin.text.trim(),
@@ -347,8 +348,10 @@ class _LoginPageState extends State<LoginPage> {
       borderRadius: 12,
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
-      topLeftShadowColor: Colors.white,
-      bottomRightShadowColor: const Color.fromARGB(255, 139, 204, 222),
+      topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
+      bottomRightShadowColor: isDark 
+          ? theme.shadowColor.withOpacity(0.3)
+          : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
       width: context.width * 0.82,
       bottomRightOffset: const Offset(4, 4),
@@ -359,14 +362,14 @@ class _LoginPageState extends State<LoginPage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background),
+                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary),
                 )
               : Text(
                   'login'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.background,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 );
         }),
@@ -374,30 +377,34 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget secondSection() {
+  Widget secondSection(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          Expanded(child: Divider(thickness: 2, color: theme.dividerColor)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Text(
               'or'.tr,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: theme.textTheme.bodyMedium?.color,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const Expanded(child: Divider(thickness: 2, color: Colors.black12)),
+          Expanded(child: Divider(thickness: 2, color: theme.dividerColor)),
         ],
       ),
     );
   }
 
-  Widget registerUserButton() {
+  Widget registerUserButton(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -405,7 +412,7 @@ class _LoginPageState extends State<LoginPage> {
           'no_account'.tr,
           style: TextStyle(
             fontSize: 16,
-            color: AppColors.textSecondryColor,
+            color: theme.textTheme.bodyMedium?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -431,7 +438,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget forgotPassword() {
+  Widget forgotPassword(BuildContext context) {
     return TextButton(
       onPressed: () {},
       child: Text(

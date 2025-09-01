@@ -14,9 +14,11 @@ class UserTeamsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     controller.getTeamsByUserId();
 
     return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: Container(
         width: context.width,
         height: context.height,
@@ -24,32 +26,40 @@ class UserTeamsScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryColor.withOpacity(0.4),
-              AppColors.primaryColor.withOpacity(0.35),
-              AppColors.primaryColor.withOpacity(0.3),
-              AppColors.primaryColor.withOpacity(0.25),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-              AppColors.primaryColor.withOpacity(0),
-            ],
+            colors: isDark
+                ? [
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.2),
+                    AppColors.primaryColor.withOpacity(0.1),
+                    Colors.black,
+                    Colors.black,
+                  ]
+                : [
+                    AppColors.primaryColor.withOpacity(0.4),
+                    AppColors.primaryColor.withOpacity(0.35),
+                    AppColors.primaryColor.withOpacity(0.3),
+                    AppColors.primaryColor.withOpacity(0.25),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                    AppColors.primaryColor.withOpacity(0),
+                  ],
           ),
         ),
         child: Padding(
@@ -63,7 +73,7 @@ class UserTeamsScreen extends StatelessWidget {
               await controller.getTeamsByUserId();
             },
             color: AppColors.primaryColor,
-            backgroundColor: Colors.white,
+            backgroundColor: isDark ? Colors.grey[800] : Colors.white,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(
@@ -72,15 +82,17 @@ class UserTeamsScreen extends StatelessWidget {
                   children: [
                     ConstantSpace.largeVerticalSpacer,
                     ConstantSpace.largeVerticalSpacer,
-                    profileHeader(),
+                    profileHeader(isDark),
                     ConstantSpace.mediumVerticalSpacer,
-                    searching(context, searchController),
+                    searching(context, searchController, isDark),
                     ConstantSpace.mediumVerticalSpacer,
                     Expanded(
                       child: Obx(() {
                         if (controller.isLoading.value) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryColor,
+                            ),
                           );
                         }
 
@@ -89,9 +101,18 @@ class UserTeamsScreen extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error, size: 64, color: Colors.red),
+                                Icon(
+                                  Icons.error, 
+                                  size: 64, 
+                                  color: isDark ? Colors.red[300] : Colors.red,
+                                ),
                                 const SizedBox(height: 16),
-                                Text(controller.errorMessage.value),
+                                Text(
+                                  controller.errorMessage.value,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
                                 ElevatedButton(
                                   onPressed: () =>
@@ -119,7 +140,7 @@ class UserTeamsScreen extends StatelessWidget {
                                       ? Icons.search_off
                                       : Icons.groups_outlined,
                                   size: 64,
-                                  color: Colors.grey,
+                                  color: isDark ? Colors.grey[400] : Colors.grey,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -127,6 +148,9 @@ class UserTeamsScreen extends StatelessWidget {
                                       ? 'no_results_for'.tr +
                                             ' "${controller.searchQuery.value}"'
                                       : 'no_teams_found'.tr,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                  ),
                                 ),
                                 if (controller
                                     .searchQuery
@@ -153,7 +177,7 @@ class UserTeamsScreen extends StatelessWidget {
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final team = filteredTeams[index];
-                            return _buildTeamCard(team);
+                            return _buildTeamCard(team, isDark);
                           },
                         );
                       }),
@@ -168,7 +192,7 @@ class UserTeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget profileHeader() {
+  Widget profileHeader(bool isDark) {
     return Row(
       children: [
         Column(
@@ -176,13 +200,20 @@ class UserTeamsScreen extends StatelessWidget {
           children: [
             Text(
               'my_teams'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 4),
             Obx(
               () => Text(
                 '${controller.userTeams.length} ${'teams_available'.tr}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(
+                  fontSize: 12, 
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
             ),
           ],
@@ -192,14 +223,20 @@ class UserTeamsScreen extends StatelessWidget {
           height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(54),
-            color: AppColors.backgroundColor,
-            border: Border.all(color: AppColors.borderColor, width: 1),
+            color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+              width: 1,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                const Icon(Icons.notifications_none_rounded),
+                Icon(
+                  Icons.notifications_none_rounded,
+                  color: isDark ? Colors.white70 : Colors.black,
+                ),
                 ConstantSpace.mediumHorizontalSpacer,
                 CircleAvatar(
                   backgroundColor: AppColors.primaryColor,
@@ -214,15 +251,21 @@ class UserTeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget searching(BuildContext context, TextEditingController searchCtrl) {
+  Widget searching(BuildContext context, TextEditingController searchCtrl, bool isDark) {
     return Container(
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white,
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -230,30 +273,43 @@ class UserTeamsScreen extends StatelessWidget {
       ),
       child: TextFormField(
         controller: searchCtrl,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+        ),
         onChanged: (value) {
           controller.onSearchChanged(value);
         },
         decoration: InputDecoration(
           hintText: 'search_teams'.tr,
-          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey, 
+            fontSize: 14,
+          ),
           suffixIcon: Obx(() {
             if (controller.searchQuery.value.isNotEmpty) {
               return IconButton(
-                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
+                icon: Icon(
+                  Icons.clear, 
+                  size: 20, 
+                  color: isDark ? Colors.grey[400] : Colors.grey,
+                ),
                 onPressed: () {
                   searchCtrl.clear();
                   controller.clearSearch();
                 },
               );
             }
-            return const Icon(Icons.search, color: Colors.grey);
+            return Icon(
+              Icons.search, 
+              color: isDark ? Colors.grey[400] : Colors.grey,
+            );
           }),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: isDark ? Colors.grey[850] : Colors.white,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -263,7 +319,7 @@ class UserTeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamCard(TeamEntity team) {
+  Widget _buildTeamCard(TeamEntity team, bool isDark) {
     return GestureDetector(
       onTap: () {
         Get.to(() => TeamDetailsPage(teamId: team.id));
@@ -271,14 +327,19 @@ class UserTeamsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(width: 1, color: AppColors.borderColor),
-          boxShadow: const [
+          border: Border.all(
+            width: 1, 
+            color: isDark ? Colors.grey[700]! : AppColors.borderColor,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black12,
               blurRadius: 6,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -307,16 +368,20 @@ class UserTeamsScreen extends StatelessWidget {
                     children: [
                       Text(
                         team.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.black,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         team.formattedCreateTime,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 12, 
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -333,25 +398,29 @@ class UserTeamsScreen extends StatelessWidget {
                   _buildServiceChip(
                     'healthcare_cleaning'.tr,
                     Icons.local_hospital,
-                    Colors.blue,
+                    isDark ? Colors.blue[300]! : Colors.blue,
+                    isDark,
                   ),
                 if (team.isHouseholdCleaningAndDisinfection)
                   _buildServiceChip(
                     'household_cleaning'.tr,
                     Icons.home,
-                    Colors.green,
+                    isDark ? Colors.green[300]! : Colors.green,
+                    isDark,
                   ),
                 if (team.isPatientsReferral)
                   _buildServiceChip(
                     'patient_referral'.tr,
                     Icons.person_search,
-                    Colors.orange,
+                    isDark ? Colors.orange[300]! : Colors.orange,
+                    isDark,
                   ),
                 if (team.isSafeAndDignifiedBurial)
                   _buildServiceChip(
                     'safe_burial'.tr,
                     Icons.psychology,
-                    Colors.purple,
+                    isDark ? Colors.purple[300]! : Colors.purple,
+                    isDark,
                   ),
               ],
             ),
@@ -361,11 +430,11 @@ class UserTeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceChip(String label, IconData icon, Color color) {
+  Widget _buildServiceChip(String label, IconData icon, Color color, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),

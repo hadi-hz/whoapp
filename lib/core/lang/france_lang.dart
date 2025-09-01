@@ -271,4 +271,5 @@ const Map<String, String> fr = {
   'type': 'Type',
   'all_teams': 'Toutes les équipes',
   'all_users': 'Tous les utilisateurs',
+  "pull_down_to_check_status": "Tirez vers le bas pour vérifier le statut"
 };

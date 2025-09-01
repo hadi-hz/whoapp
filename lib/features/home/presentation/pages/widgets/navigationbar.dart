@@ -33,6 +33,8 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       extendBody: true,
@@ -53,16 +55,15 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
               Container(
                 height: MediaQuery.of(context).size.height * 0.68,
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: isDark ? Colors.grey[900] : AppColors.background,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
                 ),
                 child: Column(
                   children: [
-              
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(0.1),
+                        color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(25),
                         ),
@@ -82,12 +83,14 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                           const Spacer(),
                           IconButton(
                             onPressed: () => Get.back(),
-                            icon: const Icon(Icons.close),
+                            icon: Icon(
+                              Icons.close,
+                              color: isDark ? Colors.white70 : Colors.black,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  
                     Expanded(
                       child: Padding(
                         padding: EdgeInsetsDirectional.only(
@@ -101,13 +104,13 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                             key: _formKey,
                             child: Column(
                               children: [
-                                pickerImage(context),
+                                pickerImage(context, isDark),
                                 ConstantSpace.mediumVerticalSpacer,
-                                dropDownHealth(context),
+                                dropDownHealth(context, isDark),
                                 ConstantSpace.smallVerticalSpacer,
-                                patientName(context, controller.patientName),
+                                patientName(context, controller.patientName, isDark),
                                 ConstantSpace.smallVerticalSpacer,
-                                description(context, controller.description),
+                                description(context, controller.description, isDark),
                                 ConstantSpace.xLargeVerticalSpacer,
                                 Row(
                                   mainAxisAlignment:
@@ -239,22 +242,41 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
   }
 
   void _showPickOptionsDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     showModalBottomSheet(
       context: context,
+      backgroundColor: isDark ? Colors.grey[850] : Colors.white,
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: Text('take_photo'.tr),
+              leading: Icon(
+                Icons.camera_alt,
+                color: isDark ? Colors.white70 : Colors.black,
+              ),
+              title: Text(
+                'take_photo'.tr,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 controller.pickImage(ImageSource.camera);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo),
-              title: Text('choose_from_gallery'.tr),
+              leading: Icon(
+                Icons.photo,
+                color: isDark ? Colors.white70 : Colors.black,
+              ),
+              title: Text(
+                'choose_from_gallery'.tr,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
               onTap: () {
                 Navigator.of(context).pop();
                 controller.pickImage(ImageSource.gallery);
@@ -266,23 +288,46 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  Widget description(BuildContext context, TextEditingController controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      maxLine: 5,
-      hintText: 'description'.tr,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'enter_description'.tr;
-        }
-        return null;
-      },
-      width: MediaQuery.sizeOf(context).width,
+  Widget description(BuildContext context, TextEditingController controller, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: isDark ? Colors.grey[800] : Colors.white,
+        border: Border.all(
+          color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+          width: 1,
+        ),
+      ),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 5,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+        ),
+        decoration: InputDecoration(
+          hintText: 'description'.tr,
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: isDark ? Colors.grey[800] : Colors.white,
+          contentPadding: const EdgeInsets.all(16),
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'enter_description'.tr;
+          }
+          return null;
+        },
+      ),
     );
   }
 
-  Widget pickerImage(BuildContext context) {
+  Widget pickerImage(BuildContext context, bool isDark) {
     return Obx(
       () => Row(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -316,7 +361,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: AppColors.textColor,
+                            color: isDark ? Colors.grey[600]! : AppColors.textColor,
                             width: 2,
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -361,7 +406,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  Widget dropDownHealth(BuildContext context) {
+  Widget dropDownHealth(BuildContext context, bool isDark) {
     final List<Map<String, dynamic>> healthServices = [
       {'value': 0, 'name': 'healthcare_cleaning'.tr},
       {'value': 1, 'name': 'household_cleaning'.tr},
@@ -379,16 +424,26 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
       builder: (field) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InnerShadowContainer(
+          Container(
             width: context.width,
             height: 60,
-            borderRadius: 8,
-            blur: 8,
-            offset: const Offset(5, 5),
-            shadowColor: AppColors.innershadow,
-            backgroundColor: AppColors.backgroundColor,
-            isShadowTopLeft: true,
-            isShadowTopRight: true,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
+              border: Border.all(
+                color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withOpacity(0.3)
+                      : AppColors.innershadow.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(2, 2),
+                ),
+              ],
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Obx(
@@ -399,6 +454,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                         constraints: BoxConstraints(
                           minWidth: context.width * 0.9,
                         ),
+                        color: isDark ? Colors.grey[800] : Colors.white,
                         onSelected: (index) {
                           authController.changeAlertType(index);
                           field.didChange(index);
@@ -408,7 +464,12 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                               .map(
                                 (service) => PopupMenuItem<int>(
                                   value: service['value'],
-                                  child: Text(service['name']),
+                                  child: Text(
+                                    service['name'],
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black,
+                                    ),
+                                  ),
                                 ),
                               )
                               .toList();
@@ -428,9 +489,15 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                                               .value,
                                       orElse: () => {'name': 'unknown'.tr},
                                     )['name'],
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
                             ),
-                            const Icon(Icons.arrow_drop_down),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: isDark ? Colors.white70 : Colors.black,
+                            ),
                           ],
                         ),
                       ),
@@ -528,14 +595,40 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     );
   }
 
-  Widget patientName(BuildContext context, TextEditingController controller) {
-    return TextFieldInnerShadow(
-      borderRadius: 16,
-      controller: controller,
-      maxLine: 1,
-      hintText: 'patient_name'.tr,
-      validator: (value) {},
-      width: MediaQuery.sizeOf(context).width,
+  Widget patientName(BuildContext context, TextEditingController controller, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: isDark ? Colors.grey[800] : Colors.white,
+        border: Border.all(
+          color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+          width: 1,
+        ),
+      ),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 1,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+        ),
+        decoration: InputDecoration(
+          hintText: 'patient_name'.tr,
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: isDark ? Colors.grey[800] : Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+        validator: (value) {},
+      ),
     );
   }
 }
