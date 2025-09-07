@@ -26,78 +26,45 @@ class _ReportsPageState extends State<ReportsPage> {
   final HomeController homeController = Get.find<HomeController>();
   final AlertListController alertController = Get.find<AlertListController>();
 
-  void _downloadPDF(String alertId) {
-    Get.snackbar(
-      'info'.tr,
-      'PDF download for alert: $alertId',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
+  bool _isTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 768;
   }
 
-  void _closeAlert(String alertId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedUserId = prefs.getString('userId');
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  bool _isLargeTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 1024;
+  }
 
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: isDark ? Colors.grey[850] : Colors.white,
-        title: Text(
-          'confirm_close'.tr,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
-        ),
-        content: Text(
-          'are_you_sure_close_alert'.tr,
-          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              'cancel'.tr,
-              style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-          ),
-          Obx(() {
-            final adminController = Get.find<AdminCloseAlertController>();
-            return ElevatedButton(
-              onPressed: adminController.isLoading.value
-                  ? null
-                  : () async {
-                      Get.back();
-                      final authController = Get.find<AuthController>();
-                      await adminController.closeAlert(
-                        alertId,
-                        savedUserId ?? '',
-                      );
-                    },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: adminController.isLoading.value
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      'close_alert'.tr,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-            );
-          }),
-        ],
-      ),
-    );
+  int _getCrossAxisCount(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    if (width >= 1200) return 4;
+    if (width >= 900) return 3;
+    if (width >= 600) return 2;
+    return 2;
+  }
+
+  double _getCardWidth(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final padding = _isTablet(context) ? 24.0 : 16.0;
+    final spacing = 12.0;
+    final crossAxisCount = _getCrossAxisCount(context);
+    return (width - (padding * 2) - (spacing * (crossAxisCount - 1))) /
+        crossAxisCount;
+  }
+
+  EdgeInsets _getScreenPadding(BuildContext context) {
+    if (_isLargeTablet(context)) {
+      return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+    } else if (_isTablet(context)) {
+      return const EdgeInsets.symmetric(horizontal: 24, vertical: 20);
+    }
+    return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isTablet = _isTablet(context);
+    final screenPadding = _getScreenPadding(context);
 
     return Scaffold(
       body: Container(
@@ -124,11 +91,7 @@ class _ReportsPageState extends State<ReportsPage> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            top: 16,
-            end: 16,
-            start: 16,
-          ),
+          padding: screenPadding,
           child: RefreshIndicator(
             onRefresh: () async {
               alertController.refreshAlerts();
@@ -140,16 +103,17 @@ class _ReportsPageState extends State<ReportsPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ConstantSpace.largeVerticalSpacer,
-                  ConstantSpace.largeVerticalSpacer,
-                  profileHeader(isDark),
-                  ConstantSpace.mediumVerticalSpacer,
-                  searching(context, search, isDark),
-                  ConstantSpace.mediumVerticalSpacer,
-                  buildExpandableFiltersContainer(isDark),
-                  ConstantSpace.mediumVerticalSpacer,
+                  SizedBox(height: isTablet ? 32 : 24),
+                  profileHeader(isDark, isTablet),
+                  SizedBox(height: isTablet ? 24 : 16),
+                  searching(context, search, isDark, isTablet),
+                  SizedBox(height: isTablet ? 24 : 16),
+                  buildExpandableFiltersContainer(isDark, isTablet),
+                  SizedBox(height: isTablet ? 24 : 16),
                   SizedBox(
-                    height: context.height * 0.59,
+                    height: isTablet
+                        ? context.height * 0.65
+                        : context.height * 0.59,
                     child: Obx(() {
                       if (alertController.isLoading.value) {
                         return Center(
@@ -165,29 +129,38 @@ class _ReportsPageState extends State<ReportsPage> {
                             children: [
                               Icon(
                                 Icons.error_outline,
-                                size: 64,
+                                size: isTablet ? 80 : 64,
                                 color: isDark ? Colors.red[300] : Colors.red,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: isTablet ? 20 : 16),
                               Text(
                                 alertController.errorMessage.value,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: isTablet ? 18 : 16,
                                   color: isDark
                                       ? Colors.white70
                                       : Colors.black87,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: isTablet ? 20 : 16),
                               ElevatedButton(
                                 onPressed: () =>
                                     alertController.refreshAlerts(),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryColor,
                                   foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 24 : 16,
+                                    vertical: isTablet ? 16 : 12,
+                                  ),
                                 ),
-                                child: Text('retry'.tr),
+                                child: Text(
+                                  'retry'.tr,
+                                  style: TextStyle(
+                                    fontSize: isTablet ? 16 : 14,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -200,13 +173,14 @@ class _ReportsPageState extends State<ReportsPage> {
                             children: [
                               Icon(
                                 Icons.search_off,
-                                size: 64,
+                                size: isTablet ? 80 : 64,
                                 color: isDark ? Colors.grey[400] : Colors.grey,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: isTablet ? 20 : 16),
                               Text(
                                 'no_reports_found'.tr,
                                 style: TextStyle(
+                                  fontSize: isTablet ? 18 : 16,
                                   color: isDark
                                       ? Colors.white70
                                       : Colors.black87,
@@ -216,14 +190,14 @@ class _ReportsPageState extends State<ReportsPage> {
                                   .searchQuery
                                   .value
                                   .isNotEmpty) ...[
-                                const SizedBox(height: 8),
+                                SizedBox(height: isTablet ? 12 : 8),
                                 Text(
                                   '${'no_results_for'.tr} "${alertController.searchQuery.value}"',
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.grey[400]
                                         : Colors.grey,
-                                    fontSize: 12,
+                                    fontSize: isTablet ? 14 : 12,
                                   ),
                                 ),
                               ],
@@ -234,13 +208,18 @@ class _ReportsPageState extends State<ReportsPage> {
                                       .searchQuery
                                       .value
                                       .isNotEmpty) ...[
-                                const SizedBox(height: 8),
+                                SizedBox(height: isTablet ? 12 : 8),
                                 TextButton(
                                   onPressed: () {
                                     search.clear();
                                     alertController.clearFilters();
                                   },
-                                  child: Text('clear_filters'.tr),
+                                  child: Text(
+                                    'clear_filters'.tr,
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ],
@@ -320,14 +299,50 @@ class _ReportsPageState extends State<ReportsPage> {
                       }
 
                       return SingleChildScrollView(
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: alertController.alerts.map((alert) {
-                            final statusData = getStatusData(alert.alertStatus);
-                            return _buildAlertCard(alert, statusData, isDark);
-                          }).toList(),
-                        ),
+                        child: isTablet
+                            ? GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: _getCrossAxisCount(
+                                        context,
+                                      ),
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 12,
+                                      childAspectRatio: _isLargeTablet(context)
+                                          ? 1.2
+                                          : 1.0,
+                                    ),
+                                itemCount: alertController.alerts.length,
+                                itemBuilder: (context, index) {
+                                  final alert = alertController.alerts[index];
+                                  final statusData = getStatusData(
+                                    alert.alertStatus,
+                                  );
+                                  return _buildAlertCard(
+                                    alert,
+                                    statusData,
+                                    isDark,
+                                    isTablet,
+                                  );
+                                },
+                              )
+                            : Wrap(
+                                spacing: 12,
+                                runSpacing: 12,
+                                children: alertController.alerts.map((alert) {
+                                  final statusData = getStatusData(
+                                    alert.alertStatus,
+                                  );
+                                  return _buildAlertCard(
+                                    alert,
+                                    statusData,
+                                    isDark,
+                                    isTablet,
+                                  );
+                                }).toList(),
+                              ),
                       );
                     }),
                   ),
@@ -340,7 +355,9 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _buildAlertCard(alert, statusData, bool isDark) {
+  Widget _buildAlertCard(alert, statusData, bool isDark, bool isTablet) {
+    final cardWidth = isTablet ? null : _getCardWidth(context);
+
     return IntrinsicHeight(
       child: GestureDetector(
         onTap: () {
@@ -349,19 +366,19 @@ class _ReportsPageState extends State<ReportsPage> {
           );
         },
         child: Container(
-          width: (MediaQuery.of(context).size.width - 44) / 2,
-          padding: const EdgeInsets.all(12),
+          width: cardWidth,
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
           decoration: BoxDecoration(
             color: isDark ? Colors.grey[850] : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
             border: Border.all(
-              width: 2,
+              width: isTablet ? 2 : 2,
               color: isDark ? Colors.grey[700]! : AppColors.borderColor,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
-                blurRadius: 6,
+                blurRadius: isTablet ? 8 : 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -375,15 +392,15 @@ class _ReportsPageState extends State<ReportsPage> {
                       children: [
                         Icon(
                           Icons.person,
-                          size: 16,
+                          size: isTablet ? 20 : 16,
                           color: isDark ? Colors.white70 : AppColors.textColor,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: isTablet ? 6 : 4),
                         Expanded(
                           child: Text(
                             alert.doctorName,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: isTablet ? 16 : 14,
                               fontWeight: FontWeight.w600,
                               color: isDark
                                   ? Colors.white
@@ -397,21 +414,21 @@ class _ReportsPageState extends State<ReportsPage> {
                   : SizedBox(),
 
               if (homeController.role.value != 'Doctor')
-                const SizedBox(height: 8),
+                SizedBox(height: isTablet ? 12 : 8),
 
               Row(
                 children: [
                   Icon(
                     Icons.groups_2,
-                    size: 16,
+                    size: isTablet ? 20 : 16,
                     color: isDark ? Colors.white70 : AppColors.textColor,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: isTablet ? 6 : 4),
                   Expanded(
                     child: Text(
                       alert.teamName ?? 'no_team'.tr,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: isTablet ? 16 : 14,
                         fontWeight: FontWeight.w400,
                         color: isDark ? Colors.white70 : AppColors.textColor,
                       ),
@@ -420,21 +437,21 @@ class _ReportsPageState extends State<ReportsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isTablet ? 12 : 8),
 
               Row(
                 children: [
                   Icon(
                     Icons.calendar_month_rounded,
-                    size: 16,
+                    size: isTablet ? 20 : 16,
                     color: isDark ? Colors.white70 : AppColors.textColor,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: isTablet ? 6 : 4),
                   Expanded(
                     child: Text(
                       DateFormat('yyyy-MM-dd').format(alert.serverCreateTime),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: isTablet ? 14 : 12,
                         color: isDark ? Colors.white70 : AppColors.textColor,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -442,21 +459,21 @@ class _ReportsPageState extends State<ReportsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isTablet ? 12 : 8),
 
               Row(
                 children: [
                   Icon(
                     Icons.qr_code_sharp,
-                    size: 16,
+                    size: isTablet ? 20 : 16,
                     color: isDark ? Colors.white70 : AppColors.textColor,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: isTablet ? 6 : 4),
                   Expanded(
                     child: Text(
                       alert.trackId ?? 'no_trackid'.tr,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: isTablet ? 16 : 14,
                         fontWeight: FontWeight.w400,
                         color: isDark ? Colors.white70 : AppColors.textColor,
                       ),
@@ -465,20 +482,23 @@ class _ReportsPageState extends State<ReportsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isTablet ? 16 : 12),
 
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 12 : 8,
+                  vertical: isTablet ? 8 : 6,
+                ),
                 decoration: BoxDecoration(
                   color: statusData['color'].withOpacity(isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(isTablet ? 10 : 8),
                   border: Border.all(color: statusData['color'], width: 1),
                 ),
                 child: Text(
                   statusData['name'],
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: isTablet ? 13 : 11,
                     fontWeight: FontWeight.bold,
                     color: statusData['color'],
                   ),
@@ -486,68 +506,6 @@ class _ReportsPageState extends State<ReportsPage> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-
-              if (alert.alertStatus == 5 &&
-                  homeController.role.value == 'Admin') ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _closeAlert(alert.id),
-                        icon: const Icon(Icons.close, size: 16),
-                        label: Text(
-                          'Close'.tr,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          minimumSize: const Size(0, 32),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ] else if (alert.alertStatus == 6 &&
-                  homeController.role.value == 'Admin') ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _downloadPDF(alert.id),
-                        icon: const Icon(
-                          Icons.download_for_offline_rounded,
-                          size: 22,
-                        ),
-                        label: Text(
-                          'Download',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
         ),
@@ -559,11 +517,12 @@ class _ReportsPageState extends State<ReportsPage> {
     BuildContext context,
     TextEditingController controller,
     bool isDark,
+    bool isTablet,
   ) {
     return Container(
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
         color: isDark ? Colors.grey[850] : Colors.white,
         border: Border.all(
           color: isDark ? Colors.grey[700]! : AppColors.borderColor,
@@ -574,14 +533,17 @@ class _ReportsPageState extends State<ReportsPage> {
             color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.1),
-            blurRadius: 8,
+            blurRadius: isTablet ? 12 : 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: TextFormField(
         controller: controller,
-        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: isTablet ? 16 : 14,
+        ),
         onChanged: (value) {
           alertController.onSearchChanged(value);
         },
@@ -589,14 +551,14 @@ class _ReportsPageState extends State<ReportsPage> {
           hintText: 'search_by_doctor_team'.tr,
           hintStyle: TextStyle(
             color: isDark ? Colors.grey[400] : Colors.grey,
-            fontSize: 14,
+            fontSize: isTablet ? 16 : 14,
           ),
           suffixIcon: Obx(() {
             if (alertController.searchQuery.value.isNotEmpty) {
               return IconButton(
                 icon: Icon(
                   Icons.clear,
-                  size: 20,
+                  size: isTablet ? 24 : 20,
                   color: isDark ? Colors.grey[400] : Colors.grey,
                 ),
                 onPressed: () {
@@ -607,29 +569,30 @@ class _ReportsPageState extends State<ReportsPage> {
             }
             return Icon(
               Icons.search,
+              size: isTablet ? 24 : 20,
               color: isDark ? Colors.grey[400] : Colors.grey,
             );
           }),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: isDark ? Colors.grey[850] : Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 20 : 16,
+            vertical: isTablet ? 16 : 12,
           ),
         ),
       ),
     );
   }
 
-  Widget buildExpandableFiltersContainer(bool isDark) {
+  Widget buildExpandableFiltersContainer(bool isDark, bool isTablet) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
         border: Border.all(
           color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
           width: 1,
@@ -639,7 +602,7 @@ class _ReportsPageState extends State<ReportsPage> {
             color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.1),
-            blurRadius: 8,
+            blurRadius: isTablet ? 12 : 8,
             offset: const Offset(0, 4),
           ),
         ],
@@ -652,28 +615,30 @@ class _ReportsPageState extends State<ReportsPage> {
             },
             child: Obx(
               () => Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 16 : 12,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
                   borderRadius: homeController.isFiltersExpanded.value
-                      ? const BorderRadius.vertical(top: Radius.circular(16))
-                      : BorderRadius.circular(16),
+                      ? BorderRadius.vertical(
+                          top: Radius.circular(isTablet ? 20 : 16),
+                        )
+                      : BorderRadius.circular(isTablet ? 20 : 16),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.filter_list,
                       color: AppColors.primaryColor,
-                      size: 20,
+                      size: isTablet ? 24 : 20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: isTablet ? 12 : 8),
                     Text(
                       'filters'.tr,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: isTablet ? 18 : 16,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
                       ),
@@ -689,20 +654,22 @@ class _ReportsPageState extends State<ReportsPage> {
                         activeFilters++;
                       return activeFilters > 0
                           ? Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                              margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isTablet ? 10 : 8,
+                                vertical: isTablet ? 6 : 4,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(
+                                  isTablet ? 16 : 12,
+                                ),
                               ),
                               child: Text(
                                 '$activeFilters',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: isTablet ? 14 : 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -715,6 +682,7 @@ class _ReportsPageState extends State<ReportsPage> {
                       child: Icon(
                         Icons.expand_more,
                         color: AppColors.primaryColor,
+                        size: isTablet ? 24 : 20,
                       ),
                     ),
                   ],
@@ -730,7 +698,7 @@ class _ReportsPageState extends State<ReportsPage> {
                 opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
                 child: homeController.isFiltersExpanded.value
-                    ? buildFiltersContent(isDark)
+                    ? buildFiltersContent(isDark, isTablet)
                     : null,
               ),
             ),
@@ -740,453 +708,478 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget buildFiltersContent(bool isDark) {
+  Widget buildFiltersContent(bool isDark, bool isTablet) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
       decoration: BoxDecoration(
         color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(isTablet ? 20 : 16),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Obx(
-            () => Row(
-              children: [
-                Expanded(
-                  child: DropdownFilter(
-                    hint: 'filter_by_status'.tr,
-                    selectedValue: alertController.selectedStatus.value,
-                    items: alertController.statusOptions,
-                    onChanged: (value) =>
-                        alertController.onStatusChanged(value),
+            () => isTablet
+                ? Row(
+                    children: [
+                      Expanded(
+                        child: DropdownFilter(
+                          hint: 'filter_by_status'.tr,
+                          selectedValue: alertController.selectedStatus.value,
+                          items: alertController.statusOptions,
+                          onChanged: (value) =>
+                              alertController.onStatusChanged(value),
+                        ),
+                      ),
+                      SizedBox(width: isTablet ? 16 : 12),
+                      Expanded(
+                        child: DropdownFilter(
+                          hint: 'filter_by_type'.tr,
+                          selectedValue: alertController.selectedType.value,
+                          items: alertController.typeOptions,
+                          onChanged: (value) =>
+                              alertController.onTypeChanged(value),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      DropdownFilter(
+                        hint: 'filter_by_status'.tr,
+                        selectedValue: alertController.selectedStatus.value,
+                        items: alertController.statusOptions,
+                        onChanged: (value) =>
+                            alertController.onStatusChanged(value),
+                      ),
+                      SizedBox(height: isTablet ? 16 : 12),
+                      DropdownFilter(
+                        hint: 'filter_by_type'.tr,
+                        selectedValue: alertController.selectedType.value,
+                        items: alertController.typeOptions,
+                        onChanged: (value) =>
+                            alertController.onTypeChanged(value),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownFilter(
-                    hint: 'filter_by_type'.tr,
-                    selectedValue: alertController.selectedType.value,
-                    items: alertController.typeOptions,
-                    onChanged: (value) => alertController.onTypeChanged(value),
-                  ),
-                ),
-              ],
-            ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isTablet ? 20 : 16),
           if (alertController.userRole.value == 'Admin') ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Obx(
-                    () => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.grey[600]!
-                              : AppColors.borderColor,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        color: isDark ? Colors.grey[800] : Colors.white,
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: alertController.selectedUserId.value,
-                          hint: Text(
-                            'filter_by_user'.tr,
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                          ),
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                          dropdownColor: isDark
-                              ? Colors.grey[800]
-                              : Colors.white,
-                          onChanged: (value) =>
-                              alertController.onUserIdChanged(value),
-                          items: [
-                            DropdownMenuItem<String>(
-                              value: null,
-                              child: Text('all_users'.tr),
-                            ),
-                            ...homeController.users
-                                .map(
-                                  (user) => DropdownMenuItem<String>(
-                                    value: user.id,
-                                    child: Text(user.fullName),
-                                  ),
-                                )
-                                .toList(),
-                          ],
-                        ),
-                      ),
-                    ),
+            isTablet
+                ? Row(
+                    children: [
+                      Expanded(child: _buildUserDropdown(isDark, isTablet)),
+                      SizedBox(width: isTablet ? 16 : 12),
+                      Expanded(child: _buildTeamDropdown(isDark, isTablet)),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      _buildUserDropdown(isDark, isTablet),
+                      SizedBox(height: isTablet ? 16 : 12),
+                      _buildTeamDropdown(isDark, isTablet),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Obx(
-                    () => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.grey[600]!
-                              : AppColors.borderColor,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        color: isDark ? Colors.grey[800] : Colors.white,
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: alertController.selectedTeamId.value,
-                          hint: Text(
-                            'filter_by_team'.tr,
-                            style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                          ),
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                          ),
-                          dropdownColor: isDark
-                              ? Colors.grey[800]
-                              : Colors.white,
-                          onChanged: (value) =>
-                              alertController.onTeamIdChanged(value),
-                          items: [
-                            DropdownMenuItem<String>(
-                              value: null,
-                              child: Text('all_teams'.tr),
-                            ),
-                            ...homeController.teams
-                                .map(
-                                  (team) => DropdownMenuItem<String>(
-                                    value: team.id,
-                                    child: Text(team.name),
-                                  ),
-                                )
-                                .toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            SizedBox(height: isTablet ? 20 : 16),
           ],
           Text(
             'date_range_filter'.tr,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isTablet ? 16 : 14,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white : Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _selectDate(context, isFromDate: true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
+          SizedBox(height: isTablet ? 12 : 8),
+          isTablet
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: _buildDatePicker(context, isDark, isTablet, true),
                     ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.grey[600]!
-                            : AppColors.borderColor,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color: isDark ? Colors.grey[800] : Colors.white,
+                    SizedBox(width: isTablet ? 16 : 8),
+                    Expanded(
+                      child: _buildDatePicker(context, isDark, isTablet, false),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 16,
-                          color: isDark ? Colors.grey[400] : Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Obx(
-                            () => Text(
-                              alertController.dateFrom.value != null
-                                  ? DateFormat(
-                                      'yyyy-MM-dd',
-                                    ).format(alertController.dateFrom.value!)
-                                  : 'from_date'.tr,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: alertController.dateFrom.value != null
-                                    ? (isDark ? Colors.white : Colors.black)
-                                    : (isDark ? Colors.grey[400] : Colors.grey),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (alertController.dateFrom.value != null)
-                          GestureDetector(
-                            onTap: () => alertController.onDateRangeChanged(
-                              null,
-                              alertController.dateTo.value,
-                            ),
-                            child: Icon(
-                              Icons.clear,
-                              size: 16,
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildDatePicker(context, isDark, isTablet, true),
+                    SizedBox(height: isTablet ? 12 : 8),
+                    _buildDatePicker(context, isDark, isTablet, false),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _selectDate(context, isFromDate: false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.grey[600]!
-                            : AppColors.borderColor,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color: isDark ? Colors.grey[800] : Colors.white,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 16,
-                          color: isDark ? Colors.grey[400] : Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Obx(
-                            () => Text(
-                              alertController.dateTo.value != null
-                                  ? DateFormat(
-                                      'yyyy-MM-dd',
-                                    ).format(alertController.dateTo.value!)
-                                  : 'to_date'.tr,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: alertController.dateTo.value != null
-                                    ? (isDark ? Colors.white : Colors.black)
-                                    : (isDark ? Colors.grey[400] : Colors.grey),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (alertController.dateTo.value != null)
-                          GestureDetector(
-                            onTap: () => alertController.onDateRangeChanged(
-                              alertController.dateFrom.value,
-                              null,
-                            ),
-                            child: Icon(
-                              Icons.clear,
-                              size: 16,
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          SizedBox(height: isTablet ? 20 : 16),
           Text(
             'sort_options'.tr,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: isTablet ? 16 : 14,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white : Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: isDark ? Colors.grey[600]! : AppColors.borderColor,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    color: isDark ? Colors.grey[800] : Colors.white,
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: Obx(
-                      () => DropdownButton<String>(
-                        isExpanded: true,
-                        value: alertController.sortBy.value,
-                        hint: Text(
-                          'sort_by'.tr,
-                          style: TextStyle(
-                            color: isDark ? Colors.grey[400] : Colors.grey,
-                          ),
-                        ),
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                        dropdownColor: isDark ? Colors.grey[800] : Colors.white,
-                        onChanged: (value) => alertController.onSortChanged(
-                          value ?? 'serverCreateTime',
-                          alertController.sortDescending.value,
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'serverCreateTime',
-                            child: Text('date'.tr),
-                          ),
-                          DropdownMenuItem(
-                            value: 'alertStatus',
-                            child: Text('status'.tr),
-                          ),
-                          DropdownMenuItem(
-                            value: 'alertType',
-                            child: Text('type'.tr),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+          SizedBox(height: isTablet ? 12 : 8),
+          isTablet
+              ? Row(
+                  children: [
+                    Expanded(child: _buildSortDropdown(isDark, isTablet)),
+                    SizedBox(width: isTablet ? 16 : 12),
+                    _buildSortDirectionButton(isDark, isTablet),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildSortDropdown(isDark, isTablet),
+                    SizedBox(height: isTablet ? 12 : 8),
+                    _buildSortDirectionButton(isDark, isTablet),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Obx(
-                () => GestureDetector(
-                  onTap: () => alertController.onSortChanged(
-                    alertController.sortBy.value,
-                    !alertController.sortDescending.value,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.grey[600]!
-                            : AppColors.borderColor,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      color: alertController.sortDescending.value
-                          ? AppColors.primaryColor.withOpacity(
-                              isDark ? 0.2 : 0.1,
-                            )
-                          : (isDark ? Colors.grey[800] : Colors.white),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          alertController.sortDescending.value
-                              ? Icons.arrow_downward
-                              : Icons.arrow_upward,
-                          size: 16,
-                          color: alertController.sortDescending.value
-                              ? AppColors.primaryColor
-                              : (isDark ? Colors.grey[400] : Colors.grey),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          alertController.sortDescending.value
-                              ? 'desc'.tr
-                              : 'asc'.tr,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: alertController.sortDescending.value
-                                ? AppColors.primaryColor
-                                : (isDark ? Colors.grey[400] : Colors.grey),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          SizedBox(height: isTablet ? 20 : 16),
+          isTablet
+              ? Row(
+                  children: [
+                    Expanded(child: _buildApplyButton(isTablet)),
+                    SizedBox(width: isTablet ? 16 : 12),
+                    Expanded(child: _buildClearButton(isDark, isTablet)),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildApplyButton(isTablet),
+                    SizedBox(height: isTablet ? 12 : 8),
+                    _buildClearButton(isDark, isTablet),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => alertController.refreshAlerts(),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: Text('apply_filters'.tr),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    search.clear();
-                    alertController.clearFilters();
-                  },
-                  icon: const Icon(Icons.clear_all, size: 18),
-                  label: Text('clear_all_filters'.tr),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark
-                        ? Colors.grey[700]
-                        : Colors.grey.withOpacity(0.2),
-                    foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUserDropdown(bool isDark, bool isTablet) {
+    return Obx(
+      () => Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 12,
+          vertical: isTablet ? 6 : 4,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+          ),
+          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+          color: isDark ? Colors.grey[800] : Colors.white,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: alertController.selectedUserId.value,
+            hint: Text(
+              'filter_by_user'.tr,
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey,
+                fontSize: isTablet ? 16 : 14,
+              ),
+            ),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: isTablet ? 16 : 14,
+            ),
+            dropdownColor: isDark ? Colors.grey[800] : Colors.white,
+            onChanged: (value) => alertController.onUserIdChanged(value),
+            items: [
+              DropdownMenuItem<String>(
+                value: null,
+                child: Text('all_users'.tr),
+              ),
+              ...homeController.users
+                  .map(
+                    (user) => DropdownMenuItem<String>(
+                      value: user.id,
+                      child: Text(user.fullName),
+                    ),
+                  )
+                  .toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeamDropdown(bool isDark, bool isTablet) {
+    return Obx(
+      () => Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 12,
+          vertical: isTablet ? 6 : 4,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+          ),
+          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+          color: isDark ? Colors.grey[800] : Colors.white,
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            value: alertController.selectedTeamId.value,
+            hint: Text(
+              'filter_by_team'.tr,
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey,
+                fontSize: isTablet ? 16 : 14,
+              ),
+            ),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: isTablet ? 16 : 14,
+            ),
+            dropdownColor: isDark ? Colors.grey[800] : Colors.white,
+            onChanged: (value) => alertController.onTeamIdChanged(value),
+            items: [
+              DropdownMenuItem<String>(
+                value: null,
+                child: Text('all_teams'.tr),
+              ),
+              ...homeController.teams
+                  .map(
+                    (team) => DropdownMenuItem<String>(
+                      value: team.id,
+                      child: Text(team.name),
+                    ),
+                  )
+                  .toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(
+    BuildContext context,
+    bool isDark,
+    bool isTablet,
+    bool isFromDate,
+  ) {
+    return GestureDetector(
+      onTap: () => _selectDate(context, isFromDate: isFromDate),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 12,
+          vertical: isTablet ? 16 : 12,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+          ),
+          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+          color: isDark ? Colors.grey[800] : Colors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today,
+              size: isTablet ? 20 : 16,
+              color: isDark ? Colors.grey[400] : Colors.grey,
+            ),
+            SizedBox(width: isTablet ? 12 : 8),
+            Expanded(
+              child: Obx(
+                () => Text(
+                  isFromDate
+                      ? (alertController.dateFrom.value != null
+                            ? DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(alertController.dateFrom.value!)
+                            : 'from_date'.tr)
+                      : (alertController.dateTo.value != null
+                            ? DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(alertController.dateTo.value!)
+                            : 'to_date'.tr),
+                  style: TextStyle(
+                    fontSize: isTablet ? 16 : 14,
+                    color:
+                        (isFromDate
+                                ? alertController.dateFrom.value
+                                : alertController.dateTo.value) !=
+                            null
+                        ? (isDark ? Colors.white : Colors.black)
+                        : (isDark ? Colors.grey[400] : Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+            if ((isFromDate
+                    ? alertController.dateFrom.value
+                    : alertController.dateTo.value) !=
+                null)
+              GestureDetector(
+                onTap: () => alertController.onDateRangeChanged(
+                  isFromDate ? null : alertController.dateFrom.value,
+                  isFromDate ? alertController.dateTo.value : null,
+                ),
+                child: Icon(
+                  Icons.clear,
+                  size: isTablet ? 20 : 16,
+                  color: isDark ? Colors.grey[400] : Colors.grey,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortDropdown(bool isDark, bool isTablet) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 16 : 12,
+        vertical: isTablet ? 6 : 4,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+        ),
+        borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+        color: isDark ? Colors.grey[800] : Colors.white,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: Obx(
+          () => DropdownButton<String>(
+            isExpanded: true,
+            value: alertController.sortBy.value,
+            hint: Text(
+              'sort_by'.tr,
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey,
+                fontSize: isTablet ? 16 : 14,
+              ),
+            ),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: isTablet ? 16 : 14,
+            ),
+            dropdownColor: isDark ? Colors.grey[800] : Colors.white,
+            onChanged: (value) => alertController.onSortChanged(
+              value ?? 'serverCreateTime',
+              alertController.sortDescending.value,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: 'serverCreateTime',
+                child: Text('date'.tr),
+              ),
+              DropdownMenuItem(value: 'alertStatus', child: Text('status'.tr)),
+              DropdownMenuItem(value: 'alertType', child: Text('type'.tr)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortDirectionButton(bool isDark, bool isTablet) {
+    return Obx(
+      () => GestureDetector(
+        onTap: () => alertController.onSortChanged(
+          alertController.sortBy.value,
+          !alertController.sortDescending.value,
+        ),
+        child: Container(
+          width: isTablet ? null : double.infinity,
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor,
+            ),
+            borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+            color: alertController.sortDescending.value
+                ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
+                : (isDark ? Colors.grey[800] : Colors.white),
+          ),
+          child: Row(
+            mainAxisSize: isTablet ? MainAxisSize.min : MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                alertController.sortDescending.value
+                    ? Icons.arrow_downward
+                    : Icons.arrow_upward,
+                size: isTablet ? 20 : 16,
+                color: alertController.sortDescending.value
+                    ? AppColors.primaryColor
+                    : (isDark ? Colors.grey[400] : Colors.grey),
+              ),
+              SizedBox(width: isTablet ? 6 : 4),
+              Text(
+                alertController.sortDescending.value ? 'desc'.tr : 'asc'.tr,
+                style: TextStyle(
+                  fontSize: isTablet ? 14 : 12,
+                  color: alertController.sortDescending.value
+                      ? AppColors.primaryColor
+                      : (isDark ? Colors.grey[400] : Colors.grey),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApplyButton(bool isTablet) {
+    return ElevatedButton.icon(
+      onPressed: () => alertController.refreshAlerts(),
+      icon: Icon(Icons.refresh, size: isTablet ? 20 : 18),
+      label: Text(
+        'apply_filters'.tr,
+        style: TextStyle(fontSize: isTablet ? 16 : 14),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: EdgeInsets.symmetric(
+          vertical: isTablet ? 16 : 12,
+          horizontal: isTablet ? 16 : 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearButton(bool isDark, bool isTablet) {
+    return ElevatedButton.icon(
+      onPressed: () {
+        search.clear();
+        alertController.clearFilters();
+      },
+      icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
+      label: Text(
+        'clear_all_filters'.tr,
+        style: TextStyle(fontSize: isTablet ? 16 : 14),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isDark
+            ? Colors.grey[700]
+            : Colors.grey.withOpacity(0.2),
+        foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
+        elevation: 0,
+        padding: EdgeInsets.symmetric(
+          vertical: isTablet ? 16 : 12,
+          horizontal: isTablet ? 16 : 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        ),
       ),
     );
   }
@@ -1231,9 +1224,7 @@ class _ReportsPageState extends State<ReportsPage> {
     }
   }
 
-  // قسمت profileHeader را این شکل تغییر دهید:
-
-  Widget profileHeader(bool isDark) {
+  Widget profileHeader(bool isDark, bool isTablet) {
     return Row(
       children: [
         Column(
@@ -1242,17 +1233,17 @@ class _ReportsPageState extends State<ReportsPage> {
             Text(
               'reports'.tr,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: isTablet ? 24 : 18,
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : Colors.black,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: isTablet ? 6 : 4),
             Obx(
               () => Text(
                 '${alertController.alerts.length} ${'reports_available'.tr}',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: isTablet ? 14 : 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
@@ -1261,9 +1252,9 @@ class _ReportsPageState extends State<ReportsPage> {
         ),
         const Spacer(),
         Container(
-          height: 55,
+          height: isTablet ? 70 : 55,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(54),
+            borderRadius: BorderRadius.circular(isTablet ? 70 : 54),
             color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
             border: Border.all(
               color: isDark ? Colors.grey[600]! : AppColors.borderColor,
@@ -1271,7 +1262,7 @@ class _ReportsPageState extends State<ReportsPage> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(isTablet ? 12.0 : 8.0),
             child: Row(
               children: [
                 Obx(() {
@@ -1283,22 +1274,60 @@ class _ReportsPageState extends State<ReportsPage> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Get.to(NotificationPage());
+                          homeController.isNotificationSelected.value = true;
+                          homeController.isProfileSelected.value = false;
+
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            Get.to(
+                              NotificationPage(),
+                              transition: Transition.downToUp,
+                              duration: const Duration(milliseconds: 400),
+                            )?.then((_) {
+                              homeController.isNotificationSelected.value =
+                                  false;
+                              homeController.isProfileSelected.value = true;
+                            });
+                          });
                         },
-                        child: Icon(
-                          Icons.notifications_none_rounded,
-                          color: isDark ? Colors.white70 : Colors.black,
+                        child: Obx(
+                          () => AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                            padding: EdgeInsets.all(isTablet ? 12 : 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color:
+                                    homeController.isNotificationSelected.value
+                                    ? AppColors.primaryColor
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.primaryColor
+                                  : Colors.transparent,
+                            ),
+                            child: Icon(
+                              Icons.notifications_none_rounded,
+                              size: isTablet ? 24 : 20,
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.background
+                                  : (isDark ? Colors.white70 : Colors.black),
+                            ),
+                          ),
                         ),
                       ),
                       if (unreadCount > 0)
                         Positioned(
-                          right: -6,
-                          top: -6,
+                          right: -2,
+                          top: -2,
                           child: Container(
-                            padding: const EdgeInsets.all(2),
+                            padding: EdgeInsets.all(isTablet ? 3 : 2),
                             decoration: BoxDecoration(
                               color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                isTablet ? 10 : 8,
+                              ),
                               border: Border.all(
                                 color: isDark
                                     ? Colors.grey[800]!
@@ -1306,15 +1335,15 @@ class _ReportsPageState extends State<ReportsPage> {
                                 width: 1,
                               ),
                             ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
+                            constraints: BoxConstraints(
+                              minWidth: isTablet ? 20 : 16,
+                              minHeight: isTablet ? 20 : 16,
                             ),
                             child: Text(
                               unreadCount > 99 ? '99+' : unreadCount.toString(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: isTablet ? 12 : 10,
                                 fontWeight: FontWeight.bold,
                               ),
                               textAlign: TextAlign.center,
@@ -1324,11 +1353,51 @@ class _ReportsPageState extends State<ReportsPage> {
                     ],
                   );
                 }),
-                ConstantSpace.mediumHorizontalSpacer,
-                CircleAvatar(
-                  backgroundColor: AppColors.primaryColor,
-                  radius: 24,
-                  child: Icon(Icons.person, color: AppColors.backgroundColor),
+                SizedBox(width: isTablet ? 16 : 12),
+                GestureDetector(
+                  onTap: () {
+                    homeController.isProfileSelected.value = true;
+                    homeController.isNotificationSelected.value = false;
+                  },
+                  child: Obx(
+                    () => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: homeController.isProfileSelected.value
+                              ? AppColors.primaryColor
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                        boxShadow: homeController.isProfileSelected.value
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primaryColor.withOpacity(
+                                    0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: homeController.isProfileSelected.value
+                            ? AppColors.primaryColor.withOpacity(0.9)
+                            : AppColors.primaryColor,
+                        radius: isTablet ? 30 : 24,
+                        child: Icon(
+                          Icons.person,
+                          color: AppColors.backgroundColor,
+                          size: homeController.isProfileSelected.value
+                              ? (isTablet ? 32 : 26)
+                              : (isTablet ? 30 : 24),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

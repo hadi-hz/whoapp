@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -40,14 +42,56 @@ class AlertDetailController extends GetxController {
   var userRole = ''.obs;
 
   Future<void> openDirections(LatLng destination) async {
-    final url =
-        'https://www.google.com/maps/dir/?api=1'
-        '&destination=${destination.latitude},${destination.longitude}';
-
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    }
+  if (Platform.isIOS) {
+    await _openDirectionsIOS(destination);
+  } else {
+    await _openDirectionsAndroid(destination);
   }
+}
+
+Future<void> _openDirectionsIOS(LatLng destination) async {
+
+  final googleMapsUrl = 'comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=driving';
+  
+  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+    await launchUrl(Uri.parse(googleMapsUrl));
+    return;
+  }
+  
+
+  final appleMapsUrl = 'maps://app?daddr=${destination.latitude},${destination.longitude}';
+  
+  if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+    await launchUrl(Uri.parse(appleMapsUrl));
+    return;
+  }
+  
+ 
+  await _openWebMaps(destination);
+}
+
+Future<void> _openDirectionsAndroid(LatLng destination) async {
+  
+  final googleMapsUrl = 'google.navigation:q=${destination.latitude},${destination.longitude}';
+  
+  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+    await launchUrl(Uri.parse(googleMapsUrl));
+    return;
+  }
+  
+  // Fallback to web
+  await _openWebMaps(destination);
+}
+
+Future<void> _openWebMaps(LatLng destination) async {
+  final webUrl = 'https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}';
+  
+  if (await canLaunchUrl(Uri.parse(webUrl))) {
+    await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+  } else {
+    throw 'Could not open maps';
+  }
+}
 
   Future<void> fetchTeamByAlertType(int alertType) async {
     isLoadingTeam.value = true;

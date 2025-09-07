@@ -39,14 +39,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: isDark ? Colors.transparent :   AppColors.primaryColor.withOpacity(0.1),
         elevation: 0,
-        iconTheme: IconThemeData(
-          color: isDark ? Colors.white : Colors.black,
-        ),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       body: Container(
         width: double.infinity,
@@ -55,7 +53,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark 
+            colors: isDark
                 ? [
                     AppColors.primaryColor.withOpacity(0.2),
                     AppColors.primaryColor.withOpacity(0.1),
@@ -71,9 +69,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         child: Obx(() {
           if (controller.isLoading.value) {
             return Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primaryColor,
-              ),
+              child: CircularProgressIndicator(color: AppColors.primaryColor),
             );
           }
 
@@ -83,8 +79,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.error_outline, 
-                    size: 64, 
+                    Icons.error_outline,
+                    size: 64,
                     color: isDark ? Colors.red[300] : Colors.red,
                   ),
                   const SizedBox(height: 16),
@@ -165,12 +161,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
@@ -205,7 +201,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             user.displayName,
             style: TextStyle(
-              fontSize: 24, 
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
             ),
@@ -217,7 +213,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             user.email,
             style: TextStyle(
-              fontSize: 16, 
+              fontSize: 16,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
             textAlign: TextAlign.center,
@@ -242,12 +238,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
@@ -261,7 +257,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             'personal_information'.tr,
             style: TextStyle(
-              fontSize: 18, 
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
             ),
@@ -280,7 +276,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             isDark,
           ),
           _buildInfoRow(
-            'preferred_language'.tr, 
+            'preferred_language'.tr,
             user.languageDisplayName,
             isDark,
           ),
@@ -297,12 +293,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
@@ -316,7 +312,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             'account_status'.tr,
             style: TextStyle(
-              fontSize: 18, 
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
             ),
@@ -374,7 +370,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             children: [
               Icon(
                 user.emailConfirmed ? Icons.verified : Icons.email,
-                color: user.emailConfirmed ? Colors.blue : (isDark ? Colors.grey[400] : Colors.grey),
+                color: user.emailConfirmed
+                    ? Colors.blue
+                    : (isDark ? Colors.grey[400] : Colors.grey),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -392,8 +390,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: user.emailConfirmed 
-                      ? Colors.blue 
+                  color: user.emailConfirmed
+                      ? Colors.blue
                       : (isDark ? Colors.grey[400] : Colors.grey),
                 ),
               ),
@@ -412,12 +410,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
@@ -431,7 +429,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             'user_roles'.tr,
             style: TextStyle(
-              fontSize: 18, 
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
             ),
@@ -505,12 +503,12 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
         color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
@@ -545,7 +543,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Text(
             'select_role_for_user'.tr,
             style: TextStyle(
-              fontSize: 14, 
+              fontSize: 14,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
@@ -575,9 +573,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
                   dropdownColor: isDark ? Colors.grey[800] : Colors.white,
                   items: controller.availableRoles.map((role) {
                     IconData roleIcon;
@@ -586,7 +582,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                     switch (role) {
                       case 'Admin':
                         roleIcon = Icons.admin_panel_settings;
-                        roleColor = isDark ? Colors.purple[300]! : Colors.purple;
+                        roleColor = isDark
+                            ? Colors.purple[300]!
+                            : Colors.purple;
                         break;
                       case 'Doctor':
                         roleIcon = Icons.local_hospital;
@@ -594,7 +592,9 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                         break;
                       case 'ServiceProvider':
                         roleIcon = Icons.build;
-                        roleColor = isDark ? Colors.orange[300]! : Colors.orange;
+                        roleColor = isDark
+                            ? Colors.orange[300]!
+                            : Colors.orange;
                         break;
                       default:
                         roleIcon = Icons.person;
@@ -645,8 +645,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  disabledBackgroundColor: isDark 
-                      ? Colors.grey[700] 
+                  disabledBackgroundColor: isDark
+                      ? Colors.grey[700]
                       : Colors.grey[300],
                 ),
                 child: controller.isAssigningRole.value
@@ -675,22 +675,22 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark 
+              color: isDark
                   ? Colors.blue.withOpacity(0.2)
                   : Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isDark 
+                color: isDark
                     ? Colors.blue.withOpacity(0.5)
-                    : Colors.blue.withOpacity(0.3), 
+                    : Colors.blue.withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.info, 
-                  color: isDark ? Colors.blue[300] : Colors.blue, 
+                  Icons.info,
+                  color: isDark ? Colors.blue[300] : Colors.blue,
                   size: 16,
                 ),
                 const SizedBox(width: 8),
@@ -698,7 +698,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   child: Text(
                     'role_assignment_info'.tr,
                     style: TextStyle(
-                      fontSize: 12, 
+                      fontSize: 12,
                       color: isDark ? Colors.blue[300] : Colors.blue,
                     ),
                   ),
@@ -742,7 +742,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 14, 
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: isDark ? Colors.white70 : Colors.black87,
               ),

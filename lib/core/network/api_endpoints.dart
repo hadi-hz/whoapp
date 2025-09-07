@@ -31,4 +31,7 @@ class ApiEndpoints {
   static const String adminCloseAlert = '/alert/admin-close-alert';
   static const String getAllNotif = '/notification/get-all-notif';
   static const String notificationDelete = '/notification/delete';
+  static const String notifReadAlert = '/notification/set-notif-read-alert';
+  static const String notifReadUser = '/notification/set-notif-read-user';
+  static const String notifReadNotif = '/notification/set-notif-read-notif';
 }

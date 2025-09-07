@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,41 +29,60 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      _setStatusBarStyle();
       final prefs = await SharedPreferences.getInstance();
       final savedUserId = prefs.getString('userId') ?? '';
       await controller.fetchUserProfile(savedUserId);
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  void _setStatusBarStyle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: isDark ? Colors.grey[900] : AppColors.primaryColor,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
-      body: Stack(
-        children: [
-          Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
-          Positioned(
-            top: screenHeight * 0.26,
-            child: Container(
-              width: screenWidth,
-              height: screenHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+@override
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  final screenWidth = MediaQuery.of(context).size.width;
+  final screenHeight = MediaQuery.of(context).size.height;
+  final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+  return Scaffold(
+    backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
+    body: Stack(
+      children: [
+        Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
+        Positioned(
+          top: screenHeight < 700 ? screenHeight * 0.32 : screenHeight * 0.26,
+          left: 0,
+          right: 0,
+          bottom: keyboardHeight, // تنظیم bottom با keyboard
+          child: Container(
+            width: screenWidth,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black12,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -72,11 +92,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       const ChangeLang(),
                       Obx(() {
                         return IconButton(
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                          ),
                           icon: Icon(
-                            Get.find<ThemeController>().themeMode.value == ThemeMode.light
+                            Get.find<ThemeController>().themeMode.value ==
+                                    ThemeMode.light
                                 ? Icons.dark_mode
                                 : Icons.light_mode,
-                            color: AppColors.primaryColor,
+                            color: AppColors.background,
                           ),
                           onPressed: () {
                             Get.find<ThemeController>().toggleTheme();
@@ -85,35 +109,132 @@ class _ProfilePageState extends State<ProfilePage> {
                       }),
                     ],
                   ),
-                  ConstantSpace.mediumVerticalSpacer,
+                  ConstantSpace.smallVerticalSpacer,
                   userNameBox(context),
-                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.smallVerticalSpacer,
                   fullNameBox(context),
-                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.smallVerticalSpacer,
                   emailBox(context),
-                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.smallVerticalSpacer,
                   roleBox(context),
-                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.mediumVerticalSpacer,
                   changePasswordButton(context),
-                  ConstantSpace.largeVerticalSpacer,
+                  ConstantSpace.mediumVerticalSpacer,
                   Row(children: [logoutButton(context)]),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-          Positioned(
-            top: screenHeight * 0.23 - 25,
-            left: (screenWidth / 2) - 50,
-            child: profileCircle(context),
-          ),
-        ],
+        ),
+        Positioned(
+          top: (screenHeight < 700 ? screenHeight * 0.32 : screenHeight * 0.26) - 25,
+          left: (screenWidth / 2) - 50,
+          child: profileCircle(context),
+        ),
+      ],
+    ),
+  );
+}
+  Widget bodyTitles(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    final baseHeight = screenHeight < 700 ? 200.0 : 500.0;
+    final logoSize = screenWidth < 400 ? 100.0 : 130.0;
+    final fontSize = screenWidth < 400 ? 18.0 : 22.0;
+
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      height: baseHeight + statusBarHeight,
+      color: isDark ? theme.primaryColor : AppColors.primaryColor,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: statusBarHeight + (screenHeight < 700 ? 16 : 32),
+        ),
+        child: Column(
+          children: [
+            if (screenHeight >= 700) ConstantSpace.largeVerticalSpacer,
+            if (screenHeight >= 700) ConstantSpace.largeVerticalSpacer,
+            Obx(
+              () => Row(
+                children: [
+                  ConstantSpace.mediumHorizontalSpacer,
+                  AnimatedOpacity(
+                    opacity: controller.showHello.value ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: AnimatedScale(
+                      scale: controller.showHello.value ? 1.0 : 0.8,
+                      duration: const Duration(milliseconds: 200),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: logoSize,
+                        height: logoSize,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Obx(
+                          () => animatedText(
+                            controller.showHello.value,
+                            _buildTitle(context, fontSize),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  Widget _buildTitle(BuildContext context, double fontSize) {
+    return Row(
+      children: [
+        ConstantSpace.mediumHorizontalSpacer,
+        Flexible(
+          child: Text(
+            "world_health_organization".tr,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              color: AppColors.background,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget animatedText(bool show, Widget child) {
+    return AnimatedOpacity(
+      opacity: show ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: AnimatedSlide(
+        offset: show ? const Offset(0, 0) : const Offset(0, 0.3),
+        duration: const Duration(milliseconds: 200),
+        child: child,
+      ),
+    );
+  }
+
+  // باقی متدها همان باقی می‌مانند...
   Widget userNameBox(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Obx(() {
       return Row(
         children: [
@@ -145,7 +266,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget fullNameBox(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Obx(() {
       return Row(
         children: [
@@ -177,7 +298,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget emailBox(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Obx(() {
       return Row(
         children: [
@@ -217,7 +338,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget roleBox(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Obx(() {
       return Row(
         children: [
@@ -247,205 +368,167 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  Widget animatedText(bool show, Widget child) {
-    return AnimatedOpacity(
-      opacity: show ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 200),
-      child: AnimatedSlide(
-        offset: show ? const Offset(0, 0) : const Offset(0, 0.3),
-        duration: const Duration(milliseconds: 200),
-        child: child,
-      ),
-    );
-  }
+ Widget profileCircle(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
 
-  Widget bodyTitles(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      width: MediaQuery.sizeOf(context).width,
-      height: 500,
-      color: isDark ? theme.primaryColor : AppColors.primaryColor,
-      child: Column(
-        children: [
-          ConstantSpace.largeVerticalSpacer,
-          ConstantSpace.largeVerticalSpacer,
-          Obx(
-            () => Row(
-              children: [
-                ConstantSpace.mediumHorizontalSpacer,
-                AnimatedOpacity(
-                  opacity: controller.showHello.value ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: AnimatedScale(
-                    scale: controller.showHello.value ? 1.0 : 0.8,
-                    duration: const Duration(milliseconds: 200),
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 130,
-                      height: 130,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Obx(() => animatedText(controller.showHello.value, title(context))),
-                    Obx(() => animatedText(controller.showWelcome.value, description(context))),
-                  ],
-                ),
-              ],
-            ),
+  return Obx(() {
+    final file = controller.imageFile.value;
+    final networkUrl = controller.userInfo.value?.profileImageUrl;
+    return Stack(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark
+                ? theme.cardColor
+                : const Color.fromARGB(255, 223, 221, 221),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black12,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget profileCircle(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Obx(() {
-      final file = controller.imageFile.value;
-      final networkUrl = controller.userInfo.value?.profileImageUrl;
-      return Stack(
-        children: [
-          Container(
-            width: 100,
-            height: 100,
+          child: ClipOval(
+            child: file != null
+                ? Image.file(file, fit: BoxFit.cover, width: 100, height: 100)
+                : (networkUrl != null && networkUrl.isNotEmpty
+                      ? Image.network(
+                          networkUrl,
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.person,
+                              size: 50,
+                              color: theme.iconTheme.color,
+                            );
+                          },
+                        )
+                      : Icon(
+                          Icons.person,
+                          size: 50,
+                          color: theme.iconTheme.color,
+                        )),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDark ? theme.cardColor : const Color.fromARGB(255, 223, 221, 221),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: AppColors.primaryColor,
+              border: Border.all(color: theme.cardColor, width: 2),
             ),
-            child: ClipOval(
-              child: file != null
-                  ? Image.file(file, fit: BoxFit.cover, width: 100, height: 100)
-                  : (networkUrl != null && networkUrl.isNotEmpty
-                        ? Image.network(
-                            networkUrl,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.person,
-                                size: 50,
-                                color: theme.iconTheme.color,
-                              );
-                            },
-                          )
-                        : Icon(Icons.person, size: 50, color: theme.iconTheme.color)),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryColor,
-                border: Border.all(color: theme.cardColor, width: 2),
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                icon: const Icon(Icons.edit, size: 18, color: Colors.white),
-                onPressed: () {
-                  Get.bottomSheet(
-                    Container(
-                      height: MediaQuery.of(context).size.height * 0.55,
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.edit, size: 18, color: Colors.white),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => Container(
+                    height: MediaQuery.of(context).size.height * 0.62,
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(25),
                       ),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withOpacity(0.1),
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.person_add, color: AppColors.primaryColor),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'edit_profile'.tr,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  onPressed: () => Get.back(),
-                                  icon: Icon(Icons.close, color: theme.iconTheme.color),
-                                ),
-                              ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withOpacity(0.1),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(25),
                             ),
                           ),
-                          Expanded(
-                            child: Form(
-                              key: formKey,
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.only(
-                                  start: 20,
-                                  bottom: 30,
-                                  end: 20,
-                                  top: 12,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.person_add,
+                                color: AppColors.primaryColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'edit_profile'.tr,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
                                 ),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      chooseImageProfile(context),
-                                      ConstantSpace.mediumVerticalSpacer,
-                                      inputName(context, controller.name),
-                                      ConstantSpace.mediumVerticalSpacer,
-                                      inputLastName(context, controller.lastName),
-                                      ConstantSpace.largeVerticalSpacer,
-                                      buttonSaveProfile(context),
-                                    ],
-                                  ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: theme.iconTheme.color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: 12,
+                              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+                            ),
+                            child: SingleChildScrollView(
+                              child: Form(
+                                key: formKey,
+                                child: Column(
+                                  children: [
+                                    chooseImageProfile(context),
+                                    ConstantSpace.mediumVerticalSpacer,
+                                    inputName(context, controller.name),
+                                    ConstantSpace.mediumVerticalSpacer,
+                                    inputLastName(context, controller.lastName),
+                                    ConstantSpace.largeVerticalSpacer,
+                                    buttonSaveProfile(context),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                  ).whenComplete(() {
-                    controller.name.clear();
-                    controller.lastName.clear();
-                    controller.imageFile.value = null;
-                  });
-                },
-              ),
+                  ),
+                ).whenComplete(() {
+                  controller.name.clear();
+                  controller.lastName.clear();
+                  controller.imageFile.value = null;
+                });
+              },
             ),
           ),
-        ],
-      );
-    });
-  }
-
+        ),
+      ],
+    );
+  });
+}
+  
   Widget chooseImageProfile(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Stack(
       children: [
         Obx(
@@ -455,10 +538,14 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               border: Border.all(width: 3, color: AppColors.primaryColor),
               shape: BoxShape.circle,
-              color: isDark ? theme.cardColor : const Color.fromARGB(255, 223, 221, 221),
+              color: isDark
+                  ? theme.cardColor
+                  : const Color.fromARGB(255, 223, 221, 221),
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
+                  color: isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black12,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -466,11 +553,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: ClipOval(
               child: controller.imageFile.value == null
-                  ? Icon(
-                      Icons.person,
-                      size: 50,
-                      color: theme.iconTheme.color,
-                    )
+                  ? Icon(Icons.person, size: 50, color: theme.iconTheme.color)
                   : Image.file(
                       controller.imageFile.value as File,
                       fit: BoxFit.cover,
@@ -491,45 +574,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(Icons.add_a_photo_rounded, size: 18, color: Colors.white),
+              icon: const Icon(
+                Icons.add_a_photo_rounded,
+                size: 18,
+                color: Colors.white,
+              ),
               onPressed: controller.pickImage,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget title(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Row(
-      children: [
-        ConstantSpace.mediumHorizontalSpacer,
-        Text(
-          "world_health_organization".tr.split(' ').first,
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget description(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Row(
-      children: [
-        ConstantSpace.mediumHorizontalSpacer,
-        Text(
-          "world_health_organization".tr.split(' ').last,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            color: theme.colorScheme.onPrimary,
           ),
         ),
       ],
@@ -559,25 +610,31 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget changePasswordButton(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return InkWell(
-      onTap: () {
-        Get.bottomSheet(
-          Container(
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+  final theme = Theme.of(context);
+
+  return InkWell(
+    onTap: () {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(25),
             ),
-            child: Form(
-              key: formKeyChangePassword,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: 20,
-                  bottom: 30,
-                  end: 20,
-                  top: 12,
-                ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 12,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKeyChangePassword,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -602,28 +659,26 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-        );
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icon(Icons.lock, color: AppColors.primaryColor),
-          ConstantSpace.smallHorizontalSpacer,
-          Text(
-            'change_password'.tr,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
-            ),
+        ),
+      );
+    },
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icon(Icons.lock, color: AppColors.primaryColor),
+        ConstantSpace.smallHorizontalSpacer,
+        Text(
+          'change_password'.tr,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
           ),
-        ],
-      ),
-    );
-  }
-
+        ),
+      ],
+    ),
+  );
+}
   Widget inputCurrentPassword(BuildContext context, controller) {
     return TextFieldInnerShadow(
       borderRadius: 16,
@@ -658,7 +713,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget changePasswordInformation(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -677,7 +732,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget buttonChangePassword(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return BoxNeumorphysm(
       onTap: controller.isLoadingChangePassword.value
           ? () {}
@@ -693,7 +748,7 @@ class _ProfilePageState extends State<ProfilePage> {
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
       topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
-      bottomRightShadowColor: isDark 
+      bottomRightShadowColor: isDark
           ? theme.shadowColor.withOpacity(0.3)
           : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
@@ -706,7 +761,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.onPrimary,
+                  ),
                 )
               : Text(
                   'change_password'.tr,
@@ -724,7 +781,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget buttonSaveProfile(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return BoxNeumorphysm(
       onTap: () async {
         if (controller.isLoadingUpdate.value) return;
@@ -742,7 +799,7 @@ class _ProfilePageState extends State<ProfilePage> {
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
       topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
-      bottomRightShadowColor: isDark 
+      bottomRightShadowColor: isDark
           ? theme.shadowColor.withOpacity(0.3)
           : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
@@ -755,7 +812,9 @@ class _ProfilePageState extends State<ProfilePage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.onPrimary,
+                  ),
                 )
               : Text(
                   'save_profile'.tr,
@@ -772,7 +831,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget logoutButton(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return GestureDetector(
       onTap: () => _showLogoutDialog(context),
       child: Container(
@@ -802,7 +861,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _showLogoutDialog(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Get.dialog(
       AlertDialog(
         backgroundColor: theme.dialogBackgroundColor,
@@ -828,7 +887,7 @@ class _ProfilePageState extends State<ProfilePage> {
               authController.quickLogout();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child:  Text('logout'.tr, style: TextStyle(color: Colors.white)),
+            child: Text('logout'.tr, style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

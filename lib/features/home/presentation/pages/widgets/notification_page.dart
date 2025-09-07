@@ -3,7 +3,10 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/features/get_alert_by_id/presentation/pages/get_alert_detail.dart';
 import 'package:test3/features/home/presentation/controller/notification_controller.dart';
+import 'package:test3/features/home/presentation/controller/notification_read_controller.dart';
+import 'package:test3/features/home/presentation/pages/widgets/user_detail.dart';
 
 class NotificationPage extends StatefulWidget {
   @override
@@ -13,6 +16,8 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage>
     with TickerProviderStateMixin {
   final NotificationController controller = Get.put(NotificationController());
+  final NotificationReadController notificationReadController =
+      Get.find<NotificationReadController>();
   late TabController _tabController;
 
   @override
@@ -186,127 +191,198 @@ class _NotificationPageState extends State<NotificationPage>
   Widget _buildNotificationCard(notification, bool isDark) {
     final isUnread = !notification.isRead;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isUnread
-              ? AppColors.primaryColor.withOpacity(0.3)
-              : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-          width: isUnread ? 2 : 1,
+    return Dismissible(
+      key: Key(notification.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(8),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black26 : Colors.black12,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Icon(Icons.delete, color: Colors.white, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              'delete'.tr,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: InkWell(
-        onTap: () {},
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _getNotificationIcon(
-                    notification.notificationTemplatesType,
-                    isDark,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                notification.title,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: isUnread
-                                      ? FontWeight.bold
-                                      : FontWeight.w600,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                            ),
-                            if (isUnread)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            const SizedBox(width: 8),
-                            _buildDeleteButton(notification.id, isDark),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          notification.message,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            fontWeight: isUnread
-                                ? FontWeight.w500
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 14,
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatDateTime(notification.createTime),
+      confirmDismiss: (direction) async {
+        return await _showDeleteDialog(notification.id);
+      },
+      onDismissed: (direction) async {
+        await controller.deleteNotification(notification.id);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isUnread
+                ? AppColors.primaryColor.withOpacity(0.3)
+                : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+            width: isUnread ? 1.2 : 0.6,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black26 : Colors.black12,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () => _handleNotificationTap(notification),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _getNotificationIcon(
+                  notification.notificationTemplatesType,
+                  isDark,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notification.title,
                               style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.grey[400] : Colors.grey,
+                                fontSize: 13,
+                                fontWeight: isUnread
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isUnread) ...[
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
                               ),
                             ),
-                            if (notification.isRead) ...[
-                              const SizedBox(width: 16),
-                              Icon(
-                                Icons.check_circle_outline,
-                                size: 14,
-                                color: Colors.green,
+                          ],
+                          if (notification.isRead) ...[
+                            Icon(
+                              Icons.check_circle_outline,
+                              size: 16,
+                              color: Colors.green,
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notification.message,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                                fontWeight: isUnread
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
                               ),
-                              const SizedBox(width: 4),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 16,
+
+                                color: isDark ? Colors.grey : Colors.grey,
+                              ),
+                              const SizedBox(width: 2),
                               Text(
-                                'read'.tr,
+                                _formatDateTime(notification.createTime),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.green,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey,
                                 ),
                               ),
                             ],
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  void _handleNotificationTap(notification) async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentUserId = prefs.getString('userId') ?? '';
+
+    if (currentUserId.isEmpty) return;
+
+    bool success = false;
+
+    if (notification.alertId != null && notification.alertId.isNotEmpty) {
+      success = await notificationReadController.markAsReadByAlert(
+        alertId: notification.alertId,
+        currentUserId: currentUserId,
+      );
+    } else if (notification.relateToUserId != null &&
+        notification.relateToUserId.isNotEmpty) {
+      success = await notificationReadController.markAsReadByUser(
+        currentUserId: currentUserId,
+        relatedToUserId: notification.relateToUserId,
+      );
+    } else {
+      success = await notificationReadController.markAsReadById(
+        notificationId: notification.id,
+      );
+    }
+
+    if (success) {
+      await _loadNotifications();
+    }
+
+    if (notification.relateToUserId != null &&
+        notification.relateToUserId.isNotEmpty) {
+      Get.to(() => UserDetailScreen(userId: notification.relateToUserId));
+    } else if (notification.alertId != null &&
+        notification.alertId.isNotEmpty) {
+      Get.to(() => AlertDetailPage(alertId: notification.alertId));
+    }
   }
 
   Widget _buildDeleteButton(String notificationId, bool isDark) {
@@ -337,10 +413,10 @@ class _NotificationPageState extends State<NotificationPage>
     });
   }
 
-  void _showDeleteDialog(String notificationId) {
+  Future<bool?> _showDeleteDialog(String notificationId) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Get.dialog(
+    return await Get.dialog<bool>(
       AlertDialog(
         backgroundColor: isDark ? Colors.grey[850] : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -367,7 +443,7 @@ class _NotificationPageState extends State<NotificationPage>
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => Get.back(result: false),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
@@ -380,10 +456,7 @@ class _NotificationPageState extends State<NotificationPage>
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Get.back();
-              await controller.deleteNotification(notificationId);
-            },
+            onPressed: () => Get.back(result: true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
@@ -414,17 +487,37 @@ class _NotificationPageState extends State<NotificationPage>
     Color color;
 
     switch (type) {
-      case 0:
+      case 0: // NewUserForAdmin
         icon = Icons.person_add;
         color = Colors.blue;
         break;
-      case 2:
-        icon = Icons.notification_important;
+      case 1: // UserApprovedByAdmin
+        icon = Icons.verified_user;
+        color = Colors.green;
+        break;
+      case 2: // NewAlertForAdmin
+        icon = Icons.warning;
         color = Colors.orange;
         break;
-      case 5:
+      case 3: // NewAlertForDoctor
+        icon = Icons.medical_services;
+        color = Colors.red;
+        break;
+      case 4: // NewAlertForTeam
+        icon = Icons.group_add;
+        color = Colors.purple;
+        break;
+      case 5: // AlertModifiedForAdmin
+        icon = Icons.edit_notifications;
+        color = Colors.amber;
+        break;
+      case 6: // AlertModifiedForTeam
         icon = Icons.update;
-        color = Colors.green;
+        color = Colors.teal;
+        break;
+      case 7: // EmailVerified
+        icon = Icons.mark_email_read;
+        color = Colors.indigo;
         break;
       default:
         icon = Icons.notifications;
@@ -432,12 +525,12 @@ class _NotificationPageState extends State<NotificationPage>
     }
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Icon(icon, color: color, size: 20),
+      child: Icon(icon, color: color, size: 18),
     );
   }
 

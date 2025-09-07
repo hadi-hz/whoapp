@@ -29,36 +29,41 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     });
   }
 
-  Future<void> _initializeApp() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 5000));
+ Future<void> _initializeApp() async {
+  try {
+    await Future.delayed(const Duration(milliseconds: 5000));
 
-      final prefs = await SharedPreferences.getInstance();
-      final String? savedUserId = prefs.getString('userId');
-      final String? savedUserName = prefs.getString('userName');
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedUserId = prefs.getString('userId');
+    final String? savedUserName = prefs.getString('userName');
+    final bool? isUserApproved = prefs.getBool('isUserApproved'); 
 
-      controller.getCurrentLocation();
+    controller.getCurrentLocation();
 
-      if (savedUserId != null &&
-          savedUserId.isNotEmpty &&
-          authController.currentLoginUser.value?.isUserApproved == true) {
-        Get.offAll(
-          () => HomePage(),
-          transition: Transition.downToUp,
-          duration: const Duration(milliseconds: 300),
-        );
-      } else {
-        Get.offAll(
-          () => LoginPage(),
-          transition: Transition.downToUp,
-          duration: const Duration(milliseconds: 300),
-        );
-      }
-    } catch (e) {
-      Get.offAll(() => LoginPage());
+    if (savedUserId != null && 
+        savedUserId.isNotEmpty && 
+        savedUserName != null && 
+        isUserApproved == true) {
+      
+    
+      await authController.loadUserFromPrefs();
+      
+      Get.offAll(
+        () => HomePage(),
+        transition: Transition.downToUp,
+        duration: const Duration(milliseconds: 300),
+      );
+    } else {
+      Get.offAll(
+        () => LoginPage(),
+        transition: Transition.downToUp,
+        duration: const Duration(milliseconds: 300),
+      );
     }
+  } catch (e) {
+    Get.offAll(() => LoginPage());
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

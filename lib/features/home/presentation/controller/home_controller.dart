@@ -22,6 +22,9 @@ class HomeController extends GetxController {
   final Rx<TeamEntity?> currentTeam = Rx<TeamEntity?>(null);
   final RxBool isLoadingGetTeamById = false.obs;
   final RxString errorMessageGetTeamById = ''.obs;
+  
+    final RxBool isNotificationSelected = false.obs;
+final RxBool isProfileSelected = true.obs; 
 
   var isLoadingTeam = false.obs;
   var errorMessageTeam = ''.obs;

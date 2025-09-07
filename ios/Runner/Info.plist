@@ -58,12 +58,19 @@
 	  </dict>
 	</array>
 
-	<!-- Google Maps API Key -->
+
 	<key>GMSApiKey</key>
 	<string>AIzaSyCH3ePY_mDaspjB60kDfSxwC0HSn8NMwD0</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs location access to submit accurate reports.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs location access to submit accurate reports.</string>
+	<key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>googlemaps</string>
+        <string>comgooglemaps</string>
+        <string>maps</string>
+        <string>waze</string>
+    </array>
 </dict>
 </plist>

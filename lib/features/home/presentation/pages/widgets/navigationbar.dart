@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,11 +10,8 @@ import 'package:test3/features/add_report/presentation/controller/add_report_con
 import 'package:test3/features/add_report/presentation/pages/map.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
-import 'package:test3/features/auth/presentation/pages/widgets/inner_shadow_container.dart';
-import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
-
 import 'package:test3/features/home/presentation/pages/widgets/reports.dart';
 import 'package:test3/features/profile/presentation/pages/profile.dart';
 
@@ -36,7 +32,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       extendBody: true,
       body: Obx(() {
         return IndexedStack(
@@ -50,102 +46,99 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
         child: FloatingActionButton(
           shape: CircleBorder(),
           backgroundColor: AppColors.primaryColor,
-          onPressed: () {
-            Get.bottomSheet(
+        onPressed: () {
+    Get.bottomSheet(
+      Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.78,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[900] : AppColors.background,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          ),
+          child: Column(
+            children: [
+           
               Container(
-                height: MediaQuery.of(context).size.height * 0.68,
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[900] : AppColors.background,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                  color: AppColors.primaryColor.withOpacity(
+                    isDark ? 0.2 : 0.1,
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(25),
+                  ),
                 ),
-                child: Column(
+                child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(
-                          isDark ? 0.2 : 0.1,
-                        ),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(25),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.add_circle, color: AppColors.primaryColor),
-                          const SizedBox(width: 8),
-                          Text(
-                            'add_report'.tr,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            onPressed: () => Get.back(),
-                            icon: Icon(
-                              Icons.close,
-                              color: isDark ? Colors.white70 : Colors.black,
-                            ),
-                          ),
-                        ],
+                    Icon(Icons.add_circle, color: AppColors.primaryColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      'add_report'.tr,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          bottom: 40,
-                          start: 20,
-                          end: 20,
-                          top: 12,
-                        ),
-                        child: SingleChildScrollView(
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              children: [
-                                pickerImage(context, isDark),
-                                ConstantSpace.mediumVerticalSpacer,
-                                dropDownHealth(context, isDark),
-                                ConstantSpace.smallVerticalSpacer,
-                                patientName(
-                                  context,
-                                  controller.patientName,
-                                  isDark,
-                                ),
-                                ConstantSpace.smallVerticalSpacer,
-                                description(
-                                  context,
-                                  controller.description,
-                                  isDark,
-                                ),
-                                ConstantSpace.xLargeVerticalSpacer,
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Expanded(child: buttonSubmitReport()),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: buttonPickLocation(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark ? Colors.white70 : Colors.black,
                       ),
                     ),
                   ],
                 ),
               ),
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-            );
-          },
+             
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsetsDirectional.only(
+                    bottom: 40,
+                    start: 20,
+                    end: 20,
+                    top: 12,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        pickerImage(context, isDark),
+                        ConstantSpace.mediumVerticalSpacer,
+                        dropDownHealth(context, isDark),
+                        ConstantSpace.smallVerticalSpacer,
+                        patientName(context, controller.patientName, isDark),
+                        ConstantSpace.smallVerticalSpacer,
+                        description(context, controller.description, isDark),
+                        ConstantSpace.xLargeVerticalSpacer,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(child: buttonSubmitReport()),
+                            SizedBox(width: 12),
+                            Expanded(child: buttonPickLocation(context)),
+                          ],
+                        ),
+                     
+                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+    );
+  },
           child: const Icon(Icons.add_circle, size: 42, color: Colors.white),
         ),
       ),

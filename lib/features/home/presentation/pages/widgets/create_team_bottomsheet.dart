@@ -23,48 +23,52 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildNameField(context),
-                  const SizedBox(height: 16),
-                  _buildDescriptionField(context),
-                  const SizedBox(height: 20),
-                  _buildServicesSection(context),
-                  const SizedBox(height: 20),
-                  _buildMembersSection(context),
-                  const SizedBox(height: 20),
-                  _buildErrorMessage(),
-                  _buildCreateButton(context),
-                ],
-              ),
+ @override
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
+  final screenHeight = MediaQuery.of(context).size.height;
+  
+  return Container(
+    height: screenHeight * 0.9, // ارتفاع ثابت
+    decoration: BoxDecoration(
+      color: isDark ? Colors.grey[900] : Colors.white,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    child: Column(
+      children: [
+        _buildHeader(context, isDark),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16, // فقط padding تغییر کنه
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildNameField(context, isDark),
+                const SizedBox(height: 16),
+                _buildDescriptionField(context, isDark),
+                const SizedBox(height: 20),
+                _buildServicesSection(context, isDark),
+                const SizedBox(height: 20),
+                _buildMembersSection(context, isDark),
+                const SizedBox(height: 20),
+                _buildErrorMessage(),
+                _buildCreateButton(context),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    
+        ),
+      ],
+    ),
+  );
+}
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -86,73 +90,93 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
           const Spacer(),
           IconButton(
             onPressed: () => Get.back(),
-            icon: Icon(Icons.close, color: theme.iconTheme.color),
+            icon: Icon(
+              Icons.close,
+              color: isDark ? Colors.white : Colors.black,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNameField(BuildContext context) {
-    final theme = Theme.of(context);
-    
+  Widget _buildNameField(BuildContext context, bool isDark) {
     return TextFormField(
       controller: controller.nameController,
-      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: 'team_name'.tr,
         hintText: 'enter_team_name'.tr,
-        labelStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
-        hintStyle: TextStyle(color: theme.hintColor),
+        labelStyle: TextStyle(
+          color: isDark ? Colors.grey[300] : Colors.grey[700],
+        ),
+        hintStyle: TextStyle(
+          color: isDark ? Colors.grey[400] : Colors.grey[500],
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.primaryColor),
         ),
-        prefixIcon: Icon(Icons.group, color: theme.iconTheme.color),
+        prefixIcon: Icon(
+          Icons.group,
+          color: isDark ? Colors.grey[300] : Colors.grey[600],
+        ),
+        filled: true,
+        fillColor: isDark ? Colors.grey[800] : Colors.grey[50],
       ),
     );
   }
 
-  Widget _buildDescriptionField(BuildContext context) {
-    final theme = Theme.of(context);
-    
+  Widget _buildDescriptionField(BuildContext context, bool isDark) {
     return TextFormField(
       controller: controller.descriptionController,
       maxLines: 3,
-      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black),
       decoration: InputDecoration(
         labelText: 'description'.tr,
         hintText: 'enter_description'.tr,
-        labelStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
-        hintStyle: TextStyle(color: theme.hintColor),
+        labelStyle: TextStyle(
+          color: isDark ? Colors.grey[300] : Colors.grey[700],
+        ),
+        hintStyle: TextStyle(
+          color: isDark ? Colors.grey[400] : Colors.grey[500],
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.primaryColor),
         ),
         alignLabelWithHint: true,
+        filled: true,
+        fillColor: isDark ? Colors.grey[800] : Colors.grey[50],
       ),
     );
   }
 
-  Widget _buildServicesSection(BuildContext context) {
-    final theme = Theme.of(context);
-    
+  Widget _buildServicesSection(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -161,20 +185,47 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: theme.textTheme.headlineSmall?.color,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         const SizedBox(height: 12),
-        _buildServiceTile(context, 'healthcare_cleaning'.tr, Icons.local_hospital, Colors.blue, controller.isHealthcare),
-        _buildServiceTile(context, 'household_cleaning'.tr, Icons.home, Colors.green, controller.isHousehold),
-        _buildServiceTile(context, 'patient_referral'.tr, Icons.person_search, Colors.orange, controller.isReferral),
-        _buildServiceTile(context, 'burial_services'.tr, Icons.psychology, Colors.purple, controller.isBurial),
+        _buildServiceTile(
+          context,
+          'healthcare_cleaning'.tr,
+          Icons.local_hospital,
+          Colors.blue,
+          controller.isHealthcare,
+          isDark,
+        ),
+        _buildServiceTile(
+          context,
+          'household_cleaning'.tr,
+          Icons.home,
+          Colors.green,
+          controller.isHousehold,
+          isDark,
+        ),
+        _buildServiceTile(
+          context,
+          'patient_referral'.tr,
+          Icons.person_search,
+          Colors.orange,
+          controller.isReferral,
+          isDark,
+        ),
+        _buildServiceTile(
+          context,
+          'burial_services'.tr,
+          Icons.psychology,
+          Colors.purple,
+          controller.isBurial,
+          isDark,
+        ),
       ],
     );
   }
 
-  Widget _buildMembersSection(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildMembersSection(BuildContext context, bool isDark) {
     final TextEditingController searchController = TextEditingController();
 
     return Column(
@@ -187,7 +238,7 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.headlineSmall?.color,
+                color: isDark ? Colors.white : Colors.black,
               ),
             ),
             const Spacer(),
@@ -207,22 +258,33 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
 
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor),
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+            ),
             borderRadius: BorderRadius.circular(12),
-            color: theme.inputDecorationTheme.fillColor,
+            color: isDark ? Colors.grey[800] : Colors.grey[50],
           ),
           child: TextFormField(
             controller: searchController,
             onChanged: (value) => homeController.setUserSearchQuery(value),
-            style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+            style: TextStyle(color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
               hintText: 'search_users'.tr,
-              hintStyle: TextStyle(color: theme.hintColor, fontSize: 14),
-              prefixIcon: Icon(Icons.search, color: theme.iconTheme.color),
+              hintStyle: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[500],
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: isDark ? Colors.grey[300] : Colors.grey[600],
+              ),
               suffixIcon: Obx(
                 () => homeController.userSearchQuery.value.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear, color: theme.iconTheme.color),
+                        icon: Icon(
+                          Icons.clear,
+                          color: isDark ? Colors.grey[300] : Colors.grey[600],
+                        ),
                         onPressed: () {
                           searchController.clear();
                           homeController.setUserSearchQuery('');
@@ -231,7 +293,10 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
                     : const SizedBox.shrink(),
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
@@ -261,20 +326,28 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                border: Border.all(color: theme.dividerColor),
+                border: Border.all(
+                  color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+                ),
                 borderRadius: BorderRadius.circular(12),
-                color: theme.cardColor,
+                color: isDark ? Colors.grey[800] : Colors.white,
               ),
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.person_off, size: 40, color: theme.disabledColor),
+                    Icon(
+                      Icons.person_off,
+                      size: 40,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       homeController.userSearchQuery.value.isNotEmpty
                           ? 'no_approved_users_found_for_search'.tr
                           : 'no_approved_users_found'.tr,
-                      style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                      ),
                     ),
                   ],
                 ),
@@ -282,12 +355,17 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
             );
           }
 
+          // تغییر ارتفاع به dynamic با محدودیت maximum
+          double listHeight = (approvedUsers.length * 70.0).clamp(150.0, 200.0);
+
           return Container(
-            height: 200,
+            height: listHeight,
             decoration: BoxDecoration(
-              border: Border.all(color: theme.dividerColor),
+              border: Border.all(
+                color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+              ),
               borderRadius: BorderRadius.circular(12),
-              color: theme.cardColor,
+              color: isDark ? Colors.grey[800] : Colors.white,
             ),
             child: ListView.builder(
               itemCount: approvedUsers.length,
@@ -295,22 +373,31 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
                 final user = approvedUsers[index];
                 return Obx(() {
                   final isMember = controller.selectedMembers.contains(user.id);
-                  final isRepresentative = controller.selectedRepresentative.value == user.id;
+                  final isRepresentative =
+                      controller.selectedRepresentative.value == user.id;
 
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     child: Row(
                       children: [
                         Checkbox(
                           value: isMember,
-                          onChanged: (value) => controller.toggleMemberSelection(user.id),
+                          onChanged: (value) =>
+                              controller.toggleMemberSelection(user.id),
                           activeColor: AppColors.primaryColor,
                           checkColor: Colors.white,
                         ),
                         CircleAvatar(
-                          backgroundColor: AppColors.primaryColor.withOpacity(0.1),
+                          backgroundColor: AppColors.primaryColor.withOpacity(
+                            0.1,
+                          ),
                           child: Text(
-                            user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : 'U',
+                            user.fullName.isNotEmpty
+                                ? user.fullName[0].toUpperCase()
+                                : 'U',
                             style: TextStyle(
                               color: AppColors.primaryColor,
                               fontWeight: FontWeight.bold,
@@ -324,13 +411,17 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
                             children: [
                               Text(
                                 user.fullName,
-                                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
                               ),
                               Text(
                                 user.email ?? '',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: theme.textTheme.bodySmall?.color,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600],
                                 ),
                               ),
                             ],
@@ -340,7 +431,8 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
                           children: [
                             Radio<String>(
                               value: user.id,
-                              groupValue: controller.selectedRepresentative.value,
+                              groupValue:
+                                  controller.selectedRepresentative.value,
                               onChanged: isMember
                                   ? (value) {
                                       if (value != null) {
@@ -356,7 +448,9 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
                                 fontSize: 10,
                                 color: isMember
                                     ? AppColors.primaryColor
-                                    : theme.disabledColor,
+                                    : (isDark
+                                          ? Colors.grey[600]
+                                          : Colors.grey[400]),
                               ),
                             ),
                           ],
@@ -373,9 +467,14 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
     );
   }
 
-  Widget _buildServiceTile(BuildContext context, String title, IconData icon, Color color, RxBool value) {
-    final theme = Theme.of(context);
-    
+  Widget _buildServiceTile(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    RxBool value,
+    bool isDark,
+  ) {
     return Obx(
       () => CheckboxListTile(
         title: Row(
@@ -384,7 +483,10 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
             const SizedBox(width: 8),
             Text(
               title,
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black,
+                fontSize: 12,
+              ),
             ),
           ],
         ),

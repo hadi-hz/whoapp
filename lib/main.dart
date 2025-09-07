@@ -1,11 +1,13 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/network/dio_baseurl.dart';
+import 'package:test3/core/services/push_notification_service.dart';
 import 'package:test3/core/theme/theme_controller.dart';
 import 'package:test3/features/add_report/data/datasource/alert_remote_datasource.dart';
 import 'package:test3/features/add_report/data/repositories/alert_repository_impl.dart';
@@ -61,6 +63,7 @@ import 'package:test3/features/home/data/datasource/create_team_datasource.dart'
 import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
 import 'package:test3/features/home/data/datasource/get_team_by_id.dart';
 import 'package:test3/features/home/data/datasource/get_teams_by_member_id.dart';
+import 'package:test3/features/home/data/datasource/notification_read_datasource.dart';
 import 'package:test3/features/home/data/datasource/team_datasource.dart';
 import 'package:test3/features/home/data/datasource/team_start_processing_datasource.dart';
 import 'package:test3/features/home/data/datasource/user_detail_datasource.dart';
@@ -70,6 +73,7 @@ import 'package:test3/features/home/data/repositories/assign_role_repository_imp
 import 'package:test3/features/home/data/repositories/create_team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/get_alert_impl.dart';
 import 'package:test3/features/home/data/repositories/get_teams_by_member_id_repository_impl.dart';
+import 'package:test3/features/home/data/repositories/notification_read_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_by_id_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/team_start_processing_repository_impl.dart';
@@ -80,6 +84,7 @@ import 'package:test3/features/home/domain/repositories/assign_role_repository.d
 import 'package:test3/features/home/domain/repositories/create_team_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_alert_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_teams_by_member_id.dart';
+import 'package:test3/features/home/domain/repositories/notification_read_repository.dart';
 import 'package:test3/features/home/domain/repositories/team_by_id_repository.dart';
 import 'package:test3/features/home/domain/repositories/team_repository.dart';
 import 'package:test3/features/home/domain/repositories/team_start_processing_repository.dart';
@@ -92,6 +97,7 @@ import 'package:test3/features/home/domain/usecase/create_team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/get_alert_usecase.dart';
 import 'package:test3/features/home/domain/usecase/get_team_by_id.dart';
 import 'package:test3/features/home/domain/usecase/get_teams_by_member_id_usecase.dart';
+import 'package:test3/features/home/domain/usecase/notification_read_usecase.dart';
 import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/domain/usecase/team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/user_detail_ussecase.dart';
@@ -101,6 +107,7 @@ import 'package:test3/features/home/presentation/controller/create_team_controll
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_teams_by_member_id_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
+import 'package:test3/features/home/presentation/controller/notification_read_controller.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import 'package:test3/features/home/presentation/controller/teams_by_id_controller.dart';
 import 'package:test3/features/home/presentation/pages/home.dart';
@@ -111,18 +118,23 @@ import 'package:test3/features/profile/domain/usecase/get_user_info_usecase.dart
 import 'package:test3/features/profile/domain/usecase/update_user_profile_usecase.dart';
 import 'package:test3/features/profile/presentation/controller/profile_controller.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("Background: ${message.notification?.title}");
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await PushNotificationService.initialize();
 
   final prefs = await SharedPreferences.getInstance();
   final hasToken = prefs.getString('token') != null;
 
-  
-
   Get.put<Dio>(DioBase().dio);
 
-   final themeController = Get.put(ThemeController());
+  final themeController = Get.put(ThemeController());
 
   Get.lazyPut<GetTeamByIdRemoteDataSource>(
     () => GetTeamByIdRemoteDataSourceImpl(dio: Get.find<Dio>()),
@@ -265,11 +277,12 @@ void main() async {
     () => AddMembersUseCase(Get.find<CreateTeamRepository>()),
   );
 
-  Get.lazyPut<CreateTeamController>(
-    () => CreateTeamController(
+  Get.put<CreateTeamController>(
+    CreateTeamController(
       Get.find<CreateTeamUseCase>(),
       Get.find<AddMembersUseCase>(),
     ),
+    permanent: true,
   );
 
   final alertRepository = AlertRepositoryImpl(AlertRemoteDataSourceImpl());
@@ -447,32 +460,73 @@ void main() async {
   Get.lazyPut<AdminCloseAlertController>(
     () => AdminCloseAlertController(closeAlertUseCase: Get.find()),
   );
-  // runApp(
-  //   DevicePreview(
-  //     enabled: !kReleaseMode,
-  //     builder: (context) => MainApp(showSplash: !hasToken),
-  //   ),
-  // );
 
-  runApp(MainApp(showSplash: !hasToken , themeController: themeController));
+  Get.lazyPut<NotificationReadDatasource>(
+    () => NotificationReadDatasourceImpl(),
+  );
+
+  Get.lazyPut<NotificationReadRepository>(
+    () => NotificationReadRepositoryImpl(
+      datasource: Get.find<NotificationReadDatasource>(),
+    ),
+  );
+
+  // Use Cases
+  Get.lazyPut<MarkNotificationReadByAlertUseCase>(
+    () => MarkNotificationReadByAlertUseCase(
+      repository: Get.find<NotificationReadRepository>(),
+    ),
+  );
+
+  Get.lazyPut<MarkNotificationReadByUserUseCase>(
+    () => MarkNotificationReadByUserUseCase(
+      repository: Get.find<NotificationReadRepository>(),
+    ),
+  );
+
+  Get.lazyPut<MarkNotificationReadByIdUseCase>(
+    () => MarkNotificationReadByIdUseCase(
+      repository: Get.find<NotificationReadRepository>(),
+    ),
+  );
+
+  Get.lazyPut<NotificationReadController>(
+    () => NotificationReadController(
+      markByAlertUseCase: Get.find<MarkNotificationReadByAlertUseCase>(),
+      markByUserUseCase: Get.find<MarkNotificationReadByUserUseCase>(),
+      markByIdUseCase: Get.find<MarkNotificationReadByIdUseCase>(),
+    ),
+  );
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (context) =>
+          MainApp(showSplash: !hasToken, themeController: themeController),
+    ),
+  );
+
+  // runApp(MainApp(showSplash: !hasToken, themeController: themeController));
 }
 
 class MainApp extends StatelessWidget {
   final bool showSplash;
   final ThemeController themeController;
-  
+
   MainApp({super.key, this.showSplash = true, required this.themeController});
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => GetMaterialApp(
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: themeController.themeMode.value,
-      translations: AppTranslations(),
-      locale: const Locale('en'),
-      fallbackLocale: const Locale('en'),
-      home: showSplash ? SplashScreenPage() : HomePage(),
-    ));
+    return Obx(
+      () => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: themeController.themeMode.value,
+        translations: AppTranslations(),
+        locale: const Locale('en'),
+        fallbackLocale: const Locale('en'),
+        home: showSplash ? SplashScreenPage() : HomePage(),
+      ),
+    );
   }
 }

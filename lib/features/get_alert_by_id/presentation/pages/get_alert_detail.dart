@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test3/core/utils/map_utils.dart';
+import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
@@ -18,19 +20,17 @@ import 'package:test3/features/get_alert_by_id/presentation/controller/update_by
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_by_admin_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_team_member_controller.dart';
 import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
+import 'package:test3/features/home/presentation/controller/admin_close_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import '../../../../core/const/const.dart';
+
 import 'dart:io';
 
 class AlertDetailPage extends StatefulWidget {
   final String alertId;
-  final int alertType;
+  final int? alertType;
 
-  const AlertDetailPage({
-    super.key,
-    required this.alertId,
-    required this.alertType,
-  });
+  const AlertDetailPage({super.key, required this.alertId, this.alertType});
 
   @override
   State<AlertDetailPage> createState() => _AlertDetailPageState();
@@ -38,6 +38,75 @@ class AlertDetailPage extends StatefulWidget {
 
 class _AlertDetailPageState extends State<AlertDetailPage> {
   final AlertDetailController controller = Get.find<AlertDetailController>();
+
+  void _downloadPDF(String alertId) {
+    Get.snackbar(
+      'info'.tr,
+      'PDF download for alert: $alertId',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+  }
+
+  void _closeAlert(String alertId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedUserId = prefs.getString('userId');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: isDark ? Colors.grey[850] : Colors.white,
+        title: Text(
+          'confirm_close'.tr,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        ),
+        content: Text(
+          'are_you_sure_close_alert'.tr,
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'cancel'.tr,
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ),
+          Obx(() {
+            final adminController = Get.find<AdminCloseAlertController>();
+            return ElevatedButton(
+              onPressed: adminController.isLoading.value
+                  ? null
+                  : () async {
+                      Get.back();
+                      final authController = Get.find<AuthController>();
+                      await adminController.closeAlert(
+                        alertId,
+                        savedUserId ?? '',
+                      );
+                    },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: adminController.isLoading.value
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'close_alert'.tr,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
 
   Future<bool> _isUserTeamRepresentative() async {
     final prefs = await SharedPreferences.getInstance();
@@ -67,8 +136,10 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
       final String? savedRole = prefs.getString('role');
       final String? savedUserId = prefs.getString('userId');
 
+      //todo
+
       if (savedRole == 'Admin') {
-        await controller.fetchTeamByAlertType(widget.alertType);
+        await controller.fetchTeamByAlertType(widget.alertType ?? 0);
 
         final alertDetail = controller.alertDetail.value;
         final currentStatus = alertDetail?.alert.visitedByAdminTime;
@@ -145,39 +216,50 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         final alertDetail = controller.alertDetail.value!;
         final alert = alertDetail.alert;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStatusCard(alert),
-              ConstantSpace.mediumVerticalSpacer,
-              _buildAlertInfoCard(alert),
-              ConstantSpace.mediumVerticalSpacer,
-              _buildDoctorInfoCard(alertDetail.doctor),
-              ConstantSpace.mediumVerticalSpacer,
-              _buildLocationCard(alert),
-              ConstantSpace.mediumVerticalSpacer,
-              if (alertDetail.doctorFiles.isNotEmpty) ...[
-                _buildImagesSection(alertDetail.doctorFiles),
+        return RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchAlertDetail(widget.alertId);
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatusCard(alert),
                 ConstantSpace.mediumVerticalSpacer,
-              ],
-              if (alert.teamId != null) ...[
-                _buildTeamSection(alertDetail),
+                _buildAlertInfoCard(alert),
                 ConstantSpace.mediumVerticalSpacer,
+                _buildDoctorInfoCard(alertDetail.doctor),
+                ConstantSpace.mediumVerticalSpacer,
+                _buildLocationCard(alert),
+                ConstantSpace.mediumVerticalSpacer,
+                if (alertDetail.doctorFiles.isNotEmpty) ...[
+                  _buildImagesSection(alertDetail.doctorFiles),
+                  ConstantSpace.mediumVerticalSpacer,
+                ],
+                if (alertDetail.teamFiles.isNotEmpty) ...[
+                  _buildTeamImagesSection(alertDetail.teamFiles),
+                  ConstantSpace.mediumVerticalSpacer,
+                ],
+                if (alert.teamId != null) ...[
+                  _buildTeamSection(alertDetail),
+                  ConstantSpace.mediumVerticalSpacer,
+                ],
+                alert.alertStatus < 2 && controller.userRole.value == 'Admin'
+                    ? _buildTeamAssignmentButton(alertDetail)
+                    : const SizedBox.shrink(),
+                const SizedBox(height: 16),
+                _buildServiceProviderButton(),
+                const SizedBox(height: 16),
+                controller.userRole.value == 'Admin'
+                    ? _buildAdminDescriptionSection()
+                    : SizedBox(),
+                const SizedBox(height: 16),
+                _buildTeamMemberDescriptionSection(),
+                const SizedBox(height: 16),
+                _buildAdminActionButtons(),
               ],
-              alert.alertStatus < 2 && controller.userRole.value == 'Admin'
-                  ? _buildTeamAssignmentButton(alertDetail)
-                  : const SizedBox.shrink(),
-              const SizedBox(height: 16),
-              _buildServiceProviderButton(),
-              const SizedBox(height: 16),
-              controller.userRole.value == 'Admin'
-                  ? _buildAdminDescriptionSection()
-                  : SizedBox(),
-              const SizedBox(height: 16),
-              _buildTeamMemberDescriptionSection(),
-            ],
+            ),
           ),
         );
       }),
@@ -831,7 +913,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                   ),
                   markers: {
                     Marker(
-                      markerId:  MarkerId('alert_location'.tr),
+                      markerId: MarkerId('alert_location'.tr),
                       position: LatLng(alert.latitude, alert.longitude),
                       infoWindow: InfoWindow(
                         title: 'alert_location'.tr,
@@ -843,7 +925,6 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                   myLocationButtonEnabled: false,
                   mapToolbarEnabled: false,
                   onTap: (position) {
-                   
                     final destination = LatLng(alert.latitude, alert.longitude);
                     controller.openDirections(destination);
                   },
@@ -881,7 +962,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
               ),
               onPressed: () {
                 final destination = LatLng(alert.latitude, alert.longitude);
-                controller.openDirections(destination);
+                MapUtils.openDirectionsWithChoice(context, destination);
               },
             ),
           ],
@@ -1246,6 +1327,166 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 Navigator.of(context).pop();
                 finishController.pickImageFromGallery();
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminActionButtons() {
+    final alert = controller.alertDetail.value?.alert;
+
+    if (controller.userRole.value != 'Admin' || alert == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (alert.alertStatus == 5) {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _closeAlert(alert.id),
+              icon: const Icon(Icons.close, size: 16),
+              label: Text('Close'.tr, style: const TextStyle(fontSize: 11)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                minimumSize: const Size(0, 32),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (alert.alertStatus == 6) {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _downloadPDF(alert.id),
+              icon: const Icon(Icons.download_for_offline_rounded, size: 22),
+              label: Text('Download', style: const TextStyle(fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildTeamImagesSection(List<String> teamFiles) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppColors.borderColor, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.group_work, color: AppColors.primaryColor, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'team_attached_images'.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: teamFiles.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => _showImageDialog(teamFiles[index]),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withOpacity(0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            teamFiles[index],
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey[300],
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error,
+                                        color: Colors.red,
+                                        size: 24,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'error_loading'.tr,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value:
+                                        loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                  .cumulativeBytesLoaded /
+                                              loadingProgress
+                                                  .expectedTotalBytes!
+                                        : null,
+                                    strokeWidth: 2,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

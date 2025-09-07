@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/core/theme/theme_controller.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/auth/presentation/pages/login_page.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
@@ -22,8 +24,21 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setStatusBarStyle();
       controller.runAnimations();
     });
+  }
+
+  void _setStatusBarStyle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: isDark ? Colors.grey[900] : AppColors.primaryColor,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
   }
 
   @override
@@ -33,55 +48,213 @@ class _RegisterPageState extends State<RegisterPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
-        body: Form(
-          key: formKey,
-          child: Stack(
-            children: [
-              bodyTitles(context),
-              Align(
-                alignment: Alignment.bottomCenter,
+    return Scaffold(
+       resizeToAvoidBottomInset: false,
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : AppColors.background,
+      body: Form(
+        key: formKey,
+        child: Stack(
+          children: [
+            Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
+            Positioned(
+              top: screenHeight < 700
+                  ? screenHeight * 0.32
+                  : screenHeight * 0.28,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: screenWidth,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
                 child: SingleChildScrollView(
-                  child: Container(
-                    width: screenWidth,
-                    height: screenHeight * 0.72,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        loginInformation(context),
-                        ConstantSpace.mediumVerticalSpacer,
-                        inputName(context, controller.name),
-                        ConstantSpace.smallVerticalSpacer,
-                        inputLastName(context, controller.lastName),
-                        ConstantSpace.smallVerticalSpacer,
-                        inputEmail(context, controller.email),
-                        ConstantSpace.smallVerticalSpacer,
-                        inputPassword(context, controller.password),
-                        ConstantSpace.mediumVerticalSpacer,
-                        buttonRegister(context),
-                        ConstantSpace.mediumVerticalSpacer,
-                        secondSection(context),
-                        ConstantSpace.mediumVerticalSpacer,
-                        buttonRegisterGoogle(context),
-                        ConstantSpace.mediumVerticalSpacer,
-                        SignInButton(context),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      loginInformation(context),
+                      ConstantSpace.mediumVerticalSpacer,
+                      inputName(context, controller.name),
+                      ConstantSpace.smallVerticalSpacer,
+                      inputLastName(context, controller.lastName),
+                      ConstantSpace.smallVerticalSpacer,
+                      inputEmail(context, controller.email),
+                      ConstantSpace.smallVerticalSpacer,
+                      inputPassword(context, controller.password),
+                      ConstantSpace.mediumVerticalSpacer,
+                      buttonRegister(context),
+                      ConstantSpace.mediumVerticalSpacer,
+                      secondSection(context),
+                      ConstantSpace.mediumVerticalSpacer,
+                      buttonRegisterGoogle(context),
+                      ConstantSpace.mediumVerticalSpacer,
+                      SignInButton(context),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget bodyTitles(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final baseHeight = screenHeight < 1280 ? 250.0 : 600.0;
+    final logoSize = screenWidth < 800
+        ? 100.0
+        : screenWidth < 1024
+        ? 180.0
+        : screenWidth < 1280
+        ? 200.0
+        : 300.0;
+    final fontSize32 = screenWidth < 400 ? 26.0 : 32.0;
+    final fontSize26 = screenWidth < 400 ? 20.0 : 26.0;
+    final fontSize16 = screenWidth < 400 ? 14.0 : 16.0;
+
+    return Container(
+      width: MediaQuery.sizeOf(context).width,
+      height: baseHeight + statusBarHeight,
+      color: isDark ? theme.primaryColor : AppColors.primaryColor,
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: statusBarHeight + (screenHeight < 700 ? 8 : 16),
+        ),
+        child: Column(
+          children: [
+            if (screenHeight > 916) ConstantSpace.x3LargeVerticalSpacer,
+            if (screenHeight < 700) const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Obx(
+                        () => animatedText(
+                          controller.showHello.value,
+                          _buildHelloTitle(context, fontSize32),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Obx(
+                        () => animatedText(
+                          controller.showWelcome.value,
+                          _buildWelcomeTitle(context, fontSize26),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Obx(
+                        () => animatedText(
+                          controller.showSignIn.value,
+                          _buildSignUpTitle(context, fontSize16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Obx(() {
+                    return AnimatedOpacity(
+                      opacity: controller.showHello.value ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: AnimatedScale(
+                        scale: controller.showHello.value ? 1.0 : 0.8,
+                        duration: const Duration(milliseconds: 200),
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 20),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            width: logoSize,
+                            height: logoSize,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHelloTitle(BuildContext context, double fontSize) {
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            'hello'.tr + "!",
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              color: AppColors.background,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeTitle(BuildContext context, double fontSize) {
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            'welcome'.tr,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              color: AppColors.background,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignUpTitle(BuildContext context, double fontSize) {
+    return Row(
+      children: [
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            'signup_account'.tr,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w400,
+              color: AppColors.background,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
@@ -97,110 +270,7 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget bodyTitles(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Container(
-      width: MediaQuery.sizeOf(context).width,
-      height: 224,
-      color: isDark ? theme.primaryColor : AppColors.primaryColor,
-      child: Column(
-        children: [
-          ConstantSpace.xLargeVerticalSpacer,
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Obx(() => animatedText(controller.showHello.value, helloTitle(context))),
-                  ConstantSpace.tinyVerticalSpacer,
-                  Obx(() => animatedText(controller.showWelcome.value, welcomeTitle(context))),
-                  ConstantSpace.tinyVerticalSpacer,
-                  Obx(() => animatedText(controller.showSignIn.value, signUpTitle(context))),
-                ],
-              ),
-              const Spacer(),
-              Obx(() {
-                return AnimatedOpacity(
-                  opacity: controller.showHello.value ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: AnimatedScale(
-                    scale: controller.showHello.value ? 1.0 : 0.8,
-                    duration: const Duration(milliseconds: 200),
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 20),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 130,
-                        height: 130,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget helloTitle(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Row(
-      children: [
-        ConstantSpace.mediumHorizontalSpacer,
-        Text(
-          'hello'.tr + "!",
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget welcomeTitle(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Row(
-      children: [
-        ConstantSpace.mediumHorizontalSpacer,
-        Text(
-          'welcome'.tr,
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget signUpTitle(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Row(
-      children: [
-        ConstantSpace.mediumHorizontalSpacer,
-        Text(
-          'signup_account'.tr,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
+  // باقی متدها همان باقی می‌مانند...
   Widget inputName(BuildContext context, controller) {
     return TextFieldInnerShadow(
       borderRadius: 16,
@@ -283,7 +353,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget loginInformation(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -304,7 +374,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget buttonRegister(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return BoxNeumorphysm(
       onTap: controller.isLoading.value
           ? () {}
@@ -324,7 +394,7 @@ class _RegisterPageState extends State<RegisterPage> {
       borderWidth: 5,
       backgroundColor: AppColors.primaryColor,
       topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
-      bottomRightShadowColor: isDark 
+      bottomRightShadowColor: isDark
           ? theme.shadowColor.withOpacity(0.3)
           : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
@@ -357,7 +427,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget buttonRegisterGoogle(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return BoxNeumorphysm(
       onTap: controller.isLoadingGoogleRegister.value
           ? () {}
@@ -366,11 +436,11 @@ class _RegisterPageState extends State<RegisterPage> {
             },
       borderRadius: 12,
       borderWidth: 5,
-      backgroundColor: isDark 
+      backgroundColor: isDark
           ? theme.cardColor
           : const Color.fromARGB(255, 228, 238, 241),
       topLeftShadowColor: isDark ? theme.highlightColor : Colors.white,
-      bottomRightShadowColor: isDark 
+      bottomRightShadowColor: isDark
           ? theme.shadowColor.withOpacity(0.3)
           : const Color.fromARGB(255, 139, 204, 222),
       height: 60,
@@ -383,7 +453,9 @@ class _RegisterPageState extends State<RegisterPage> {
               ? SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(color: AppColors.primaryColor),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -411,7 +483,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget secondSection(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
@@ -436,7 +508,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget SignInButton(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

@@ -46,7 +46,7 @@ const Map<String, String> en = {
   'request_failed': 'Request failed. Please try again.',
   'google_token_failed': 'Failed to get Google ID Token',
   'role': 'ROLE',
-  'world_health_organization': 'World Health Organization',
+  'world_health_organization': 'World\nHealth Organization',
   'user_id_not_found': 'User ID not found',
   'validation_error': 'Validation Error',
   'check_required_fields': 'Please check all required fields',
@@ -290,4 +290,17 @@ const Map<String, String> en = {
   "are_you_sure_delete_notification":
       "Are you sure you want to delete this notification?",
   "delete_notification": "Delete Notification",
+  'register_google': 'Register with Google',
+  'close_alert': "Close Alert",
+  'are_you_sure_close_alert': "Are you sure you want to close this alert?",
+  'confirm_close': "Confirm Close",
+  'info': "Info",
+  'PDF_download_for_alert': "PDF download for alert",
+
+  'choose_map_app': "Choose Map App",
+  'no_map_apps_available': "No map applications available",
+  'could_not_open_map': "Could not open map application",
+
+  'notifications_marked_read': "Notifications marked as read",
+  'notification_marked_read': "Notification marked as read",
 };

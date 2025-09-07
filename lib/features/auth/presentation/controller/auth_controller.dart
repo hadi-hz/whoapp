@@ -236,6 +236,7 @@ class AuthController extends GetxController {
       deviceTokenId: fcmToken.value,
       platform: 0,
     );
+    print('=================== FCM TOKEN : ${fcmToken.value}');
 
     try {
       final loginUser = await _loginUseCase(request);
@@ -273,6 +274,7 @@ class AuthController extends GetxController {
         prefs.setString('userId', loginUser.id);
         prefs.setString('userName', loginUser.name);
         prefs.setString('role', loginUser.roles.first);
+        prefs.setBool('isUserApproved', loginUser.isUserApproved);
 
         print(
           "✅ Login Success: ${loginUser.name} (${loginUser.email} ${loginUser.roles.first})",
@@ -414,6 +416,7 @@ class AuthController extends GetxController {
       await prefs.setString('userId', response.id);
       await prefs.setString('userName', response.name);
       await prefs.setString('userEmail', response.email);
+      await prefs.setBool('isUserApproved', response.isUserApproved ?? false);
 
       if (response.isUserApproved == true) {
         Get.snackbar(
@@ -538,6 +541,30 @@ class AuthController extends GetxController {
       );
     } finally {
       isLoadingGoogleRegister.value = false;
+    }
+  }
+
+  Future<void> loadUserFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    final userName = prefs.getString('userName');
+    final userEmail = prefs.getString('userEmail');
+    final role = prefs.getString('role');
+    final isApproved = prefs.getBool('isUserApproved') ?? false;
+
+    if (userId != null && userName != null) {
+      currentLoginUser.value = LoginEntity(
+        id: userId,
+        name: userName,
+        email: userEmail ?? '',
+        isUserApproved: isApproved,
+        roles: role != null ? [role] : [],
+        lastname: '',
+        preferredLanguage: 0,
+        profileImageUrl: '',
+        message: '',
+        unReadMessagesCount: 0,
+      );
     }
   }
 }
