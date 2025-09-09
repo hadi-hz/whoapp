@@ -6,6 +6,7 @@
 import 'dart:async' as _i14;
 
 import 'package:dartz/dartz.dart' as _i3;
+import 'package:image_picker/image_picker.dart';
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:test3/features/get_alert_by_id/domain/entities/assign_team.dart'
     as _i19;
@@ -284,7 +285,7 @@ class MockTeamFinishProcessingUseCase extends _i1.Mock
     required String? alertId,
     required String? userId,
     required String? description,
-    List<String>? files,
+    List<XFile>? files,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {
@@ -347,7 +348,6 @@ class MockUpdateAlertByAdminUseCase extends _i1.Mock
 /// A class which mocks [TeamStartProcessingUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-
 
 /// A class which mocks [CloseAlertUseCase].
 ///

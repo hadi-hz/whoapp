@@ -523,15 +523,15 @@ void main() async {
   Get.lazyPut(() => GeneratePdfReportUseCase(Get.find()));
 
   Get.put(() => ReportController(Get.find()));
-  runApp(
-    DevicePreview(
-      enabled: !kReleaseMode,
-      builder: (context) =>
-          MainApp(showSplash: !hasToken, themeController: themeController),
-    ),
-  );
+  // runApp(
+  //   DevicePreview(
+  //     enabled: !kReleaseMode,
+  //     builder: (context) =>
+  //         MainApp(showSplash: !hasToken, themeController: themeController),
+  //   ),
+  // );
 
-  // runApp(MainApp(showSplash: !hasToken, themeController: themeController));
+  runApp(MainApp(showSplash: !hasToken, themeController: themeController));
 }
 
 class MainApp extends StatelessWidget {
