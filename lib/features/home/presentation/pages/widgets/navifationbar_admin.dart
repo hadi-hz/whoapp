@@ -22,10 +22,11 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
   final authController = Get.find<AuthController>();
 
   final iconList = <IconData>[
-    Icons.person,
-    Icons.list_alt_rounded,
     Icons.supervised_user_circle,
+    Icons.list_alt_rounded,
+   
     Icons.groups_2,
+     Icons.person,
   ];
 
   @override
@@ -39,10 +40,11 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
         return IndexedStack(
           index: homeController.selectedIndex.value,
           children: [
-            ProfilePage(),
+          UsersScreen(),
             ReportsPage(),
-            UsersScreen(),
+           
             TeamsScreen(),
+               ProfilePage(),
           ],
         );
       }),

@@ -8,11 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/utils/map_utils.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/generate_pdf_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_admin_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_team_member_usecase.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/generate_pdf_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/team_finish_processing_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_admin_controller.dart';
@@ -38,15 +40,7 @@ class AlertDetailPage extends StatefulWidget {
 
 class _AlertDetailPageState extends State<AlertDetailPage> {
   final AlertDetailController controller = Get.find<AlertDetailController>();
-
-  void _downloadPDF(String alertId) {
-    Get.snackbar(
-      'info'.tr,
-      'PDF download for alert: $alertId',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
-  }
+ 
 
   void _closeAlert(String alertId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -129,6 +123,16 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
 
   @override
   void initState() {
+    if (!Get.isRegistered<GeneratePdfReportUseCase>()) {
+      Get.lazyPut<GeneratePdfReportUseCase>(
+        () => GeneratePdfReportUseCase(Get.find()),
+      );
+    }
+
+    // Then initialize ReportController
+    if (!Get.isRegistered<ReportController>()) {
+      Get.lazyPut<ReportController>(() => ReportController(Get.find()));
+    }
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       await controller.fetchAlertDetail(widget.alertId);
@@ -175,6 +179,9 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
           }
         }
       }
+
+      print("ReportController exists: ${Get.isRegistered<ReportController>()}");
+      print("Alert ID: ${widget.alertId}");
     });
   }
 
@@ -1363,19 +1370,38 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         ],
       );
     } else if (alert.alertStatus == 6) {
+      final ReportController controllerPdf = Get.find<ReportController>();
       return Row(
         children: [
           Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _downloadPDF(alert.id),
-              icon: const Icon(Icons.download_for_offline_rounded, size: 22),
-              label: Text('Download', style: const TextStyle(fontSize: 14)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            child: Obx(
+              () => ElevatedButton.icon(
+                onPressed: controllerPdf.isLoading
+                    ? null
+                    : () {
+                        print("Download button pressed!"); // Debug
+                        controllerPdf.generatePdfReport(widget.alertId);
+                      },
+                icon: const Icon(Icons.download_for_offline_rounded, size: 22),
+                label: controllerPdf.isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.background,
+                        ),
+                      )
+                    : Text('Download'.tr, style: const TextStyle(fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),

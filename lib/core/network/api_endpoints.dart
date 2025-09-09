@@ -34,4 +34,6 @@ class ApiEndpoints {
   static const String notifReadAlert = '/notification/set-notif-read-alert';
   static const String notifReadUser = '/notification/set-notif-read-user';
   static const String notifReadNotif = '/notification/set-notif-read-notif';
+  static const String changePassword = '/auth/forget-pass';
+  static const String pdf = '/alert/generate-report';
 }

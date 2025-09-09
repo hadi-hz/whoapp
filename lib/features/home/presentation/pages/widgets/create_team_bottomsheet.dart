@@ -23,51 +23,54 @@ class _CreateTeamBottomSheetState extends State<CreateTeamBottomSheet> {
     });
   }
 
- @override
-Widget build(BuildContext context) {
-  final theme = Theme.of(context);
-  final isDark = theme.brightness == Brightness.dark;
-  final screenHeight = MediaQuery.of(context).size.height;
-  
-  return Container(
-    height: screenHeight * 0.9, // ارتفاع ثابت
-    decoration: BoxDecoration(
-      color: isDark ? Colors.grey[900] : Colors.white,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    child: Column(
-      children: [
-        _buildHeader(context, isDark),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16, // فقط padding تغییر کنه
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildNameField(context, isDark),
-                const SizedBox(height: 16),
-                _buildDescriptionField(context, isDark),
-                const SizedBox(height: 20),
-                _buildServicesSection(context, isDark),
-                const SizedBox(height: 20),
-                _buildMembersSection(context, isDark),
-                const SizedBox(height: 20),
-                _buildErrorMessage(),
-                _buildCreateButton(context),
-                const SizedBox(height: 16),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Container(
+      height: screenHeight * 0.9, 
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900] : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          _buildHeader(context, isDark),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom:
+                    MediaQuery.of(context).viewInsets.bottom +
+                    16, 
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildNameField(context, isDark),
+                  const SizedBox(height: 16),
+                  _buildDescriptionField(context, isDark),
+                  const SizedBox(height: 20),
+                  _buildServicesSection(context, isDark),
+                  const SizedBox(height: 20),
+                  _buildMembersSection(context, isDark),
+                  const SizedBox(height: 20),
+                  _buildErrorMessage(),
+                  _buildCreateButton(context),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -226,7 +229,7 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildMembersSection(BuildContext context, bool isDark) {
-    final TextEditingController searchController = TextEditingController();
+    
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,7 +268,7 @@ Widget build(BuildContext context) {
             color: isDark ? Colors.grey[800] : Colors.grey[50],
           ),
           child: TextFormField(
-            controller: searchController,
+            controller: controller.searchController,
             onChanged: (value) => homeController.setUserSearchQuery(value),
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
             decoration: InputDecoration(
@@ -286,7 +289,7 @@ Widget build(BuildContext context) {
                           color: isDark ? Colors.grey[300] : Colors.grey[600],
                         ),
                         onPressed: () {
-                          searchController.clear();
+                         controller. searchController.clear();
                           homeController.setUserSearchQuery('');
                         },
                       )
@@ -355,7 +358,7 @@ Widget build(BuildContext context) {
             );
           }
 
-          // تغییر ارتفاع به dynamic با محدودیت maximum
+        
           double listHeight = (approvedUsers.length * 70.0).clamp(150.0, 200.0);
 
           return Container(

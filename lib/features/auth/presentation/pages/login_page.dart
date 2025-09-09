@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:test3/core/const/const.dart';
 import 'package:test3/core/theme/theme_controller.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
+import 'package:test3/features/auth/presentation/pages/change_password.dart';
 import 'package:test3/features/auth/presentation/pages/register_page.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/box_neumorphysm.dart';
 import 'package:test3/features/auth/presentation/pages/widgets/text_filed.dart';
@@ -578,7 +579,9 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget forgotPassword(BuildContext context) {
     return TextButton(
-      onPressed: () {},
+      onPressed: () {
+        Get.to(ForgetPasswordPage());
+      },
       child: Text(
         'forgot_password'.tr,
         style: TextStyle(

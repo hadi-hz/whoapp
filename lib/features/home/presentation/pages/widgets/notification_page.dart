@@ -528,7 +528,8 @@ class _NotificationPageState extends State<NotificationPage>
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
+
+        shape: BoxShape.circle , 
       ),
       child: Icon(icon, color: color, size: 18),
     );

@@ -29,7 +29,8 @@ class UserDetailEntity {
   String get languageDisplayName {
     switch (preferredLanguage) {
       case 0: return 'English';
-      case 1: return 'فارسی';
+      case 1: return 'French';
+      case 2: return 'Italian';
       default: return 'Unknown';
     }
   }

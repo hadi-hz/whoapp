@@ -38,7 +38,7 @@ class _ReportsPageState extends State<ReportsPage> {
     final width = MediaQuery.of(context).size.width;
     if (width >= 1200) return 4;
     if (width >= 900) return 3;
-    if (width >= 600) return 2;
+    if (width >= 600) return 3;
     return 2;
   }
 
@@ -308,6 +308,7 @@ class _ReportsPageState extends State<ReportsPage> {
                                       crossAxisCount: _getCrossAxisCount(
                                         context,
                                       ),
+
                                       crossAxisSpacing: 12,
                                       mainAxisSpacing: 12,
                                       childAspectRatio: _isLargeTablet(context)
@@ -589,274 +590,229 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget buildExpandableFiltersContainer(bool isDark, bool isTablet) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.1),
-            blurRadius: isTablet ? 12 : 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  return Container(
+    decoration: BoxDecoration(
+      color: isDark ? Colors.grey[850] : Colors.white,
+      borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+      border: Border.all(
+        color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+        width: 1,
       ),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () {
-              homeController.toggleFiltersExpansion();
-            },
-            child: Obx(
-              () => Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 16 : 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
-                  borderRadius: homeController.isFiltersExpanded.value
-                      ? BorderRadius.vertical(
-                          top: Radius.circular(isTablet ? 20 : 16),
-                        )
-                      : BorderRadius.circular(isTablet ? 20 : 16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.filter_list,
+      boxShadow: [
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withOpacity(0.3)
+              : Colors.black.withOpacity(0.1),
+          blurRadius: isTablet ? 12 : 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            homeController.toggleFiltersExpansion();
+          },
+          child: Obx(
+            () => Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 20 : 16,
+                vertical: isTablet ? 16 : 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
+                borderRadius: homeController.isFiltersExpanded.value
+                    ? BorderRadius.vertical(
+                        top: Radius.circular(isTablet ? 20 : 16),
+                      )
+                    : BorderRadius.circular(isTablet ? 20 : 16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: AppColors.primaryColor,
+                    size: isTablet ? 24 : 20,
+                  ),
+                  SizedBox(width: isTablet ? 12 : 8),
+                  Text(
+                    'filters'.tr,
+                    style: TextStyle(
+                      fontSize: isTablet ? 18 : 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  const Spacer(),
+                  Obx(() {
+                    int activeFilters = 0;
+                    if (alertController.selectedStatus.value != null)
+                      activeFilters++;
+                    if (alertController.selectedType.value != null)
+                      activeFilters++;
+                    if (alertController.searchQuery.value.isNotEmpty)
+                      activeFilters++;
+                    return activeFilters > 0
+                        ? Container(
+                            margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 10 : 8,
+                              vertical: isTablet ? 6 : 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(
+                                isTablet ? 16 : 12,
+                              ),
+                            ),
+                            child: Text(
+                              '$activeFilters',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 14 : 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  }),
+                  AnimatedRotation(
+                    turns: homeController.isFiltersExpanded.value ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.expand_more,
                       color: AppColors.primaryColor,
                       size: isTablet ? 24 : 20,
                     ),
-                    SizedBox(width: isTablet ? 12 : 8),
-                    Text(
-                      'filters'.tr,
-                      style: TextStyle(
-                        fontSize: isTablet ? 18 : 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                    const Spacer(),
-                    Obx(() {
-                      int activeFilters = 0;
-                      if (alertController.selectedStatus.value != null)
-                        activeFilters++;
-                      if (alertController.selectedType.value != null)
-                        activeFilters++;
-                      if (alertController.searchQuery.value.isNotEmpty)
-                        activeFilters++;
-                      return activeFilters > 0
-                          ? Container(
-                              margin: EdgeInsets.only(right: isTablet ? 12 : 8),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isTablet ? 10 : 8,
-                                vertical: isTablet ? 6 : 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(
-                                  isTablet ? 16 : 12,
-                                ),
-                              ),
-                              child: Text(
-                                '$activeFilters',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: isTablet ? 14 : 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink();
-                    }),
-                    AnimatedRotation(
-                      turns: homeController.isFiltersExpanded.value ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        Icons.expand_more,
-                        color: AppColors.primaryColor,
-                        size: isTablet ? 24 : 20,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          Obx(
-            () => AnimatedContainer(
+        ),
+        Obx(
+          () => AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: homeController.isFiltersExpanded.value ? null : 0,
+            child: AnimatedOpacity(
+              opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 300),
-              height: homeController.isFiltersExpanded.value ? null : 0,
-              child: AnimatedOpacity(
-                opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: homeController.isFiltersExpanded.value
-                    ? buildFiltersContent(isDark, isTablet)
-                    : null,
-              ),
+              child: homeController.isFiltersExpanded.value
+                  ? buildFiltersContent(isDark, isTablet)
+                  : null,
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
+
 
   Widget buildFiltersContent(bool isDark, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(isTablet ? 20 : 16),
-        ),
+  return Container(
+    padding: EdgeInsets.all(isTablet ? 20 : 16),
+    decoration: BoxDecoration(
+      color: isDark ? Colors.grey[850] : Colors.white,
+      borderRadius: BorderRadius.vertical(
+        bottom: Radius.circular(isTablet ? 20 : 16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Obx(
-            () => isTablet
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: DropdownFilter(
-                          hint: 'filter_by_status'.tr,
-                          selectedValue: alertController.selectedStatus.value,
-                          items: alertController.statusOptions,
-                          onChanged: (value) =>
-                              alertController.onStatusChanged(value),
-                        ),
-                      ),
-                      SizedBox(width: isTablet ? 16 : 12),
-                      Expanded(
-                        child: DropdownFilter(
-                          hint: 'filter_by_type'.tr,
-                          selectedValue: alertController.selectedType.value,
-                          items: alertController.typeOptions,
-                          onChanged: (value) =>
-                              alertController.onTypeChanged(value),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      DropdownFilter(
-                        hint: 'filter_by_status'.tr,
-                        selectedValue: alertController.selectedStatus.value,
-                        items: alertController.statusOptions,
-                        onChanged: (value) =>
-                            alertController.onStatusChanged(value),
-                      ),
-                      SizedBox(height: isTablet ? 16 : 12),
-                      DropdownFilter(
-                        hint: 'filter_by_type'.tr,
-                        selectedValue: alertController.selectedType.value,
-                        items: alertController.typeOptions,
-                        onChanged: (value) =>
-                            alertController.onTypeChanged(value),
-                      ),
-                    ],
-                  ),
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-          if (alertController.userRole.value == 'Admin') ...[
-            isTablet
-                ? Row(
-                    children: [
-                      Expanded(child: _buildUserDropdown(isDark, isTablet)),
-                      SizedBox(width: isTablet ? 16 : 12),
-                      Expanded(child: _buildTeamDropdown(isDark, isTablet)),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      _buildUserDropdown(isDark, isTablet),
-                      SizedBox(height: isTablet ? 16 : 12),
-                      _buildTeamDropdown(isDark, isTablet),
-                    ],
-                  ),
-            SizedBox(height: isTablet ? 20 : 16),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Status and Type filters in one row
+        Row(
+          children: [
+            Expanded(
+              child: DropdownFilter(
+                hint: 'filter_by_status'.tr,
+                selectedValue: alertController.selectedStatus.value,
+                items: alertController.statusOptions,
+                onChanged: (value) => alertController.onStatusChanged(value),
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: DropdownFilter(
+                hint: 'filter_by_type'.tr,
+                selectedValue: alertController.selectedType.value,
+                items: alertController.typeOptions,
+                onChanged: (value) => alertController.onTypeChanged(value),
+              ),
+            ),
           ],
-          Text(
-            'date_range_filter'.tr,
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black,
-            ),
+        ),
+        SizedBox(height: isTablet ? 20 : 16),
+
+        // Admin-only User and Team filters
+        if (alertController.userRole.value == 'Admin') ...[
+          Row(
+            children: [
+              Expanded(child: _buildUserDropdown(isDark, isTablet)),
+              SizedBox(width: isTablet ? 16 : 12),
+              Expanded(child: _buildTeamDropdown(isDark, isTablet)),
+            ],
           ),
-          SizedBox(height: isTablet ? 12 : 8),
-          isTablet
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: _buildDatePicker(context, isDark, isTablet, true),
-                    ),
-                    SizedBox(width: isTablet ? 16 : 8),
-                    Expanded(
-                      child: _buildDatePicker(context, isDark, isTablet, false),
-                    ),
-                  ],
-                )
-              : Column(
-                  children: [
-                    _buildDatePicker(context, isDark, isTablet, true),
-                    SizedBox(height: isTablet ? 12 : 8),
-                    _buildDatePicker(context, isDark, isTablet, false),
-                  ],
-                ),
           SizedBox(height: isTablet ? 20 : 16),
-          Text(
-            'sort_options'.tr,
-            style: TextStyle(
-              fontSize: isTablet ? 16 : 14,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-          SizedBox(height: isTablet ? 12 : 8),
-          isTablet
-              ? Row(
-                  children: [
-                    Expanded(child: _buildSortDropdown(isDark, isTablet)),
-                    SizedBox(width: isTablet ? 16 : 12),
-                    _buildSortDirectionButton(isDark, isTablet),
-                  ],
-                )
-              : Column(
-                  children: [
-                    _buildSortDropdown(isDark, isTablet),
-                    SizedBox(height: isTablet ? 12 : 8),
-                    _buildSortDirectionButton(isDark, isTablet),
-                  ],
-                ),
-          SizedBox(height: isTablet ? 20 : 16),
-          isTablet
-              ? Row(
-                  children: [
-                    Expanded(child: _buildApplyButton(isTablet)),
-                    SizedBox(width: isTablet ? 16 : 12),
-                    Expanded(child: _buildClearButton(isDark, isTablet)),
-                  ],
-                )
-              : Column(
-                  children: [
-                    _buildApplyButton(isTablet),
-                    SizedBox(height: isTablet ? 12 : 8),
-                    _buildClearButton(isDark, isTablet),
-                  ],
-                ),
         ],
-      ),
-    );
-  }
+
+        // Date range section
+        Text(
+          'date_range_filter'.tr,
+          style: TextStyle(
+            fontSize: isTablet ? 16 : 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        SizedBox(height: isTablet ? 12 : 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDatePicker(context, isDark, isTablet, true),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: _buildDatePicker(context, isDark, isTablet, false),
+            ),
+          ],
+        ),
+        SizedBox(height: isTablet ? 20 : 16),
+
+        // Sort options section
+        Text(
+          'sort_options'.tr,
+          style: TextStyle(
+            fontSize: isTablet ? 16 : 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        SizedBox(height: isTablet ? 12 : 8),
+        Row(
+          children: [
+            Expanded(child: _buildSortDropdown(isDark, isTablet)),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(child: _buildSortDirectionButton(isDark, isTablet)),
+          ],
+        ),
+        SizedBox(height: isTablet ? 24 : 20),
+
+        // Action buttons in one row
+        Row(
+          children: [
+            Expanded(child: _buildApplyButton(isTablet)),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(child: _buildClearButton(isDark, isTablet)),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildUserDropdown(bool isDark, bool isTablet) {
     return Obx(
@@ -1085,105 +1041,95 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildSortDirectionButton(bool isDark, bool isTablet) {
-    return Obx(
-      () => GestureDetector(
-        onTap: () => alertController.onSortChanged(
-          alertController.sortBy.value,
-          !alertController.sortDescending.value,
-        ),
-        child: Container(
-          width: isTablet ? null : double.infinity,
-          padding: EdgeInsets.all(isTablet ? 16 : 12),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isDark ? Colors.grey[600]! : AppColors.borderColor,
-            ),
-            borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-            color: alertController.sortDescending.value
-                ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
-                : (isDark ? Colors.grey[800] : Colors.white),
+  return Obx(
+    () => GestureDetector(
+      onTap: () => alertController.onSortChanged(
+        alertController.sortBy.value,
+        !alertController.sortDescending.value,
+      ),
+      child: Container(
+        padding: EdgeInsets.all(isTablet ? 16 : 12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isDark ? Colors.grey[600]! : AppColors.borderColor,
           ),
-          child: Row(
-            mainAxisSize: isTablet ? MainAxisSize.min : MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                alertController.sortDescending.value
-                    ? Icons.arrow_downward
-                    : Icons.arrow_upward,
-                size: isTablet ? 20 : 16,
+          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+          color: alertController.sortDescending.value
+              ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
+              : (isDark ? Colors.grey[800] : Colors.white),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              alertController.sortDescending.value
+                  ? Icons.arrow_downward
+                  : Icons.arrow_upward,
+              size: isTablet ? 20 : 16,
+              color: alertController.sortDescending.value
+                  ? AppColors.primaryColor
+                  : (isDark ? Colors.grey[400] : Colors.grey),
+            ),
+            SizedBox(width: isTablet ? 6 : 4),
+            Text(
+              alertController.sortDescending.value ? 'desc'.tr : 'asc'.tr,
+              style: TextStyle(
+                fontSize: isTablet ? 14 : 12,
                 color: alertController.sortDescending.value
                     ? AppColors.primaryColor
                     : (isDark ? Colors.grey[400] : Colors.grey),
               ),
-              SizedBox(width: isTablet ? 6 : 4),
-              Text(
-                alertController.sortDescending.value ? 'desc'.tr : 'asc'.tr,
-                style: TextStyle(
-                  fontSize: isTablet ? 14 : 12,
-                  color: alertController.sortDescending.value
-                      ? AppColors.primaryColor
-                      : (isDark ? Colors.grey[400] : Colors.grey),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   Widget _buildApplyButton(bool isTablet) {
-    return ElevatedButton.icon(
-      onPressed: () => alertController.refreshAlerts(),
-      icon: Icon(Icons.refresh, size: isTablet ? 20 : 18),
-      label: Text(
-        'apply_filters'.tr,
-        style: TextStyle(fontSize: isTablet ? 16 : 14),
+  return ElevatedButton.icon(
+    onPressed: () => alertController.refreshAlerts(),
+    icon: Icon(Icons.refresh, size: isTablet ? 20 : 18),
+    label: Text(
+      'apply_filters'.tr,
+      style: TextStyle(fontSize: isTablet ? 16 : 14),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primaryColor,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      padding: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        padding: EdgeInsets.symmetric(
-          vertical: isTablet ? 16 : 12,
-          horizontal: isTablet ? 16 : 12,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildClearButton(bool isDark, bool isTablet) {
-    return ElevatedButton.icon(
-      onPressed: () {
-        search.clear();
-        alertController.clearFilters();
-      },
-      icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
-      label: Text(
-        'clear_all_filters'.tr,
-        style: TextStyle(fontSize: isTablet ? 16 : 14),
+  return ElevatedButton.icon(
+    onPressed: () {
+      search.clear();
+      alertController.clearFilters();
+    },
+    icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
+    label: Text(
+      'clear_all_filters'.tr,
+      style: TextStyle(fontSize: isTablet ? 16 : 14),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: isDark
+          ? Colors.grey[700]
+          : Colors.grey.withOpacity(0.2),
+      foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
+      elevation: 0,
+      padding: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isDark
-            ? Colors.grey[700]
-            : Colors.grey.withOpacity(0.2),
-        foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
-        elevation: 0,
-        padding: EdgeInsets.symmetric(
-          vertical: isTablet ? 16 : 12,
-          horizontal: isTablet ? 16 : 12,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-        ),
-      ),
-    );
-  }
-
+    ),
+  );
+}
   Future<void> _selectDate(
     BuildContext context, {
     required bool isFromDate,

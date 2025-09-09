@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/home/domain/entities/team_entity.dart';
+import 'package:test3/features/home/presentation/controller/create_team_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
 import 'package:test3/features/home/presentation/pages/widgets/create_team_bottomsheet.dart';
+import 'package:test3/features/home/presentation/pages/widgets/notification_page.dart';
 import 'package:test3/features/home/presentation/pages/widgets/team_detail_screen.dart';
 
 class TeamsScreen extends StatelessWidget {
@@ -12,6 +15,9 @@ class TeamsScreen extends StatelessWidget {
 
   final TextEditingController search = TextEditingController();
   final HomeController homeController = Get.find<HomeController>();
+  final controller = Get.find<AuthController>();
+  final CreateTeamController controllerAddTeam =
+      Get.find<CreateTeamController>();
 
   bool _isTablet(BuildContext context) {
     return MediaQuery.of(context).size.width >= 768;
@@ -340,155 +346,151 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
-  Widget buildExpandableFiltersContainer(bool isDark, bool isTablet) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.1),
-            blurRadius: isTablet ? 12 : 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+ Widget buildExpandableFiltersContainer(bool isDark, bool isTablet) {
+  return Container(
+    decoration: BoxDecoration(
+      color: isDark ? Colors.grey[850] : Colors.white,
+      borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+      border: Border.all(
+        color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+        width: 1,
       ),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () {
-              homeController.toggleFiltersExpansionTeam();
-            },
-            child: Obx(
-              () => Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 16 : 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
-                  borderRadius: homeController.isFiltersExpandedTeam.value
-                      ? BorderRadius.vertical(
-                          top: Radius.circular(isTablet ? 20 : 16),
-                        )
-                      : BorderRadius.circular(isTablet ? 20 : 16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.tune,
+      boxShadow: [
+        BoxShadow(
+          color: isDark
+              ? Colors.black.withOpacity(0.3)
+              : Colors.black.withOpacity(0.1),
+          blurRadius: isTablet ? 12 : 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            homeController.toggleFiltersExpansionTeam();
+          },
+          child: Obx(
+            () => Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 20 : 16,
+                vertical: isTablet ? 16 : 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
+                borderRadius: homeController.isFiltersExpandedTeam.value
+                    ? BorderRadius.vertical(
+                        top: Radius.circular(isTablet ? 20 : 16),
+                      )
+                    : BorderRadius.circular(isTablet ? 20 : 16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.tune,
+                    color: AppColors.primaryColor,
+                    size: isTablet ? 24 : 20,
+                  ),
+                  SizedBox(width: isTablet ? 12 : 8),
+                  Text(
+                    'capability_filters'.tr,
+                    style: TextStyle(
+                      fontSize: isTablet ? 18 : 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  const Spacer(),
+                  Obx(() {
+                    int activeFilters = 0;
+                    if (homeController.nameFilterTeam.value.isNotEmpty)
+                      activeFilters++;
+                    if (homeController.healthcareFilter.value != null)
+                      activeFilters++;
+                    if (homeController.householdFilter.value != null)
+                      activeFilters++;
+                    if (homeController.referralFilter.value != null)
+                      activeFilters++;
+                    if (homeController.burialFilter.value != null)
+                      activeFilters++;
+
+                    return activeFilters > 0
+                        ? Container(
+                            margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isTablet ? 10 : 8,
+                              vertical: isTablet ? 6 : 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(
+                                isTablet ? 16 : 12,
+                              ),
+                            ),
+                            child: Text(
+                              '$activeFilters',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 14 : 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  }),
+                  AnimatedRotation(
+                    turns: homeController.isFiltersExpandedTeam.value
+                        ? 0.5
+                        : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.expand_more,
                       color: AppColors.primaryColor,
                       size: isTablet ? 24 : 20,
                     ),
-                    SizedBox(width: isTablet ? 12 : 8),
-                    Text(
-                      'capability_filters'.tr,
-                      style: TextStyle(
-                        fontSize: isTablet ? 18 : 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                    const Spacer(),
-                    Obx(() {
-                      int activeFilters = 0;
-                      if (homeController.nameFilterTeam.value.isNotEmpty)
-                        activeFilters++;
-                      if (homeController.healthcareFilter.value != null)
-                        activeFilters++;
-                      if (homeController.householdFilter.value != null)
-                        activeFilters++;
-                      if (homeController.referralFilter.value != null)
-                        activeFilters++;
-                      if (homeController.burialFilter.value != null)
-                        activeFilters++;
-
-                      return activeFilters > 0
-                          ? Container(
-                              margin: EdgeInsets.only(right: isTablet ? 12 : 8),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isTablet ? 10 : 8,
-                                vertical: isTablet ? 6 : 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                borderRadius: BorderRadius.circular(
-                                  isTablet ? 16 : 12,
-                                ),
-                              ),
-                              child: Text(
-                                '$activeFilters',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: isTablet ? 14 : 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink();
-                    }),
-                    AnimatedRotation(
-                      turns: homeController.isFiltersExpandedTeam.value
-                          ? 0.5
-                          : 0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        Icons.expand_more,
-                        color: AppColors.primaryColor,
-                        size: isTablet ? 24 : 20,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          Obx(
-            () => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: homeController.isFiltersExpandedTeam.value ? null : 0,
-              child: AnimatedOpacity(
-                opacity: homeController.isFiltersExpandedTeam.value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: homeController.isFiltersExpandedTeam.value
-                    ? buildFiltersContent(isDark, isTablet)
-                    : null,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
- Widget searching(
-  BuildContext context,
-  TextEditingController controller,
-  bool isDark,
-  bool isTablet,
-) {
-  return Obx(
-    () => Row(
-      children: [
-        Expanded(
-          flex: isTablet ? 3 : 2, 
-          child: _buildSearchField(controller, isDark, isTablet),
         ),
-        SizedBox(width: isTablet ? 16 : 8),
-        Expanded(
-          flex: 1,
-          child: _buildAddTeamButton(isTablet, context),
+        Obx(
+          () => AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: homeController.isFiltersExpandedTeam.value ? null : 0,
+            child: AnimatedOpacity(
+              opacity: homeController.isFiltersExpandedTeam.value ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: homeController.isFiltersExpandedTeam.value
+                  ? buildFiltersContent(isDark, isTablet)
+                  : null,
+            ),
+          ),
         ),
       ],
     ),
   );
 }
+  Widget searching(
+    BuildContext context,
+    TextEditingController controller,
+    bool isDark,
+    bool isTablet,
+  ) {
+    return Obx(
+      () => Row(
+        children: [
+          Expanded(
+            flex: isTablet ? 3 : 2,
+            child: _buildSearchField(controller, isDark, isTablet),
+          ),
+          SizedBox(width: isTablet ? 16 : 8),
+          Expanded(flex: 1, child: _buildAddTeamButton(isTablet, context)),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSearchField(
     TextEditingController controller,
@@ -562,49 +564,63 @@ class TeamsScreen extends StatelessWidget {
     );
   }
 
- Widget _buildAddTeamButton(bool isTablet, BuildContext context) {
-  return ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+  Widget _buildAddTeamButton(bool isTablet, BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        ),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 8,
+          vertical: isTablet ? 16 : 12,
+        ),
       ),
-      backgroundColor: AppColors.primaryColor,
-      foregroundColor: Colors.white,
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 16 : 8,
-        vertical: isTablet ? 16 : 12,
-      ),
-    ),
-    onPressed: () {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => CreateTeamBottomSheet(),
-      );
-    },
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.add, color: Colors.white, size: isTablet ? 20 : 18),
-        if (MediaQuery.of(context).size.width > 300) ...[
-          SizedBox(width: isTablet ? 8 : 4),
-          Flexible(
-            child: Text(
-              'add_team'.tr,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isTablet ? 16 : 14,
-                fontWeight: FontWeight.bold,
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => CreateTeamBottomSheet(),
+        ).whenComplete(() {
+          print(
+            'selectedRepresentative : ========> ${controllerAddTeam.selectedRepresentative.value}',
+          );
+          controllerAddTeam.descriptionController.clear();
+          controllerAddTeam.nameController.clear();
+          controllerAddTeam.searchController.clear();
+          controllerAddTeam.isBurial.value = false;
+          controllerAddTeam.isHealthcare.value = false;
+          controllerAddTeam.isHousehold.value = false;
+          controllerAddTeam.isReferral.value = false;
+          controllerAddTeam.selectedMembers.clear();
+          controllerAddTeam.selectedRepresentative.value = '';
+          homeController.setUserSearchQuery('');
+        });
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add, color: Colors.white, size: isTablet ? 20 : 18),
+          if (MediaQuery.of(context).size.width > 300) ...[
+            SizedBox(width: isTablet ? 8 : 4),
+            Flexible(
+              child: Text(
+                'add_team'.tr,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isTablet ? 16 : 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
+          ],
         ],
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 
   Widget profileHeader(bool isDark, bool isTablet) {
     return Row(
@@ -647,19 +663,138 @@ class TeamsScreen extends StatelessWidget {
             padding: EdgeInsets.all(isTablet ? 12.0 : 8.0),
             child: Row(
               children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: isDark ? Colors.white70 : Colors.black,
-                  size: isTablet ? 24 : 20,
-                ),
+                Obx(() {
+                  final unreadCount =
+                      controller.currentLoginUser.value?.unReadMessagesCount ??
+                      0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          homeController.isNotificationSelected.value = true;
+                          homeController.isProfileSelected.value = false;
+
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            Get.to(
+                              NotificationPage(),
+                              transition: Transition.downToUp,
+                              duration: const Duration(milliseconds: 400),
+                            )?.then((_) {
+                              homeController.isNotificationSelected.value =
+                                  false;
+                              homeController.isProfileSelected.value = true;
+                            });
+                          });
+                        },
+                        child: Obx(
+                          () => AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                            padding: EdgeInsets.all(isTablet ? 12 : 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color:
+                                    homeController.isNotificationSelected.value
+                                    ? AppColors.primaryColor
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.primaryColor
+                                  : Colors.transparent,
+                            ),
+                            child: Icon(
+                              Icons.notifications_none_rounded,
+                              size: isTablet ? 24 : 20,
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.background
+                                  : (isDark ? Colors.white70 : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: EdgeInsets.all(isTablet ? 3 : 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(
+                                isTablet ? 10 : 8,
+                              ),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.grey[800]!
+                                    : AppColors.backgroundColor,
+                                width: 1,
+                              ),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: isTablet ? 20 : 16,
+                              minHeight: isTablet ? 20 : 16,
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 12 : 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
                 SizedBox(width: isTablet ? 16 : 12),
-                CircleAvatar(
-                  backgroundColor: AppColors.primaryColor,
-                  radius: isTablet ? 30 : 24,
-                  child: Icon(
-                    Icons.person,
-                    color: AppColors.backgroundColor,
-                    size: isTablet ? 30 : 24,
+                GestureDetector(
+                  onTap: () {
+                    homeController.isProfileSelected.value = true;
+                    homeController.isNotificationSelected.value = false;
+                  },
+                  child: Obx(
+                    () => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: homeController.isProfileSelected.value
+                              ? AppColors.primaryColor
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                        boxShadow: homeController.isProfileSelected.value
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primaryColor.withOpacity(
+                                    0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: homeController.isProfileSelected.value
+                            ? AppColors.primaryColor.withOpacity(0.9)
+                            : AppColors.primaryColor,
+                        radius: isTablet ? 30 : 24,
+                        child: Icon(
+                          Icons.person,
+                          color: AppColors.backgroundColor,
+                          size: homeController.isProfileSelected.value
+                              ? (isTablet ? 32 : 26)
+                              : (isTablet ? 30 : 24),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -671,199 +806,128 @@ class TeamsScreen extends StatelessWidget {
   }
 
   Widget buildFiltersContent(bool isDark, bool isTablet) {
-    return Container(
-      padding: EdgeInsets.all(isTablet ? 20 : 16),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(isTablet ? 20 : 16),
+  return Container(
+    padding: EdgeInsets.all(isTablet ? 20 : 16),
+    decoration: BoxDecoration(
+      color: isDark ? Colors.grey[850] : Colors.white,
+      borderRadius: BorderRadius.vertical(
+        bottom: Radius.circular(isTablet ? 20 : 16),
+      ),
+    ),
+    child: Column(
+      children: [
+        // Filter containers in rows of 2
+        Row(
+          children: [
+            Expanded(
+              child: _buildCapabilityFilter(
+                'healthcare_cleaning'.tr,
+                homeController.healthcareFilter,
+                homeController.setHealthcareFilter,
+                Icons.local_hospital,
+                isDark ? Colors.blue[300]! : Colors.blue,
+                isDark,
+                isTablet,
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: _buildCapabilityFilter(
+                'household_cleaning'.tr,
+                homeController.householdFilter,
+                homeController.setHouseholdFilter,
+                Icons.home,
+                isDark ? Colors.green[300]! : Colors.green,
+                isDark,
+                isTablet,
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final shouldUseHorizontal = constraints.maxWidth > 600;
-
-              if (shouldUseHorizontal) {
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildCapabilityFilter(
-                            'healthcare_cleaning'.tr,
-                            homeController.healthcareFilter,
-                            homeController.setHealthcareFilter,
-                            Icons.local_hospital,
-                            isDark ? Colors.blue[300]! : Colors.blue,
-                            isDark,
-                            isTablet,
-                          ),
-                        ),
-                        SizedBox(width: isTablet ? 16 : 12),
-                        Expanded(
-                          child: _buildCapabilityFilter(
-                            'household_cleaning'.tr,
-                            homeController.householdFilter,
-                            homeController.setHouseholdFilter,
-                            Icons.home,
-                            isDark ? Colors.green[300]! : Colors.green,
-                            isDark,
-                            isTablet,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isTablet ? 20 : 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildCapabilityFilter(
-                            'patient_referral'.tr,
-                            homeController.referralFilter,
-                            homeController.setReferralFilter,
-                            Icons.person_search,
-                            isDark ? Colors.orange[300]! : Colors.orange,
-                            isDark,
-                            isTablet,
-                          ),
-                        ),
-                        SizedBox(width: isTablet ? 16 : 12),
-                        Expanded(
-                          child: _buildCapabilityFilter(
-                            'burial_services'.tr,
-                            homeController.burialFilter,
-                            homeController.setBurialFilter,
-                            Icons.psychology,
-                            isDark ? Colors.purple[300]! : Colors.purple,
-                            isDark,
-                            isTablet,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    _buildCapabilityFilter(
-                      'healthcare_cleaning'.tr,
-                      homeController.healthcareFilter,
-                      homeController.setHealthcareFilter,
-                      Icons.local_hospital,
-                      isDark ? Colors.blue[300]! : Colors.blue,
-                      isDark,
-                      isTablet,
-                    ),
-                    SizedBox(height: isTablet ? 16 : 12),
-                    _buildCapabilityFilter(
-                      'household_cleaning'.tr,
-                      homeController.householdFilter,
-                      homeController.setHouseholdFilter,
-                      Icons.home,
-                      isDark ? Colors.green[300]! : Colors.green,
-                      isDark,
-                      isTablet,
-                    ),
-                    SizedBox(height: isTablet ? 16 : 12),
-                    _buildCapabilityFilter(
-                      'patient_referral'.tr,
-                      homeController.referralFilter,
-                      homeController.setReferralFilter,
-                      Icons.person_search,
-                      isDark ? Colors.orange[300]! : Colors.orange,
-                      isDark,
-                      isTablet,
-                    ),
-                    SizedBox(height: isTablet ? 16 : 12),
-                    _buildCapabilityFilter(
-                      'burial_services'.tr,
-                      homeController.burialFilter,
-                      homeController.setBurialFilter,
-                      Icons.psychology,
-                      isDark ? Colors.purple[300]! : Colors.purple,
-                      isDark,
-                      isTablet,
-                    ),
-                  ],
-                );
-              }
-            },
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final shouldUseHorizontal = constraints.maxWidth > 400;
-
-              if (shouldUseHorizontal) {
-                return Row(
-                  children: [
-                    Expanded(child: _buildApplyButton(isTablet)),
-                    SizedBox(width: isTablet ? 16 : 12),
-                    Expanded(child: _buildClearButton(isDark, isTablet)),
-                  ],
-                );
-              } else {
-                return Column(
-                  children: [
-                    _buildApplyButton(isTablet),
-                    SizedBox(height: isTablet ? 12 : 8),
-                    _buildClearButton(isDark, isTablet),
-                  ],
-                );
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildApplyButton(bool isTablet) {
-    return ElevatedButton.icon(
-      onPressed: homeController.applyFiltersTeam,
-      icon: Icon(Icons.search, size: isTablet ? 20 : 18),
-      label: Text(
-        'apply_filters'.tr,
-        style: TextStyle(fontSize: isTablet ? 16 : 14),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        SizedBox(height: isTablet ? 16 : 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildCapabilityFilter(
+                'patient_referral'.tr,
+                homeController.referralFilter,
+                homeController.setReferralFilter,
+                Icons.person_search,
+                isDark ? Colors.orange[300]! : Colors.orange,
+                isDark,
+                isTablet,
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: _buildCapabilityFilter(
+                'burial_services'.tr,
+                homeController.burialFilter,
+                homeController.setBurialFilter,
+                Icons.psychology,
+                isDark ? Colors.purple[300]! : Colors.purple,
+                isDark,
+                isTablet,
+              ),
+            ),
+          ],
         ),
+        SizedBox(height: isTablet ? 24 : 20),
+        // Action buttons in one row
+        Row(
+          children: [
+            Expanded(child: _buildApplyButton(isTablet)),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(child: _buildClearButton(isDark, isTablet)),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+ Widget _buildApplyButton(bool isTablet) {
+  return ElevatedButton.icon(
+    onPressed: homeController.applyFiltersTeam,
+    icon: Icon(Icons.search, size: isTablet ? 20 : 18),
+    label: Text(
+      'apply_filters'.tr,
+      style: TextStyle(fontSize: isTablet ? 16 : 14),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primaryColor,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildClearButton(bool isDark, bool isTablet) {
-    return ElevatedButton.icon(
-      onPressed: () {
-        search.clear();
-        homeController.clearAllFiltersTeam();
-      },
-      icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
-      label: Text(
-        'clear_all_filters'.tr,
-        style: TextStyle(fontSize: isTablet ? 16 : 14),
+  return ElevatedButton.icon(
+    onPressed: () {
+      search.clear();
+      homeController.clearAllFiltersTeam();
+    },
+    icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
+    label: Text(
+      'clear_all_filters'.tr,
+      style: TextStyle(fontSize: isTablet ? 16 : 14),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: isDark
+          ? Colors.grey[700]
+          : Colors.grey.withOpacity(0.2),
+      foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
+      elevation: 0,
+      padding: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
       ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isDark
-            ? Colors.grey[700]
-            : Colors.grey.withOpacity(0.2),
-        foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
-        elevation: 0,
-        padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCapabilityFilter(
     String label,

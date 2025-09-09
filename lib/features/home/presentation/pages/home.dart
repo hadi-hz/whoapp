@@ -39,20 +39,18 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         pages = homeController.role.value == 'Admin'
-            ? [const ProfilePage(), ReportsPage(), UsersScreen(), TeamsScreen()]
+            ? [UsersScreen(), ReportsPage(), TeamsScreen(), ProfilePage()]
             : homeController.role.value == 'ServiceProvider'
-            ? [const ProfilePage(), ReportsPage(), UserTeamsScreen()]
-            : [const ProfilePage(), ReportsPage()];
+            ? [ReportsPage(), UserTeamsScreen(), const ProfilePage()]
+            : [ReportsPage(), const ProfilePage()];
         isInitialized = true;
       });
 
-      
       await _fetchAlerts(savedUserId, savedRole);
     });
   }
 
   Future<void> _fetchAlerts(String? userId, String? role) async {
-  
     final filter = AlertFilterEntity(
       userId: role != 'Admin' ? userId : null,
       sortDescending: true,
@@ -60,12 +58,10 @@ class _HomePageState extends State<HomePage> {
       pageSize: 150,
     );
 
-    
     alertController.selectedUserId.value = filter.userId;
     alertController.sortDescending.value = filter.sortDescending ?? true;
     alertController.currentPage.value = filter.page;
     alertController.pageSize.value = filter.pageSize;
-
 
     await alertController.loadAlerts();
   }

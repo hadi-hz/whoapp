@@ -127,7 +127,7 @@ final RxBool isProfileSelected = true.obs;
     isFiltersExpanded.value = true;
   }
 
-  var selectedIndex = 1.obs;
+  var selectedIndex = 0.obs;
 
   void changePage(int index) {
     selectedIndex.value = index;

@@ -55,13 +55,13 @@ const Map<String, String> en = {
   'no_reports_found': 'No reports found',
   'no_results_for': 'No results for',
   'clear_filters': 'Clear filters',
-  'initial': 'Initial',
-  'visited_by_admin': 'Visited By Admin',
-  'assigned_to_team': 'Assigned To Team',
-  'visited_by_team_member': 'Visited By TeamMember',
-  'team_start_processing': 'Team Start Processing',
-  'team_finish_processing': 'Team Finish Processing',
-  'admin_close': 'Admin Close',
+  'initial': 'Open',
+  'visited_by_admin': 'Reviewed by administrator',
+  'assigned_to_team': 'Assigned to response team',
+  'visited_by_team_member': 'Team member checked the alert',
+  'team_start_processing': 'Team started processing ',
+  'team_finish_processing': 'Processing completed by team',
+  'admin_close': 'Closed',
   'no_team': 'No team',
   'report_pdf': 'Report PDF',
   'search_by_doctor_team': 'Search by doctor or team name...',
@@ -303,4 +303,22 @@ const Map<String, String> en = {
 
   'notifications_marked_read': "Notifications marked as read",
   'notification_marked_read': "Notification marked as read",
+
+
+ 
+    'reset_instructions': 'Enter your email to receive reset instructions',
+    'email_address': 'Email Address',
+    'enter_email': 'Enter your email',
+  
+    'enter_valid_email': 'Enter a valid email',
+    'send_reset_link': 'Send Reset Link',
+    'back_to_login': 'Back to Login',
+    
+
+    'network_error_occurred': 'Network error occurred',
+    'reset_email_sent': 'If the email is Confirmed, you will receive password reset instructions.',
+    'invalid_email': 'Invalid email',
+    'search_users': 'Search Users',
+  'team_attached_images': 'Team Attached Images',
+  'download': 'Download',
 };

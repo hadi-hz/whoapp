@@ -7,6 +7,7 @@ class TeamFinishProcessingModel extends TeamFinishProcessingEntity {
     return TeamFinishProcessingModel(
       message: json['message'] ?? '',
       id: json['id'] ?? '',
+      
     );
   }
 }

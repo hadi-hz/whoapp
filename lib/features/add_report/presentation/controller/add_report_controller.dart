@@ -107,6 +107,10 @@ class AddReportController extends GetxController {
           localCreateTime: DateTime.now().toIso8601String(),
         );
 
+       for(var file in pickedImages){
+         print('pickedImages ===========>   ${file.path}');
+       }
+
         final response = await repository.submitAlert(
           alertModel,
           files: pickedImages,

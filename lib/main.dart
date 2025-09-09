@@ -13,14 +13,20 @@ import 'package:test3/features/add_report/data/datasource/alert_remote_datasourc
 import 'package:test3/features/add_report/data/repositories/alert_repository_impl.dart';
 import 'package:test3/features/add_report/presentation/controller/add_report_controller.dart';
 import 'package:test3/features/auth/data/datasource/change_language_datasource.dart';
+import 'package:test3/features/auth/data/datasource/change_password_datasource.dart';
 import 'package:test3/features/auth/data/repositories/change_language_repository_impl.dart';
+import 'package:test3/features/auth/data/repositories/change_password_impl.dart';
 import 'package:test3/features/auth/domain/repositories/change_language_repository.dart';
+import 'package:test3/features/auth/domain/repositories/change_password_repository.dart';
 import 'package:test3/features/auth/domain/usecase/change_language_usecase.dart';
+import 'package:test3/features/auth/domain/usecase/change_password_usecase.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
+import 'package:test3/features/auth/presentation/controller/change_password_controller.dart';
 import 'package:test3/features/auth/presentation/controller/locale_change_language.dart';
 import 'package:test3/features/auth/presentation/controller/translation_controller.dart';
 import 'package:test3/features/auth/presentation/pages/splashscreen_page.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/assign_team_datesource.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/generate_pdf_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_alert_by_id_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/get_team_by_alert_type.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/team_finish_processing.dart';
@@ -29,6 +35,7 @@ import 'package:test3/features/get_alert_by_id/data/datasource/update_by_team_me
 import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_admin_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/datasource/visited_by_team_member_datasource.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/assign_team_repository.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/generate_pdf_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_alert_by_id_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/get_team_by_alert_type_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/team_finish_processing_repository_impl.dart';
@@ -37,13 +44,15 @@ import 'package:test3/features/get_alert_by_id/data/repositories/update_by_team_
 import 'package:test3/features/get_alert_by_id/data/repositories/visited_by_admin_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/data/repositories/visited_team_member_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/assign_team_repository.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/generate_pdf_repository.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/get_team_by_alert_type.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/team_finish_precessing.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_admin.dart';
 import 'package:test3/features/get_alert_by_id/domain/repositories/visited_by_team_member.dart';
-import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team_usecase.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/generate_pdf_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
@@ -51,6 +60,7 @@ import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.da
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_team_member.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_admin_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/visited_by_team_member_usecase.dart';
+import 'package:test3/features/get_alert_by_id/presentation/controller/generate_pdf_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/get_alert_by_id_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/team_finish_processing_controller.dart';
 import 'package:test3/features/get_alert_by_id/presentation/controller/update_by_admin_controller.dart';
@@ -471,7 +481,6 @@ void main() async {
     ),
   );
 
-  // Use Cases
   Get.lazyPut<MarkNotificationReadByAlertUseCase>(
     () => MarkNotificationReadByAlertUseCase(
       repository: Get.find<NotificationReadRepository>(),
@@ -490,13 +499,30 @@ void main() async {
     ),
   );
 
-  Get.lazyPut<NotificationReadController>(
-    () => NotificationReadController(
+  Get.put<NotificationReadController>(
+    NotificationReadController(
       markByAlertUseCase: Get.find<MarkNotificationReadByAlertUseCase>(),
       markByUserUseCase: Get.find<MarkNotificationReadByUserUseCase>(),
       markByIdUseCase: Get.find<MarkNotificationReadByIdUseCase>(),
     ),
+    permanent: true,
   );
+
+  Get.lazyPut(() => ChangePasswordRemoteDataSource());
+
+  final repo = ChangePasswordRepositoryImpl(Get.find());
+  Get.lazyPut<ChangePasswordRepository>(() => repo);
+
+  Get.lazyPut(() => ForgetPasswordUseCase(Get.find()));
+  Get.put(() => ForgetPasswordController(Get.find()));
+
+  Get.lazyPut(() => ReportRemoteDataSource());
+
+  final repoPdf = ReportRepositoryImpl(Get.find());
+  Get.lazyPut<ReportRepository>(() => repoPdf);
+  Get.lazyPut(() => GeneratePdfReportUseCase(Get.find()));
+
+  Get.put(() => ReportController(Get.find()));
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,

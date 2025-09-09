@@ -33,57 +33,51 @@ class TeamFinishProcessingController extends GetxController {
     selectedImages.removeAt(index);
   }
 
- Future<bool> teamFinishProcessing({
-  required String alertId,
-  required String userId,
-}) async {
-  try {
-    isFinishingProcess.value = true;
-    errorMessage.value = '';
+  Future<bool> teamFinishProcessing({
+    required String alertId,
+    required String userId,
+  }) async {
+    try {
+      isFinishingProcess.value = true;
+      errorMessage.value = '';
 
-    // تبدیل File به String path
-    List<String> imagePaths = selectedImages.map((file) => file.path).toList();
+      // تبدیل File به XFile برای usecase
+      List<XFile>? xFiles;
+      if (selectedImages.isNotEmpty) {
+        xFiles = selectedImages.map((file) => XFile(file.path)).toList();
+      }
 
-    print('Images count: ${selectedImages.length}');
-    print('Image paths: $imagePaths');
-    
-    // بررسی اینکه فایل‌ها واقعا وجود دارن
-    for (String path in imagePaths) {
-      File file = File(path);
-      print('File exists: ${file.existsSync()}, Path: $path');
+      await useCase.call(
+        alertId: alertId,
+        userId: userId,
+        description: descriptionController.text.trim(),
+        files: xFiles,
+      );
+
+      Get.snackbar(
+        'success'.tr,
+        'Processing finished successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      descriptionController.clear();
+      selectedImages.clear();
+      return true;
+    } catch (e) {
+      errorMessage.value = e.toString();
+      Get.snackbar(
+        'error'.tr,
+        e.toString(),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    } finally {
+      isFinishingProcess.value = false;
     }
-
-    await useCase.call(
-      alertId: alertId,
-      userId: userId,
-      description: descriptionController.text.trim(),
-      files: imagePaths,
-    );
-
-    Get.snackbar(
-      'success'.tr,
-      'Processing finished successfully',
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
-
-    descriptionController.clear();
-    selectedImages.clear();
-    return true;
-  } catch (e) {
-    errorMessage.value = e.toString();
-    print('Error in teamFinishProcessing: $e'); 
-    Get.snackbar(
-      'error'.tr,
-      e.toString(),
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-    );
-    return false;
-  } finally {
-    isFinishingProcess.value = false;
   }
-}
+
   bool validateForm() {
     if (descriptionController.text.trim().isEmpty) {
       errorMessage.value = 'description_required'.tr;

@@ -23,8 +23,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
   final AlertListController alertController = Get.find<AlertListController>();
   final authController = Get.find<AuthController>();
 
-  final iconList = <IconData>[Icons.person, Icons.list_alt_rounded];
-
+  final iconList = <IconData>[Icons.list_alt_rounded, Icons.person];
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -32,35 +31,66 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       extendBody: true,
       body: Obx(() {
         return IndexedStack(
           index: homeController.selectedIndex.value,
-          children: [ProfilePage(), ReportsPage()],
+          children: [ReportsPage(), ProfilePage()],
         );
       }),
-      floatingActionButton: SizedBox(
-        width: 65,
-        height: 65,
-        child: FloatingActionButton(
-          shape: CircleBorder(),
+      floatingActionButton: Builder(
+        builder: (context) {
+          return SizedBox(
+            width: 65,
+            height: 65,
+            child: FloatingActionButton(
+              shape: CircleBorder(),
+              backgroundColor: AppColors.primaryColor,
+              onPressed: () => _showAddReportModal(context, isDark),
+              child: const Icon(Icons.add_circle, size: 42, color: Colors.white),
+            ),
+          );
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: Obx(
+        () => AnimatedBottomNavigationBar(
+          height: 70,
+          iconSize: 28,
+          icons: iconList,
+          activeIndex: homeController.selectedIndex.value,
+          gapLocation: GapLocation.center,
+          notchSmoothness: NotchSmoothness.sharpEdge,
+          onTap: homeController.changePage,
           backgroundColor: AppColors.primaryColor,
-        onPressed: () {
-    Get.bottomSheet(
-      Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          activeColor: AppColors.backgroundColor,
+          inactiveColor: AppColors.backgroundColor.withOpacity(0.6),
+          leftCornerRadius: 12,
+          rightCornerRadius: 12,
         ),
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.78,
+      ),
+    );
+  }
+
+  void _showAddReportModal(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      useSafeArea: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.78,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
             color: isDark ? Colors.grey[900] : AppColors.background,
             borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Column(
             children: [
-           
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -85,7 +115,7 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => Navigator.pop(context),
                       icon: Icon(
                         Icons.close,
                         color: isDark ? Colors.white70 : Colors.black,
@@ -94,11 +124,11 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                   ],
                 ),
               ),
-             
               Expanded(
                 child: SingleChildScrollView(
+                  controller: scrollController,
                   padding: EdgeInsetsDirectional.only(
-                    bottom: 40,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 40,
                     start: 20,
                     end: 20,
                     top: 12,
@@ -111,20 +141,27 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
                         ConstantSpace.mediumVerticalSpacer,
                         dropDownHealth(context, isDark),
                         ConstantSpace.smallVerticalSpacer,
-                        patientName(context, controller.patientName, isDark),
+                        patientName(
+                          context,
+                          controller.patientName,
+                          isDark,
+                        ),
                         ConstantSpace.smallVerticalSpacer,
-                        description(context, controller.description, isDark),
+                        description(
+                          context,
+                          controller.description,
+                          isDark,
+                        ),
                         ConstantSpace.xLargeVerticalSpacer,
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(child: buttonSubmitReport()),
+                            Expanded(child: buttonSubmitReport(isDark)),
                             SizedBox(width: 12),
                             Expanded(child: buttonPickLocation(context)),
                           ],
                         ),
-                     
-                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                        SizedBox(height: 50),
                       ],
                     ),
                   ),
@@ -134,35 +171,10 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
           ),
         ),
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enableDrag: true,
-    );
-  },
-          child: const Icon(Icons.add_circle, size: 42, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: Obx(
-        () => AnimatedBottomNavigationBar(
-          height: 70,
-          iconSize: 28,
-          icons: iconList,
-          activeIndex: homeController.selectedIndex.value,
-          gapLocation: GapLocation.center,
-          notchSmoothness: NotchSmoothness.sharpEdge,
-          onTap: homeController.changePage,
-          backgroundColor: AppColors.primaryColor,
-          activeColor: AppColors.backgroundColor,
-          inactiveColor: AppColors.backgroundColor.withOpacity(0.6),
-          leftCornerRadius: 12,
-          rightCornerRadius: 12,
-        ),
-      ),
     );
   }
 
-  Widget buttonSubmitReport() {
+  Widget buttonSubmitReport(isDark) {
     return LayoutBuilder(
       builder: (context, constraints) {
         double screenWidth = MediaQuery.of(context).size.width;
@@ -175,8 +187,12 @@ class AnimatedBottomNavDoctor extends StatelessWidget {
             height: 60,
             borderRadius: 12,
             borderWidth: 5,
-            topLeftShadowColor: const Color.fromARGB(255, 199, 226, 255),
-            bottomRightShadowColor: const Color.fromARGB(255, 181, 222, 243),
+            topLeftShadowColor: isDark
+                ? const Color.fromARGB(255, 28, 28, 28)
+                : const Color.fromARGB(255, 199, 226, 255),
+            bottomRightShadowColor: isDark
+                ? const Color.fromARGB(255, 28, 28, 28)
+                : const Color.fromARGB(255, 181, 222, 243),
             bottomRightOffset: const Offset(4, 4),
             topLeftOffset: const Offset(-4, -4),
             child: Row(

@@ -18,6 +18,7 @@ class CreateTeamController extends GetxController {
 
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   final RxBool isHealthcare = false.obs;
   final RxBool isHousehold = false.obs;
@@ -84,6 +85,7 @@ class CreateTeamController extends GetxController {
       );
 
       final homeController = Get.find<HomeController>();
+      homeController.teams.clear();
       await homeController.fetchTeams();
     } catch (e) {
       errorMessage.value = e.toString();

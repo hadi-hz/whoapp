@@ -25,9 +25,10 @@ class AnimatedBottomNavServiceProvider extends StatelessWidget {
   final authController = Get.find<AuthController>();
 
   final iconList = <IconData>[
-    Icons.person,
+    
     Icons.list_alt_rounded,
     Icons.groups_2,
+    Icons.person,
   ];
 
   @override
@@ -40,9 +41,10 @@ class AnimatedBottomNavServiceProvider extends StatelessWidget {
         return IndexedStack(
           index: homeController.selectedIndex.value,
           children: [
-            ProfilePage(),
+           
             ReportsPage(),
             UserTeamsScreen(),
+             ProfilePage(),
           ],
         );
       }),

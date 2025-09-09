@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/get_alert-by_id.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
-import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team._usecase.dart';
+import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart';
 import 'package:url_launcher/url_launcher.dart';

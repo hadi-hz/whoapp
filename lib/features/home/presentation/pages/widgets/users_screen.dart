@@ -2,20 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:test3/core/const/const.dart';
+import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 import 'package:test3/features/home/domain/entities/users_entity.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
+import 'package:test3/features/home/presentation/pages/widgets/notification_page.dart';
 import 'package:test3/features/home/presentation/pages/widgets/user_detail.dart';
 
 class UsersScreen extends StatelessWidget {
   UsersScreen({super.key});
 
   final TextEditingController search = TextEditingController();
+  final controller = Get.find<AuthController>();
   final HomeController homeController = Get.find<HomeController>();
+  bool _isLargeTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 1024;
+  }
+  bool _isTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 768;
+  }
+
+
+   EdgeInsets _getScreenPadding(BuildContext context) {
+    if (_isLargeTablet(context)) {
+      return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
+    } else if (_isTablet(context)) {
+      return const EdgeInsets.symmetric(horizontal: 24, vertical: 20);
+    }
+    return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+        final isTablet = _isTablet(context);
+    final screenPadding = _getScreenPadding(context);
     return Scaffold(
       body: Container(
         width: context.width,
@@ -42,21 +63,16 @@ class UsersScreen extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            top: 16,
-            end: 16,
-            start: 16,
-          ),
+          padding: screenPadding ,
           child: Column(
             children: [
-              ConstantSpace.largeVerticalSpacer,
-              ConstantSpace.largeVerticalSpacer,
-              profileHeader(isDark),
-              ConstantSpace.mediumVerticalSpacer,
+           SizedBox(height: isTablet ? 32 : 24),
+              profileHeader(isDark , isTablet),
+              SizedBox(height: isTablet ? 24 : 16),
               searching(context, search, isDark),
-              ConstantSpace.mediumVerticalSpacer,
+            SizedBox(height: isTablet ? 24 : 16),
               buildExpandableFiltersContainer(isDark),
-              ConstantSpace.mediumVerticalSpacer,
+                 SizedBox(height: isTablet ? 24 : 16),
 
               Expanded(
                 child: RefreshIndicator(
@@ -502,7 +518,7 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget profileHeader(bool isDark) {
+  Widget profileHeader(bool isDark, bool isTablet) {
     return Row(
       children: [
         Column(
@@ -529,29 +545,153 @@ class UsersScreen extends StatelessWidget {
           ],
         ),
         const Spacer(),
-        Container(
-          height: 55,
+       Container(
+          height: isTablet ? 70 : 55,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(54),
+            borderRadius: BorderRadius.circular(isTablet ? 70 : 54),
             color: isDark ? Colors.grey[800] : AppColors.backgroundColor,
             border: Border.all(
-              color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor,
               width: 1,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(isTablet ? 12.0 : 8.0),
             child: Row(
               children: [
-                Icon(
-                  Icons.notifications_none_rounded,
-                  color: isDark ? Colors.white70 : Colors.black,
-                ),
-                ConstantSpace.mediumHorizontalSpacer,
-                CircleAvatar(
-                  backgroundColor: AppColors.primaryColor,
-                  radius: 24,
-                  child: Icon(Icons.person, color: AppColors.backgroundColor),
+                Obx(() {
+                  final unreadCount =
+                      controller.currentLoginUser.value?.unReadMessagesCount ??
+                      0;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          homeController.isNotificationSelected.value = true;
+                          homeController.isProfileSelected.value = false;
+
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            Get.to(
+                              NotificationPage(),
+                              transition: Transition.downToUp,
+                              duration: const Duration(milliseconds: 400),
+                            )?.then((_) {
+                              homeController.isNotificationSelected.value =
+                                  false;
+                              homeController.isProfileSelected.value = true;
+                            });
+                          });
+                        },
+                        child: Obx(
+                          () => AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                            padding: EdgeInsets.all(isTablet ? 12 : 8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color:
+                                    homeController.isNotificationSelected.value
+                                    ? AppColors.primaryColor
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.primaryColor
+                                  : Colors.transparent,
+                            ),
+                            child: Icon(
+                              Icons.notifications_none_rounded,
+                              size: isTablet ? 24 : 20,
+                              color: homeController.isNotificationSelected.value
+                                  ? AppColors.background
+                                  : (isDark ? Colors.white70 : Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: EdgeInsets.all(isTablet ? 3 : 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(
+                                isTablet ? 10 : 8,
+                              ),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.grey[800]!
+                                    : AppColors.backgroundColor,
+                                width: 1,
+                              ),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: isTablet ? 20 : 16,
+                              minHeight: isTablet ? 20 : 16,
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 12 : 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
+                SizedBox(width: isTablet ? 16 : 12),
+                GestureDetector(
+                  onTap: () {
+                    homeController.isProfileSelected.value = true;
+                    homeController.isNotificationSelected.value = false;
+                  },
+                  child: Obx(
+                    () => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: homeController.isProfileSelected.value
+                              ? AppColors.primaryColor
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                        boxShadow: homeController.isProfileSelected.value
+                            ? [
+                                BoxShadow(
+                                  color: AppColors.primaryColor.withOpacity(
+                                    0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: homeController.isProfileSelected.value
+                            ? AppColors.primaryColor.withOpacity(0.9)
+                            : AppColors.primaryColor,
+                        radius: isTablet ? 30 : 24,
+                        child: Icon(
+                          Icons.person,
+                          color: AppColors.backgroundColor,
+                          size: homeController.isProfileSelected.value
+                              ? (isTablet ? 32 : 26)
+                              : (isTablet ? 30 : 24),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

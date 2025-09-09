@@ -204,7 +204,7 @@ class AuthController extends GetxController {
 
     currentLoginUser.value = null;
     controller.pickedImages.value = [];
-    homeController.selectedIndex.value = 1;
+    homeController.selectedIndex.value = 0;
     homeController.isFiltersExpanded.value = false;
     homeController.isFiltersExpandedTeam.value = false;
 
