@@ -9,6 +9,7 @@ import 'package:test3/features/add_report/presentation/controller/add_report_con
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
 
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
+import 'package:test3/features/home/presentation/pages/widgets/charts_screen.dart';
 import 'package:test3/features/home/presentation/pages/widgets/reports.dart';
 import 'package:test3/features/home/presentation/pages/widgets/teams_screen.dart';
 import 'package:test3/features/home/presentation/pages/widgets/users_screen.dart';
@@ -24,15 +25,16 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
   final iconList = <IconData>[
     Icons.supervised_user_circle,
     Icons.list_alt_rounded,
-   
+    Icons.bar_chart_outlined,
     Icons.groups_2,
-     Icons.person,
+
+    Icons.person,
   ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
@@ -41,11 +43,11 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
         return IndexedStack(
           index: homeController.selectedIndex.value,
           children: [
-          UsersScreen(),
+            UsersScreen(),
             ReportsPage(),
-           
+            ChartsScreen(),
             TeamsScreen(),
-               ProfilePage(),
+            ProfilePage(),
           ],
         );
       }),

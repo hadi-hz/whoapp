@@ -36,4 +36,7 @@ class ApiEndpoints {
   static const String notifReadNotif = '/notification/set-notif-read-notif';
   static const String changePassword = '/auth/forget-pass';
   static const String pdf = '/alert/generate-report';
+  static const String donutChart = '/charts/Donut-chart-by-alert-type';
+  static const String funnelChart = '/charts/Funnel-chart-by-alert-status';
+  static const String barChart = '/charts/bar-chart-for-alerts-by-doctors';
 }

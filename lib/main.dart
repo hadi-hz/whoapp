@@ -69,6 +69,7 @@ import 'package:test3/features/get_alert_by_id/presentation/controller/visited_b
 import 'package:test3/features/get_alert_by_id/presentation/controller/visited_team_member_controller.dart';
 import 'package:test3/features/home/data/datasource/admin_close_alert_datasource.dart';
 import 'package:test3/features/home/data/datasource/assign_role_datasource.dart';
+import 'package:test3/features/home/data/datasource/chart_datasource.dart';
 import 'package:test3/features/home/data/datasource/create_team_datasource.dart';
 import 'package:test3/features/home/data/datasource/get_alert_datasource.dart';
 import 'package:test3/features/home/data/datasource/get_team_by_id.dart';
@@ -80,6 +81,7 @@ import 'package:test3/features/home/data/datasource/user_detail_datasource.dart'
 import 'package:test3/features/home/data/datasource/users_datasource.dart';
 import 'package:test3/features/home/data/repositories/admin_close_alert_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/assign_role_repository_impl.dart';
+import 'package:test3/features/home/data/repositories/charts_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/create_team_repository_impl.dart';
 import 'package:test3/features/home/data/repositories/get_alert_impl.dart';
 import 'package:test3/features/home/data/repositories/get_teams_by_member_id_repository_impl.dart';
@@ -91,6 +93,7 @@ import 'package:test3/features/home/data/repositories/user_detail_repository_imp
 import 'package:test3/features/home/data/repositories/users_repository_impl.dart';
 import 'package:test3/features/home/domain/repositories/admin_close_alert.dart';
 import 'package:test3/features/home/domain/repositories/assign_role_repository.dart';
+import 'package:test3/features/home/domain/repositories/chart_repository.dart';
 import 'package:test3/features/home/domain/repositories/create_team_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_alert_repository.dart';
 import 'package:test3/features/home/domain/repositories/get_teams_by_member_id.dart';
@@ -105,6 +108,9 @@ import 'package:test3/features/home/domain/usecase/admin_close_alert_usecase.dar
 import 'package:test3/features/home/domain/usecase/assign_role_usecase.dart';
 import 'package:test3/features/home/domain/usecase/create_team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/get_alert_usecase.dart';
+import 'package:test3/features/home/domain/usecase/get_bar_chart_usecase.dart';
+import 'package:test3/features/home/domain/usecase/get_donut_chart_usecase.dart';
+import 'package:test3/features/home/domain/usecase/get_funnel_chart_usecase.dart';
 import 'package:test3/features/home/domain/usecase/get_team_by_id.dart';
 import 'package:test3/features/home/domain/usecase/get_teams_by_member_id_usecase.dart';
 import 'package:test3/features/home/domain/usecase/notification_read_usecase.dart';
@@ -113,6 +119,7 @@ import 'package:test3/features/home/domain/usecase/team_usecase.dart';
 import 'package:test3/features/home/domain/usecase/user_detail_ussecase.dart';
 import 'package:test3/features/home/domain/usecase/users_usecase.dart';
 import 'package:test3/features/home/presentation/controller/admin_close_alert_controller.dart';
+import 'package:test3/features/home/presentation/controller/charts_controller.dart';
 import 'package:test3/features/home/presentation/controller/create_team_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/get_teams_by_member_id_controller.dart';
@@ -526,6 +533,27 @@ void main() async {
   Get.lazyPut(() => GeneratePdfReportUseCase(Get.find()));
 
   Get.put(() => ReportController(Get.find()));
+
+  // Chart dependencies
+  Get.put<ChartsRemoteDataSource>(ChartsRemoteDataSourceImpl());
+  Get.put<ChartsRepository>(
+    ChartsRepositoryImpl(remoteDataSource: Get.find<ChartsRemoteDataSource>()),
+  );
+
+  // Use cases
+  Get.put(GetDonutChartUseCase(repository: Get.find<ChartsRepository>()));
+  Get.put(GetFunnelChartUseCase(repository: Get.find<ChartsRepository>()));
+  Get.put(GetBarChartUseCase(repository: Get.find<ChartsRepository>()));
+
+  // Controller
+  Get.put(
+    ChartController(
+      getDonutChartUseCase: Get.find<GetDonutChartUseCase>(),
+      getFunnelChartUseCase: Get.find<GetFunnelChartUseCase>(),
+      getBarChartUseCase: Get.find<GetBarChartUseCase>(),
+    ),
+    permanent: true,
+  );
   // runApp(
   //   DevicePreview(
   //     enabled: !kReleaseMode,

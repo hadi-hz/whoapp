@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/home/domain/entities/get_filter_alert.dart';
 import 'package:test3/features/home/presentation/controller/get_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/home_controller.dart';
+import 'package:test3/features/home/presentation/pages/widgets/charts_screen.dart';
 import 'package:test3/features/home/presentation/pages/widgets/get_teams_by_member_id.dart';
 import 'package:test3/features/home/presentation/pages/widgets/navifationbar_admin.dart';
 import 'package:test3/features/home/presentation/pages/widgets/navigationbar.dart';
@@ -39,7 +40,7 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         pages = homeController.role.value == 'Admin'
-            ? [UsersScreen(), ReportsPage(), TeamsScreen(), ProfilePage()]
+            ? [UsersScreen(), ReportsPage(), TeamsScreen(), ProfilePage() , ChartsScreen()]
             : homeController.role.value == 'ServiceProvider'
             ? [ReportsPage(), UserTeamsScreen(), const ProfilePage()]
             : [ReportsPage(), const ProfilePage()];
