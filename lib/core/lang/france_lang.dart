@@ -302,20 +302,35 @@ const Map<String, String> fr = {
   'could_not_open_map': "Impossible d'ouvrir l'application de cartes",
   'notifications_marked_read': "Notifications marquées comme lues",
   'notification_marked_read': "Notification marquée comme lue",
-  
-    'reset_instructions': 'Entrez votre email pour recevoir les instructions de réinitialisation',
-    'email_address': 'Adresse email',
-    'enter_email': 'Entrez votre email',
-   
-    'enter_valid_email': 'Entrez un email valide',
-    'send_reset_link': 'Envoyer le lien de réinitialisation',
-    'back_to_login': 'Retour à la connexion',
-    
- 
-    'network_error_occurred': 'Erreur réseau survenue',
-    'reset_email_sent': 'Si l\'email est confirmé, vous recevrez les instructions de réinitialisation du mot de passe.',
-    'invalid_email': 'Email invalide',
-    'search_users': 'Rechercher des utilisateurs',
+
+  'reset_instructions':
+      'Entrez votre email pour recevoir les instructions de réinitialisation',
+  'email_address': 'Adresse email',
+  'enter_email': 'Entrez votre email',
+
+  'enter_valid_email': 'Entrez un email valide',
+  'send_reset_link': 'Envoyer le lien de réinitialisation',
+  'back_to_login': 'Retour à la connexion',
+
+  'network_error_occurred': 'Erreur réseau survenue',
+  'reset_email_sent':
+      'Si l\'email est confirmé, vous recevrez les instructions de réinitialisation du mot de passe.',
+  'invalid_email': 'Email invalide',
+  'search_users': 'Rechercher des utilisateurs',
   'team_attached_images': 'Images jointes de l\'équipe',
   'download': 'Télécharger',
+  'edit_profile': 'Modifier le profil',
+  'download_pdf_doctor': 'Télécharger le rapport médical',
+  'download_pdf_service': 'Télécharger le rapport de service',
+  'items_per_page': 'Éléments par page',
+  'showing': 'Affichage',
+  'of': 'de',
+  'page': 'Page',
+  'first': 'Premier',
+  'previous': 'Précédent',
+  'next': 'Suivant',
+  'last': 'Dernier',
+    'setup_app': 'Configurer votre application',
+  'system_language_question': 'Voulez-vous utiliser la langue du système ?',
+  'system_theme_question': 'Voulez-vous utiliser le thème du système ?',
 };

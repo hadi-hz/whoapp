@@ -1,4 +1,3 @@
-
 import 'package:test3/features/home/domain/entities/team_filter_entity.dart';
 
 class TeamsFilterModel extends TeamsFilterEntity {
@@ -8,13 +7,17 @@ class TeamsFilterModel extends TeamsFilterEntity {
     bool? isHouseholdCleaningAndDisinfection,
     bool? isPatientsReferral,
     bool? isSafeAndDignifiedBurial,
+    int? page,
+    int? pageSize,
   }) : super(
-          name: name,
-          isHealthcareCleaningAndDisinfection: isHealthcareCleaningAndDisinfection,
-          isHouseholdCleaningAndDisinfection: isHouseholdCleaningAndDisinfection,
-          isPatientsReferral: isPatientsReferral,
-          isSafeAndDignifiedBurial: isSafeAndDignifiedBurial,
-        );
+         name: name,
+         isHealthcareCleaningAndDisinfection: isHealthcareCleaningAndDisinfection,
+         isHouseholdCleaningAndDisinfection: isHouseholdCleaningAndDisinfection,
+         isPatientsReferral: isPatientsReferral,
+         isSafeAndDignifiedBurial: isSafeAndDignifiedBurial,
+         page: page,
+         pageSize: pageSize,
+       );
 
   Map<String, dynamic> toQueryParams() {
     Map<String, dynamic> params = {};
@@ -35,6 +38,14 @@ class TeamsFilterModel extends TeamsFilterEntity {
       params['IsSafeAndDignifiedBurial'] = isSafeAndDignifiedBurial;
     }
 
+    // تغییر نام پارامترها
+    if (page != null) {
+      params['PageNumber'] = page;
+    }
+    if (pageSize != null) {
+      params['PageSize'] = pageSize;
+    }
+    
     return params;
   }
 }

@@ -35,6 +35,7 @@ class AnimatedBottomNavAdmin extends StatelessWidget {
     
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       backgroundColor: isDark ? Colors.black : Colors.white,
       body: Obx(() {
         return IndexedStack(

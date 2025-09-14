@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,8 +13,21 @@ class LanguageController extends GetxController {
   final RxBool isChangingLanguage = false.obs;
   final RxString errorMessage = ''.obs;
 
-  int getLanguageCode(String locale) {
-    switch (locale) {
+  /// استفاده از زبان سیستم یا زبان کاربر
+  final RxBool useSystemLocale = true.obs;
+
+  /// زبان فعلی
+  final Rx<Locale> locale = const Locale('en').obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadLanguage();
+  }
+
+  /// متد کمکی برای تبدیل رشته به کد عددی
+  int getLanguageCode(String localeStr) {
+    switch (localeStr) {
       case 'en':
         return 0;
       case 'fr':
@@ -27,6 +39,7 @@ class LanguageController extends GetxController {
     }
   }
 
+  /// متد کمکی برای تبدیل کد عددی به رشته
   String _getLanguageString(int code) {
     switch (code) {
       case 0:
@@ -40,33 +53,48 @@ class LanguageController extends GetxController {
     }
   }
 
+  /// استفاده از زبان سیستم
+  Future<void> setSystemLanguage() async {
+    useSystemLocale.value = true;
+    locale.value = Get.deviceLocale ?? const Locale('en');
+    Get.updateLocale(locale.value);
 
-  Future<String> getSelectedLanguageForRegister() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('selectedLanguage') ?? 'en';
+    await prefs.setBool('useSystemLocale', true);
   }
 
-  
-  Future<void> setLanguageFromLogin(int languageCode) async {
-    final languageString = _getLanguageString(languageCode);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedLanguage', languageString);
-    Get.updateLocale(Locale(languageString));
-  }
-
+  /// تغییر زبان به صورت دستی
   Future<void> changeLanguage(String languageCode) async {
     try {
       isChangingLanguage.value = true;
       errorMessage.value = '';
+      useSystemLocale.value = false;
 
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('userId');
 
+      locale.value = Locale(languageCode);
+      Get.updateLocale(locale.value);
 
-      if (userId == null) {
-        Get.updateLocale(Locale(languageCode));
-        await prefs.setString('selectedLanguage', languageCode);
-        
+      await prefs.setBool('useSystemLocale', false);
+      await prefs.setString('selectedLanguage', languageCode);
+
+      if (userId != null) {
+        final request = ChangeLanguageRequest(
+          userId: userId,
+          newLanguage: getLanguageCode(languageCode),
+        );
+
+        final response = await _changeLanguageUseCase.call(request);
+
+        Get.snackbar(
+          'success'.tr,
+          response.message,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      } else {
         Get.snackbar(
           'success'.tr,
           'Language changed successfully',
@@ -74,28 +102,7 @@ class LanguageController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        return;
       }
-
-   
-      Get.updateLocale(Locale(languageCode));
-
-      final request = ChangeLanguageRequest(
-        userId: userId,
-        newLanguage: getLanguageCode(languageCode),
-      );
-
-      final response = await _changeLanguageUseCase.call(request);
-
-      await prefs.setString('selectedLanguage', languageCode);
-
-      Get.snackbar(
-        'success'.tr,
-        response.message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
     } catch (e) {
       errorMessage.value = e.toString();
       Get.snackbar(
@@ -108,5 +115,45 @@ class LanguageController extends GetxController {
     } finally {
       isChangingLanguage.value = false;
     }
+  }
+
+  /// گرفتن زبان انتخاب‌شده برای ثبت‌نام
+  Future<String> getSelectedLanguageForRegister() async {
+    final prefs = await SharedPreferences.getInstance();
+    final useSystem = prefs.getBool('useSystemLocale') ?? true;
+
+    if (useSystem) {
+      return (Get.deviceLocale?.languageCode ?? 'en');
+    }
+
+    return prefs.getString('selectedLanguage') ?? 'en';
+  }
+
+  /// تغییر زبان بعد از لاگین
+  Future<void> setLanguageFromLogin(int languageCode) async {
+    final languageString = _getLanguageString(languageCode);
+    locale.value = Locale(languageString);
+    useSystemLocale.value = false;
+
+    Get.updateLocale(locale.value);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('useSystemLocale', false);
+    await prefs.setString('selectedLanguage', languageString);
+  }
+
+  /// بارگذاری زبان از SharedPreferences هنگام شروع برنامه
+  Future<void> _loadLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    useSystemLocale.value = prefs.getBool('useSystemLocale') ?? true;
+
+    if (useSystemLocale.value) {
+      locale.value = Get.deviceLocale ?? const Locale('en');
+    } else {
+      final savedLang = prefs.getString('selectedLanguage') ?? 'en';
+      locale.value = Locale(savedLang);
+    }
+
+    Get.updateLocale(locale.value);
   }
 }

@@ -4,6 +4,8 @@ class TeamsFilterEntity {
   final bool? isHouseholdCleaningAndDisinfection;
   final bool? isPatientsReferral;
   final bool? isSafeAndDignifiedBurial;
+  final int? page;
+  final int? pageSize;
 
   TeamsFilterEntity({
     this.name,
@@ -11,5 +13,7 @@ class TeamsFilterEntity {
     this.isHouseholdCleaningAndDisinfection,
     this.isPatientsReferral,
     this.isSafeAndDignifiedBurial,
+    this.page,
+    this.pageSize,
   });
 }

@@ -4,29 +4,27 @@ import 'package:test3/core/network/dio_baseurl.dart';
 import 'package:test3/features/home/data/model/team_filter_model.dart';
 import 'package:test3/features/home/data/model/team_model.dart';
 
-
 abstract class TeamsRemoteDataSource {
   Future<List<TeamModel>> getAllTeams(TeamsFilterModel filter);
 }
 
 class TeamsRemoteDataSourceImpl implements TeamsRemoteDataSource {
-   final Dio _dio = DioBase().dio;
+  final Dio _dio = DioBase().dio;
 
-  TeamsRemoteDataSourceImpl() ;
+  TeamsRemoteDataSourceImpl();
 
   @override
   Future<List<TeamModel>> getAllTeams(TeamsFilterModel filter) async {
     try {
+      final queryParams = filter.toQueryParams();
+      print('Query params: $queryParams'); // اضافه کنید این خط
       final response = await _dio.post(
         ApiEndpoints.teamsGetAll,
-        queryParameters: filter.toQueryParams(),
+        queryParameters: queryParams,
         options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'accept': '*/*',
-          },
+          headers: {'Content-Type': 'application/json', 'accept': '*/*'},
         ),
-        data: '', 
+        data: '',
       );
 
       if (response.statusCode == 200) {
@@ -37,7 +35,9 @@ class TeamsRemoteDataSourceImpl implements TeamsRemoteDataSource {
       }
     } on DioError catch (e) {
       if (e.response != null) {
-        throw Exception('Server error: ${e.response?.statusCode} - ${e.response?.data}');
+        throw Exception(
+          'Server error: ${e.response?.statusCode} - ${e.response?.data}',
+        );
       } else {
         throw Exception('Network error: ${e.message}');
       }

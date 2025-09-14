@@ -4,6 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/get_alert_by_id/presentation/pages/get_alert_detail.dart';
+import 'package:test3/features/home/presentation/pages/home.dart';
+import 'package:test3/features/home/presentation/pages/widgets/team_detail_screen.dart';
 import 'package:test3/features/home/presentation/pages/widgets/user_detail.dart';
 
 class PushNotificationService {
@@ -33,10 +35,8 @@ class PushNotificationService {
       _showNotification(message);
     });
 
-    // Handle notification tap when app is background
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    // Handle notification tap when app is terminated
     RemoteMessage? initialMessage = await _firebaseMessaging
         .getInitialMessage();
     if (initialMessage != null) {
@@ -63,7 +63,7 @@ class PushNotificationService {
       message.notification?.body,
       notificationDetails,
       payload:
-          '${message.data['type']},${message.data['alert_id']},${message.data['user_id']}',
+          '${message.data['type']},${message.data['alert_id']},${message.data['user_id']},${message.data['team_id'] ?? ''}',
     );
   }
 
@@ -71,10 +71,11 @@ class PushNotificationService {
     if (response.payload != null) {
       List<String> data = response.payload!.split(',');
       String type = data[0];
-      String? alertId = data.length > 1 ? data[1] : null;
-      String? userId = data.length > 2 ? data[2] : null;
+      String? alertId = data.length > 1 && data[1].isNotEmpty ? data[1] : null;
+      String? userId = data.length > 2 && data[2].isNotEmpty ? data[2] : null;
+      String? teamId = data.length > 3 && data[3].isNotEmpty ? data[3] : null;
 
-      _navigateToPage(type, alertId, userId);
+      _navigateToPage(type, alertId, userId, teamId);
     }
   }
 
@@ -82,40 +83,99 @@ class PushNotificationService {
     String? type = message.data['type'];
     String? alertId = message.data['alert_id'];
     String? userId = message.data['user_id'];
+    String? teamId = message.data['team_id'];
 
-    _navigateToPage(type, alertId, userId);
+    _navigateToPage(type, alertId, userId, teamId);
   }
 
-  static void _navigateToPage(String? type, String? alertId, String? userId)async {
-    print("Navigation attempt: type=$type, alertId=$alertId");
+  static void _navigateToPage(
+    String? type,
+    String? alertId,
+    String? userId, [
+    String? teamId,
+  ]) async {
+    print(
+      "Navigation attempt: type=$type, alertId=$alertId, userId=$userId, teamId=$teamId",
+    );
 
-    // چک کن app ready هست یا نه
+    // اگر app هنوز آماده نیست، منتظر بمان
     if (WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
-      // App هنوز ready نیست، صبر کن
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(Duration(milliseconds: 1500), () {
-          _navigateToPage(type, alertId, userId);
+          _navigateToPage(type, alertId, userId, teamId);
         });
       });
       return;
     }
 
-     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notification_navigation', true);
-    await prefs.setString('notification_route', '$type,$alertId,$userId');
-
-    // اگه GetX context آماده نیست
+    // اگر context آماده نیست، منتظر بمان
     if (Get.context == null) {
       Future.delayed(Duration(milliseconds: 1000), () {
-        _navigateToPage(type, alertId, userId);
+        _navigateToPage(type, alertId, userId, teamId);
       });
       return;
     }
 
-    if (type == 'create_alert' && alertId != null) {
-      Get.offAll(() => AlertDetailPage(alertId: alertId));
-    } else if (type == 'register_user' && userId != null) {
-      Get.offAll(() => UserDetailScreen(userId: userId));
+    // ذخیره اطلاعات navigation برای بازیابی بعدی
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notification_navigation', true);
+    await prefs.setString(
+      'notification_route',
+      '$type,${alertId ?? ''},${userId ?? ''},${teamId ?? ''}',
+    );
+
+    try {
+      // اگر stack خالی است، ابتدا HomePage را اضافه کن
+      if (Get.routing.route?.settings.name == '/' || !Get.isRegistered()) {
+        Get.off(() => HomePage()); // یا Get.offAll(() => HomePage());
+        await Future.delayed(Duration(milliseconds: 300));
+      }
+
+      // حالا صفحه مورد نظر را باز کن
+      if (type == 'create_alert' && alertId != null) {
+        Get.to(() => AlertDetailPage(alertId: alertId, alertType: 0));
+      } else if (type == 'register_user' && userId != null) {
+        Get.to(() => UserDetailScreen(userId: userId));
+      } else if (type == 'team_details' && teamId != null) {
+        Get.to(() => TeamDetailsPage(teamId: teamId));
+      }
+    } catch (e) {
+      print("Navigation error: $e");
+      // در صورت خطا، فقط HomePage را باز کن
+      Get.offAll(() => HomePage());
+    }
+  }
+
+  // متد برای پردازش navigation های pending
+  static Future<void> processPendingNavigation() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool hasNavigation = prefs.getBool('notification_navigation') ?? false;
+
+    if (hasNavigation) {
+      String? route = prefs.getString('notification_route');
+      if (route != null) {
+        List<String> data = route.split(',');
+        if (data.isNotEmpty) {
+          String type = data[0];
+          String? alertId = data.length > 1 && data[1].isNotEmpty
+              ? data[1]
+              : null;
+          String? userId = data.length > 2 && data[2].isNotEmpty
+              ? data[2]
+              : null;
+          String? teamId = data.length > 3 && data[3].isNotEmpty
+              ? data[3]
+              : null;
+
+          // پاک کردن navigation pending
+          await prefs.remove('notification_navigation');
+          await prefs.remove('notification_route');
+
+          // انجام navigation
+          await Future.delayed(Duration(milliseconds: 1000));
+          _navigateToPage(type, alertId, userId, teamId);
+        }
+      }
     }
   }
 }

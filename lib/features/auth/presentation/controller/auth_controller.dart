@@ -251,6 +251,7 @@ class AuthController extends GetxController {
       await languageController.setLanguageFromLogin(
         loginUser.preferredLanguage ?? 0,
       );
+      languageController.useSystemLocale.value = false;
 
       if (loginUser.isUserApproved) {
         Get.snackbar(

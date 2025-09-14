@@ -22,9 +22,9 @@ class HomeController extends GetxController {
   final Rx<TeamEntity?> currentTeam = Rx<TeamEntity?>(null);
   final RxBool isLoadingGetTeamById = false.obs;
   final RxString errorMessageGetTeamById = ''.obs;
-  
-    final RxBool isNotificationSelected = false.obs;
-final RxBool isProfileSelected = true.obs; 
+
+  final RxBool isNotificationSelected = false.obs;
+  final RxBool isProfileSelected = true.obs;
 
   var isLoadingTeam = false.obs;
   var errorMessageTeam = ''.obs;
@@ -37,6 +37,10 @@ final RxBool isProfileSelected = true.obs;
   var referralFilter = Rxn<bool>();
   var burialFilter = Rxn<bool>();
   var isFiltersExpandedTeam = false.obs;
+
+  var currentPageTeam = 1.obs;
+  var pageSizeTeam = 10.obs;
+  var hasNextPageTeam = false.obs;
 
   List<TeamEntity> get healthcareTeams =>
       teams.where((team) => team.isHealthcareCleaningAndDisinfection).toList();
@@ -67,14 +71,15 @@ final RxBool isProfileSelected = true.obs;
   var sortDesc = true.obs;
   var registerDateFrom = Rxn<DateTime>();
   var registerDateTo = Rxn<DateTime>();
-  var currentPage = 1.obs;
-  var pageSize = 100.obs;
+  var currentPageUsers = 1.obs;
+  var pageSizeUsers = 10.obs;
 
   final List<String> sortOptions = ['Email', 'Lastname'];
   final List<String> roleOptions = ['Admin', 'Doctor', 'ServiceProvider'];
 
   RxString role = ''.obs;
   RxString userName = ''.obs;
+
   @override
   void onInit() async {
     final prefs = await SharedPreferences.getInstance();
@@ -182,8 +187,8 @@ final RxBool isProfileSelected = true.obs;
       sortDesc: sortDesc.value,
       registerDateFrom: registerDateFrom.value,
       registerDateTo: registerDateTo.value,
-      page: currentPage.value,
-      pageSize: pageSize.value,
+      page: currentPageUsers.value,
+      pageSize: pageSizeUsers.value,
     );
 
     final result = await getAllUsersUseCase(filter);
@@ -249,23 +254,23 @@ final RxBool isProfileSelected = true.obs;
   }
 
   void resetPagination() {
-    currentPage.value = 1;
+    currentPageUsers.value = 1;
   }
 
   void nextPage() {
-    currentPage.value++;
+    currentPageUsers.value++;
     fetchUsers();
   }
 
   void previousPage() {
-    if (currentPage.value > 1) {
-      currentPage.value--;
+    if (currentPageUsers.value > 1) {
+      currentPageUsers.value--;
       fetchUsers();
     }
   }
 
   void goToPage(int page) {
-    currentPage.value = page;
+    currentPageUsers.value = page;
     fetchUsers();
   }
 
@@ -386,22 +391,26 @@ final RxBool isProfileSelected = true.obs;
   }
 
   Future<void> fetchTeams() async {
-    isLoading.value = true;
-    errorMessage.value = '';
+    isLoadingTeam.value = true;
+    errorMessageTeam.value = '';
 
     final filter = TeamsFilterEntity(
-      name: nameFilter.value.isNotEmpty ? nameFilter.value : null,
+      name: nameFilterTeam.value.isNotEmpty ? nameFilterTeam.value : null,
       isHealthcareCleaningAndDisinfection: healthcareFilter.value,
       isHouseholdCleaningAndDisinfection: householdFilter.value,
       isPatientsReferral: referralFilter.value,
       isSafeAndDignifiedBurial: burialFilter.value,
+      page: currentPageTeam.value,
+      pageSize: pageSizeTeam.value,
     );
 
     final result = await getAllTeamsUseCase(filter);
 
     result.fold(
       (error) {
-        errorMessage.value = error;
+        errorMessageTeam.value = error;
+        teams.clear();
+        hasNextPageTeam.value = false;
         Get.snackbar(
           'error'.tr,
           error,
@@ -411,19 +420,51 @@ final RxBool isProfileSelected = true.obs;
         );
       },
       (teamsList) {
-        teams.value = teamsList;
+        // محدود کردن به pageSize در frontend
+        final limitedList = teamsList.take(pageSizeTeam.value).toList();
+        teams.value = limitedList;
+
+        // اگر تعداد کل آیتم‌های برگشتی بیشتر از pageSize باشد، صفحه بعدی وجود دارد
+        hasNextPageTeam.value = teamsList.length > pageSizeTeam.value;
+
         applyLocalFilters();
       },
     );
 
-    isLoading.value = false;
+    isLoadingTeam.value = false;
+  }
+
+  void nextPageTeam() {
+    if (hasNextPageTeam.value) {
+      currentPageTeam.value++;
+      fetchTeams();
+    }
+  }
+
+  void previousPageTeam() {
+    if (currentPageTeam.value > 1) {
+      currentPageTeam.value--;
+      fetchTeams();
+    }
+  }
+
+  void resetToFirstPageTeam() {
+    currentPageTeam.value = 1;
+    fetchTeams();
+  }
+
+  // متد کمکی برای نمایش اطلاعات صفحه‌بندی
+  String getPaginationInfoTeam() {
+    final startItem = ((currentPageTeam.value - 1) * pageSizeTeam.value) + 1;
+    final endItem = startItem + teams.length - 1;
+    return '$startItem-$endItem';
   }
 
   void applyLocalFilters() {
     List<TeamEntity> filtered = teams.toList();
 
-    if (nameFilter.value.isNotEmpty) {
-      String query = nameFilter.value.toLowerCase().trim();
+    if (nameFilterTeam.value.isNotEmpty) {
+      String query = nameFilterTeam.value.toLowerCase().trim();
       filtered = filtered.where((team) {
         return team.name.toLowerCase().contains(query) ||
             team.description.toLowerCase().contains(query);
@@ -434,7 +475,8 @@ final RxBool isProfileSelected = true.obs;
   }
 
   void setNameFilterTeam(String name) {
-    nameFilter.value = name;
+    nameFilterTeam.value = name;
+    currentPageTeam.value = 1;
     applyLocalFilters();
   }
 
@@ -459,6 +501,7 @@ final RxBool isProfileSelected = true.obs;
   }
 
   void applyFiltersTeam() {
+    currentPageTeam.value = 1;
     fetchTeams();
   }
 
@@ -468,6 +511,7 @@ final RxBool isProfileSelected = true.obs;
     householdFilter.value = null;
     referralFilter.value = null;
     burialFilter.value = null;
+    currentPageTeam.value = 1;
     fetchTeams();
   }
 
@@ -479,7 +523,7 @@ final RxBool isProfileSelected = true.obs;
 
   int get activeFiltersCount {
     int count = 0;
-    if (nameFilter.value.isNotEmpty) count++;
+    if (nameFilterTeam.value.isNotEmpty) count++;
     if (healthcareFilter.value != null) count++;
     if (householdFilter.value != null) count++;
     if (referralFilter.value != null) count++;

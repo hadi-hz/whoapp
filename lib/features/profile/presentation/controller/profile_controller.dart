@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/features/profile/domain/entities/change_password.dart';
 import 'package:test3/features/profile/domain/entities/info_user.dart';
 import 'package:test3/features/profile/domain/entities/update_user.dart';
@@ -15,7 +16,11 @@ class ProfileController extends GetxController {
   final UpdateUserProfile updateUserProfile;
   final ChangePasswordUseCase changePasswordUseCase;
 
-  ProfileController(this.getUserProfile, this.updateUserProfile, this.changePasswordUseCase);
+  ProfileController(
+    this.getUserProfile,
+    this.updateUserProfile,
+    this.changePasswordUseCase,
+  );
 
   var userInfo = Rxn<UserInfo>();
   var userUpdateInfo = Rxn<UserUpdate>();
@@ -58,17 +63,15 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> fetchUserProfile(String userId) async {
+  Future<void> fetchUserProfile() async {
     try {
       isLoading.value = true;
-
-      final result = await getUserProfile(userId);
+      final prefs = await SharedPreferences.getInstance();
+      final savedUserId = prefs.getString('userId') ?? '';
+      final result = await getUserProfile(savedUserId);
       userInfo.value = result;
     } catch (e) {
-      Get.snackbar(
-        'error'.tr,
-        e.toString(),
-      );
+      Get.snackbar('error'.tr, e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -86,8 +89,8 @@ class ProfileController extends GetxController {
       userUpdateInfo.value = result;
 
       Get.snackbar(
-        'success'.tr, 
-        '${'profile_updated_for'.tr} ${userUpdateInfo.value?.name} ${userUpdateInfo.value?.lastname}', 
+        'success'.tr,
+        '${'profile_updated_for'.tr} ${userUpdateInfo.value?.name} ${userUpdateInfo.value?.lastname}',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
         colorText: Colors.white,
@@ -97,7 +100,7 @@ class ProfileController extends GetxController {
       );
     } catch (e) {
       Get.snackbar(
-        'error'.tr, 
+        'error'.tr,
         e.toString(),
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
@@ -121,7 +124,7 @@ class ProfileController extends GetxController {
       );
 
       Get.snackbar(
-        'success'.tr, 
+        'success'.tr,
         result.message,
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green,
@@ -133,7 +136,7 @@ class ProfileController extends GetxController {
       newPassword.clear();
     } catch (e) {
       Get.snackbar(
-        'error'.tr, 
+        'error'.tr,
         e.toString(),
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,

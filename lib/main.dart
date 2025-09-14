@@ -138,6 +138,7 @@ void main() async {
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await PushNotificationService.initialize();
+  PushNotificationService.processPendingNavigation();
 
   final prefs = await SharedPreferences.getInstance();
   final hasToken = prefs.getString('token') != null;
@@ -250,6 +251,7 @@ void main() async {
       getUserDetailUseCase: Get.find(),
       assignRoleUseCase: Get.find(),
     ),
+    permanent: true,
   );
 
   Get.lazyPut<GetTeamsByUserRemoteDataSource>(
@@ -467,8 +469,9 @@ void main() async {
 
   Get.lazyPut(() => CloseAlertUseCase(Get.find<AdminCloseAlertRepository>()));
 
-  Get.lazyPut<AdminCloseAlertController>(
-    () => AdminCloseAlertController(closeAlertUseCase: Get.find()),
+  Get.put<AdminCloseAlertController>(
+    AdminCloseAlertController(closeAlertUseCase: Get.find()),
+    permanent: true,
   );
 
   Get.lazyPut<NotificationReadDatasource>(
@@ -542,17 +545,25 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => GetMaterialApp(
+    return Obx(() {
+      final languageController = Get.find<LanguageController>();
+      return GetMaterialApp(
         debugShowCheckedModeBanner: false,
+
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
-        themeMode: themeController.themeMode.value,
+        themeMode: themeController.useSystemTheme.value
+            ? ThemeMode.system
+            : themeController.themeMode.value,
+
+        // ترجمه‌ها و زبان
         translations: AppTranslations(),
-        locale: const Locale('en'),
+        locale: languageController.useSystemLocale.value
+            ? Get.deviceLocale
+            : languageController.locale.value,
         fallbackLocale: const Locale('en'),
         home: showSplash ? SplashScreenPage() : HomePage(),
-      ),
-    );
+      );
+    });
   }
 }

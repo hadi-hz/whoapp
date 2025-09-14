@@ -14,15 +14,16 @@ class UsersScreen extends StatelessWidget {
   final TextEditingController search = TextEditingController();
   final controller = Get.find<AuthController>();
   final HomeController homeController = Get.find<HomeController>();
+
   bool _isLargeTablet(BuildContext context) {
     return MediaQuery.of(context).size.width >= 1024;
   }
+
   bool _isTablet(BuildContext context) {
     return MediaQuery.of(context).size.width >= 768;
   }
 
-
-   EdgeInsets _getScreenPadding(BuildContext context) {
+  EdgeInsets _getScreenPadding(BuildContext context) {
     if (_isLargeTablet(context)) {
       return const EdgeInsets.symmetric(horizontal: 32, vertical: 24);
     } else if (_isTablet(context)) {
@@ -31,13 +32,15 @@ class UsersScreen extends StatelessWidget {
     return const EdgeInsets.symmetric(horizontal: 16, vertical: 16);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-        final isTablet = _isTablet(context);
+    final isTablet = _isTablet(context);
     final screenPadding = _getScreenPadding(context);
+
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBody: false,
       body: Container(
         width: context.width,
         height: context.height,
@@ -63,16 +66,16 @@ class UsersScreen extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: screenPadding ,
+          padding: screenPadding,
           child: Column(
             children: [
-           SizedBox(height: isTablet ? 32 : 24),
-              profileHeader(isDark , isTablet),
+              SizedBox(height: isTablet ? 32 : 24),
+              profileHeader(isDark, isTablet),
               SizedBox(height: isTablet ? 24 : 16),
               searching(context, search, isDark),
-            SizedBox(height: isTablet ? 24 : 16),
+              SizedBox(height: isTablet ? 24 : 16),
               buildExpandableFiltersContainer(isDark),
-                 SizedBox(height: isTablet ? 24 : 16),
+              SizedBox(height: isTablet ? 24 : 16),
 
               Expanded(
                 child: RefreshIndicator(
@@ -83,91 +86,312 @@ class UsersScreen extends StatelessWidget {
                   backgroundColor: isDark ? Colors.grey[800] : Colors.white,
                   child: Obx(() {
                     if (homeController.isLoadingUsers.value) {
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryColor,
-                        ),
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
+                          _buildPagination(isDark, context),
+                        ],
                       );
                     }
 
                     if (homeController.errorMessageUsers.value.isNotEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: isDark ? Colors.red[300] : Colors.red,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              homeController.errorMessage.value,
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.black87,
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 64,
+                                    color: isDark
+                                        ? Colors.red[300]
+                                        : Colors.red,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    homeController.errorMessage.value,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        homeController.fetchUsers(),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryColor,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: Text('retry'.tr),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => homeController.fetchUsers(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryColor,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text('retry'.tr),
-                            ),
-                          ],
-                        ),
+                          ),
+                          _buildPagination(isDark, context),
+                        ],
                       );
                     }
 
                     if (homeController.users.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.people_outline,
-                              size: 64,
-                              color: isDark ? Colors.grey[400] : Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'no_users_found'.tr,
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.black87,
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 64,
+                                    color: isDark
+                                        ? Colors.grey[400]
+                                        : Colors.grey,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'no_users_found'.tr,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  if (homeController
+                                          .nameFilter
+                                          .value
+                                          .isNotEmpty ||
+                                      homeController
+                                          .emailFilter
+                                          .value
+                                          .isNotEmpty ||
+                                      homeController
+                                          .roleFilter
+                                          .value
+                                          .isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () {
+                                        search.clear();
+                                        homeController.clearAllFilters();
+                                      },
+                                      child: Text('clear_filters'.tr),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-                            if (homeController.nameFilter.value.isNotEmpty ||
-                                homeController.emailFilter.value.isNotEmpty ||
-                                homeController.roleFilter.value.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: () {
-                                  search.clear();
-                                  homeController.clearAllFilters();
-                                },
-                                child: Text('clear_filters'.tr),
-                              ),
-                            ],
-                          ],
-                        ),
+                          ),
+                          _buildPagination(isDark, context),
+                        ],
                       );
                     }
 
-                    return ListView.separated(
-                      itemCount: homeController.users.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final user = homeController.users[index];
-                        return _buildUserCard(user, isDark);
-                      },
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: ListView.separated(
+                            itemCount: homeController.users.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final user = homeController.users[index];
+                              return _buildUserCard(user, isDark);
+                            },
+                          ),
+                        ),
+                        _buildPagination(isDark, context),
+                      ],
                     );
                   }),
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination(bool isDark, BuildContext context) {
+    return Obx(() {
+      final currentPage = homeController.currentPageUsers.value;
+      final pageSize = homeController.pageSizeUsers.value;
+      final totalItems = homeController.users.length;
+      final hasNextPage = totalItems == pageSize;
+      final hasPreviousPage = currentPage > 1;
+      final isTablet = _isTablet(context);
+
+      return Padding(
+        padding: const EdgeInsetsDirectional.only(bottom: 120),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: EdgeInsets.all(8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+               
+                  _buildNavButton(
+                    icon: Icons.chevron_left_rounded,
+                    label: 'previous'.tr,
+                    onPressed: hasPreviousPage
+                        ? () => homeController.previousPage()
+                        : null,
+                    isDark: isDark,
+                    isTablet: isTablet,
+                    isPrimary: false,
+                  ),
+
+                  Container(
+                    constraints: BoxConstraints(minWidth: isTablet ? 80 : 70),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 20 : 16,
+                      vertical: isTablet ? 12 : 10,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryColor,
+                          AppColors.primaryColor.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      currentPage.toString(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isTablet ? 16 : 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+
+           
+                  _buildNavButton(
+                    icon: Icons.chevron_right_rounded,
+                    label: 'next'.tr,
+                    onPressed: hasNextPage
+                        ? () => homeController.nextPage()
+                        : null,
+                    isDark: isDark,
+                    isTablet: isTablet,
+                    isPrimary: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    required bool isDark,
+    required bool isTablet,
+    required bool isPrimary,
+  }) {
+    final isEnabled = onPressed != null;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 16 : 14,
+              vertical: isTablet ? 10 : 8,
+            ),
+            decoration: BoxDecoration(
+              gradient: isEnabled
+                  ? (isPrimary
+                        ? LinearGradient(
+                            colors: [
+                              AppColors.primaryColor.withOpacity(0.1),
+                              AppColors.primaryColor.withOpacity(0.05),
+                            ],
+                          )
+                        : LinearGradient(
+                            colors: [
+                              Colors.grey.withOpacity(0.1),
+                              Colors.grey.withOpacity(0.05),
+                            ],
+                          ))
+                  : null,
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+              border: Border.all(
+                color: isEnabled
+                    ? (isPrimary
+                          ? AppColors.primaryColor.withOpacity(0.3)
+                          : (isDark ? Colors.grey[600]! : Colors.grey[300]!))
+                    : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: isTablet ? 18 : 16,
+                  color: isEnabled
+                      ? (isPrimary
+                            ? AppColors.primaryColor
+                            : (isDark ? Colors.white70 : Colors.black87))
+                      : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                ),
+                if (isTablet) ...[
+                  SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isEnabled
+                          ? (isPrimary
+                                ? AppColors.primaryColor
+                                : (isDark ? Colors.white70 : Colors.black87))
+                          : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -185,14 +409,12 @@ class UsersScreen extends StatelessWidget {
           color: isDark ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            width: 1, 
+            width: 1,
             color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark 
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.black12,
+              color: isDark ? Colors.black.withOpacity(0.3) : Colors.black12,
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -206,7 +428,7 @@ class UsersScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isDark ? Colors.grey[600]! : AppColors.borderColor, 
+                  color: isDark ? Colors.grey[600]! : AppColors.borderColor,
                   width: 1,
                 ),
               ),
@@ -258,7 +480,7 @@ class UsersScreen extends StatelessWidget {
                   Text(
                     user.email,
                     style: TextStyle(
-                      fontSize: 14, 
+                      fontSize: 14,
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -341,7 +563,7 @@ class UsersScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.1),
             blurRadius: 8,
@@ -450,19 +672,23 @@ class UsersScreen extends StatelessWidget {
     );
   }
 
-  Widget searching(BuildContext context, TextEditingController controller, bool isDark) {
+  Widget searching(
+    BuildContext context,
+    TextEditingController controller,
+    bool isDark,
+  ) {
     return Container(
       width: MediaQuery.sizeOf(context).width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: isDark ? Colors.grey[850] : Colors.white,
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : AppColors.borderColor, 
+          color: isDark ? Colors.grey[700]! : AppColors.borderColor,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.black.withOpacity(0.1),
             blurRadius: 8,
@@ -472,24 +698,22 @@ class UsersScreen extends StatelessWidget {
       ),
       child: TextFormField(
         controller: controller,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-        ),
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
         onChanged: (value) {
           homeController.setNameFilter(value);
         },
         decoration: InputDecoration(
           hintText: 'search_by_name_or_email'.tr,
           hintStyle: TextStyle(
-            color: isDark ? Colors.grey[400] : Colors.grey, 
+            color: isDark ? Colors.grey[400] : Colors.grey,
             fontSize: 14,
           ),
           suffixIcon: Obx(() {
             if (homeController.nameFilter.value.isNotEmpty) {
               return IconButton(
                 icon: Icon(
-                  Icons.clear, 
-                  size: 20, 
+                  Icons.clear,
+                  size: 20,
                   color: isDark ? Colors.grey[400] : Colors.grey,
                 ),
                 onPressed: () {
@@ -499,7 +723,7 @@ class UsersScreen extends StatelessWidget {
               );
             }
             return Icon(
-              Icons.search, 
+              Icons.search,
               color: isDark ? Colors.grey[400] : Colors.grey,
             );
           }),
@@ -527,7 +751,7 @@ class UsersScreen extends StatelessWidget {
             Text(
               'users_management'.tr,
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : Colors.black,
               ),
@@ -535,9 +759,9 @@ class UsersScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Obx(
               () => Text(
-                '${homeController.totalUsers} ${'users_available'.tr}',
+                '${homeController.users.length} ${'users_available'.tr}',
                 style: TextStyle(
-                  fontSize: 12, 
+                  fontSize: 12,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
                 ),
               ),
@@ -545,7 +769,7 @@ class UsersScreen extends StatelessWidget {
           ],
         ),
         const Spacer(),
-       Container(
+        Container(
           height: isTablet ? 70 : 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(isTablet ? 70 : 54),
@@ -749,7 +973,9 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.roleFilter.value.isNotEmpty
                               ? AppColors.primaryColor
-                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
+                              : (isDark
+                                    ? Colors.grey[600]!
+                                    : Colors.grey.shade300),
                           width: homeController.roleFilter.value.isNotEmpty
                               ? 2
                               : 1,
@@ -813,7 +1039,9 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.isApprovedFilter.value != null
                               ? AppColors.primaryColor
-                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
+                              : (isDark
+                                    ? Colors.grey[600]!
+                                    : Colors.grey.shade300),
                           width: homeController.isApprovedFilter.value != null
                               ? 2
                               : 1,
@@ -877,7 +1105,9 @@ class UsersScreen extends StatelessWidget {
                         borderSide: BorderSide(
                           color: homeController.sortBy.value != 'Email'
                               ? AppColors.primaryColor
-                              : (isDark ? Colors.grey[600]! : Colors.grey.shade300),
+                              : (isDark
+                                    ? Colors.grey[600]!
+                                    : Colors.grey.shade300),
                           width: homeController.sortBy.value != 'Email' ? 2 : 1,
                         ),
                       ),
@@ -905,7 +1135,7 @@ class UsersScreen extends StatelessWidget {
               Column(
                 children: [
                   Text(
-                    'sort_order'.tr, 
+                    'sort_order'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.grey[400] : Colors.black87,
@@ -915,13 +1145,17 @@ class UsersScreen extends StatelessWidget {
                     () => Switch(
                       value: homeController.sortDesc.value,
                       activeColor: AppColors.primaryColor,
-                      inactiveThumbColor: isDark ? Colors.grey[600] : Colors.grey[300],
-                      inactiveTrackColor: isDark ? Colors.grey[700] : Colors.grey[200],
+                      inactiveThumbColor: isDark
+                          ? Colors.grey[600]
+                          : Colors.grey[300],
+                      inactiveTrackColor: isDark
+                          ? Colors.grey[700]
+                          : Colors.grey[200],
                       onChanged: homeController.setSortDirection,
                     ),
                   ),
                   Text(
-                    'descending'.tr, 
+                    'descending'.tr,
                     style: TextStyle(
                       fontSize: 10,
                       color: isDark ? Colors.grey[400] : Colors.black87,
@@ -961,8 +1195,8 @@ class UsersScreen extends StatelessWidget {
                   icon: const Icon(Icons.clear_all, size: 18),
                   label: Text('clear_all_filters'.tr),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark 
-                        ? Colors.grey[700] 
+                    backgroundColor: isDark
+                        ? Colors.grey[700]
                         : Colors.grey.withOpacity(0.2),
                     foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
                     elevation: 0,

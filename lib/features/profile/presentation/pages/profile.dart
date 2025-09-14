@@ -30,15 +30,14 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       _setStatusBarStyle();
-      final prefs = await SharedPreferences.getInstance();
-      final savedUserId = prefs.getString('userId') ?? '';
-      await controller.fetchUserProfile(savedUserId);
+
+      await controller.fetchUserProfile();
     });
   }
 
   void _setStatusBarStyle() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: isDark ? Colors.grey[900] : AppColors.primaryColor,
@@ -48,101 +47,109 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  final theme = Theme.of(context);
-  final isDark = theme.brightness == Brightness.dark;
-  final screenWidth = MediaQuery.of(context).size.width;
-  final screenHeight = MediaQuery.of(context).size.height;
-  final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-  return Scaffold(
-    backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.background,
-    body: Stack(
-      children: [
-        Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
-        Positioned(
-          top: screenHeight < 700 ? screenHeight * 0.32 : screenHeight * 0.26,
-          left: 0,
-          right: 0,
-          bottom: keyboardHeight, // تنظیم bottom با keyboard
-          child: Container(
-            width: screenWidth,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.black12,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const ChangeLang(),
-                      Obx(() {
-                        return IconButton(
-                          style: IconButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
-                          ),
-                          icon: Icon(
-                            Get.find<ThemeController>().themeMode.value ==
-                                    ThemeMode.light
-                                ? Icons.dark_mode
-                                : Icons.light_mode,
-                            color: AppColors.background,
-                          ),
-                          onPressed: () {
-                            Get.find<ThemeController>().toggleTheme();
-                          },
-                        );
-                      }),
-                    ],
+    return Scaffold(
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : AppColors.background,
+      body: Stack(
+        children: [
+          Positioned(top: 0, left: 0, right: 0, child: bodyTitles(context)),
+          Positioned(
+            top: screenHeight < 700 ? screenHeight * 0.32 : screenHeight * 0.26,
+            left: 0,
+            right: 0,
+            bottom: keyboardHeight, // تنظیم bottom با keyboard
+            child: Container(
+              width: screenWidth,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withOpacity(0.3)
+                        : Colors.black12,
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  ConstantSpace.smallVerticalSpacer,
-                  userNameBox(context),
-                  ConstantSpace.smallVerticalSpacer,
-                  fullNameBox(context),
-                  ConstantSpace.smallVerticalSpacer,
-                  emailBox(context),
-                  ConstantSpace.smallVerticalSpacer,
-                  roleBox(context),
-                  ConstantSpace.mediumVerticalSpacer,
-                  changePasswordButton(context),
-                  ConstantSpace.mediumVerticalSpacer,
-                  Row(children: [logoutButton(context)]),
-                  const SizedBox(height: 20),
                 ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const ChangeLang(),
+                        Obx(() {
+                          final themeController = Get.find<ThemeController>();
+
+                          return IconButton(
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                            ),
+                            icon: Icon(
+                              themeController.isLightMode()
+                                  ? Icons.dark_mode
+                                  : Icons.light_mode,
+                              color: AppColors.background,
+                            ),
+                            onPressed: () {
+                              themeController.toggleTheme();
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                    ConstantSpace.smallVerticalSpacer,
+                    userNameBox(context),
+                    ConstantSpace.smallVerticalSpacer,
+                    fullNameBox(context),
+                    ConstantSpace.smallVerticalSpacer,
+                    emailBox(context),
+                    ConstantSpace.smallVerticalSpacer,
+                    roleBox(context),
+                    ConstantSpace.mediumVerticalSpacer,
+                    changePasswordButton(context),
+                    ConstantSpace.mediumVerticalSpacer,
+                    Row(children: [logoutButton(context)]),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          top: (screenHeight < 700 ? screenHeight * 0.32 : screenHeight * 0.26) - 25,
-          left: (screenWidth / 2) - 50,
-          child: profileCircle(context),
-        ),
-      ],
-    ),
-  );
-}
+          Positioned(
+            top:
+                (screenHeight < 700
+                    ? screenHeight * 0.32
+                    : screenHeight * 0.26) -
+                25,
+            left: (screenWidth / 2) - 50,
+            child: profileCircle(context),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget bodyTitles(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     final baseHeight = screenHeight < 700 ? 200.0 : 500.0;
     final logoSize = screenWidth < 400 ? 100.0 : 130.0;
     final fontSize = screenWidth < 400 ? 18.0 : 22.0;
@@ -368,163 +375,168 @@ Widget build(BuildContext context) {
     });
   }
 
- Widget profileCircle(BuildContext context) {
-  final theme = Theme.of(context);
-  final isDark = theme.brightness == Brightness.dark;
+  Widget profileCircle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-  return Obx(() {
-    final file = controller.imageFile.value;
-    final networkUrl = controller.userInfo.value?.profileImageUrl;
-    return Stack(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark
-                ? theme.cardColor
-                : const Color.fromARGB(255, 223, 221, 221),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withOpacity(0.3)
-                    : Colors.black12,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: file != null
-                ? Image.file(file, fit: BoxFit.cover, width: 100, height: 100)
-                : (networkUrl != null && networkUrl.isNotEmpty
-                      ? Image.network(
-                          networkUrl,
-                          fit: BoxFit.cover,
-                          width: 100,
-                          height: 100,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person,
-                              size: 50,
-                              color: theme.iconTheme.color,
-                            );
-                          },
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 50,
-                          color: theme.iconTheme.color,
-                        )),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: 32,
-            height: 32,
+    return Obx(() {
+      final file = controller.imageFile.value;
+      final networkUrl = controller.userInfo.value?.profileImageUrl;
+      return Stack(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primaryColor,
-              border: Border.all(color: theme.cardColor, width: 2),
+              color: isDark
+                  ? theme.cardColor
+                  : const Color.fromARGB(255, 223, 221, 221),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black12,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.edit, size: 18, color: Colors.white),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => Container(
-                    height: MediaQuery.of(context).size.height * 0.62,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(25),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withOpacity(0.1),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(25),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.person_add,
-                                color: AppColors.primaryColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'edit_profile'.tr,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              const Spacer(),
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: Icon(
-                                  Icons.close,
-                                  color: theme.iconTheme.color,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                              top: 12,
-                              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-                            ),
-                            child: SingleChildScrollView(
-                              child: Form(
-                                key: formKey,
-                                child: Column(
-                                  children: [
-                                    chooseImageProfile(context),
-                                    ConstantSpace.mediumVerticalSpacer,
-                                    inputName(context, controller.name),
-                                    ConstantSpace.mediumVerticalSpacer,
-                                    inputLastName(context, controller.lastName),
-                                    ConstantSpace.largeVerticalSpacer,
-                                    buttonSaveProfile(context),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ).whenComplete(() {
-                  controller.name.clear();
-                  controller.lastName.clear();
-                  controller.imageFile.value = null;
-                });
-              },
+            child: ClipOval(
+              child: file != null
+                  ? Image.file(file, fit: BoxFit.cover, width: 100, height: 100)
+                  : (networkUrl != null && networkUrl.isNotEmpty
+                        ? Image.network(
+                            networkUrl,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.person,
+                                size: 50,
+                                color: theme.iconTheme.color,
+                              );
+                            },
+                          )
+                        : Icon(
+                            Icons.person,
+                            size: 50,
+                            color: theme.iconTheme.color,
+                          )),
             ),
           ),
-        ),
-      ],
-    );
-  });
-}
-  
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor,
+                border: Border.all(color: theme.cardColor, width: 2),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.edit, size: 18, color: Colors.white),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => Container(
+                      height: MediaQuery.of(context).size.height * 0.62,
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(25),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.1),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(25),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person_add,
+                                  color: AppColors.primaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'edit_profile'.tr,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: theme.iconTheme.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: 20,
+                                right: 20,
+                                top: 12,
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom +
+                                    30,
+                              ),
+                              child: SingleChildScrollView(
+                                child: Form(
+                                  key: formKey,
+                                  child: Column(
+                                    children: [
+                                      chooseImageProfile(context),
+                                      ConstantSpace.mediumVerticalSpacer,
+                                      inputName(context, controller.name),
+                                      ConstantSpace.mediumVerticalSpacer,
+                                      inputLastName(
+                                        context,
+                                        controller.lastName,
+                                      ),
+                                      ConstantSpace.largeVerticalSpacer,
+                                      buttonSaveProfile(context),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).whenComplete(() {
+                    controller.name.clear();
+                    controller.lastName.clear();
+                    controller.imageFile.value = null;
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
   Widget chooseImageProfile(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -610,75 +622,76 @@ Widget build(BuildContext context) {
   }
 
   Widget changePasswordButton(BuildContext context) {
-  final theme = Theme.of(context);
+    final theme = Theme.of(context);
 
-  return InkWell(
-    onTap: () {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => Container(
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(25),
+    return InkWell(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => Container(
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(25),
+              ),
             ),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 12,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-            ),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKeyChangePassword,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: context.width * 0.28,
-                      child: Divider(
-                        color: theme.dividerColor,
-                        thickness: 4,
-                        radius: const BorderRadius.all(Radius.circular(22)),
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKeyChangePassword,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: context.width * 0.28,
+                        child: Divider(
+                          color: theme.dividerColor,
+                          thickness: 4,
+                          radius: const BorderRadius.all(Radius.circular(22)),
+                        ),
                       ),
-                    ),
-                    ConstantSpace.mediumVerticalSpacer,
-                    changePasswordInformation(context),
-                    ConstantSpace.largeVerticalSpacer,
-                    inputCurrentPassword(context, controller.currentPassword),
-                    ConstantSpace.mediumVerticalSpacer,
-                    inputNewPassword(context, controller.newPassword),
-                    ConstantSpace.largeVerticalSpacer,
-                    buttonChangePassword(context),
-                  ],
+                      ConstantSpace.mediumVerticalSpacer,
+                      changePasswordInformation(context),
+                      ConstantSpace.largeVerticalSpacer,
+                      inputCurrentPassword(context, controller.currentPassword),
+                      ConstantSpace.mediumVerticalSpacer,
+                      inputNewPassword(context, controller.newPassword),
+                      ConstantSpace.largeVerticalSpacer,
+                      buttonChangePassword(context),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    },
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Icon(Icons.lock, color: AppColors.primaryColor),
-        ConstantSpace.smallHorizontalSpacer,
-        Text(
-          'change_password'.tr,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primaryColor,
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(Icons.lock, color: AppColors.primaryColor),
+          ConstantSpace.smallHorizontalSpacer,
+          Text(
+            'change_password'.tr,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
+
   Widget inputCurrentPassword(BuildContext context, controller) {
     return TextFieldInnerShadow(
       borderRadius: 16,
@@ -790,7 +803,8 @@ Widget build(BuildContext context) {
           final userId = prefs.getString('userId');
           if (userId != null && userId.isNotEmpty) {
             await controller.updateProfile(userId);
-            controller.fetchUserProfile(userId);
+            controller.userInfo.value = null;
+            controller.fetchUserProfile();
           }
         }
       },

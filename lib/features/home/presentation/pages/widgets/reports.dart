@@ -67,6 +67,8 @@ class _ReportsPageState extends State<ReportsPage> {
     final screenPadding = _getScreenPadding(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBody: false,
       body: Container(
         width: context.width,
         height: context.height,
@@ -99,7 +101,6 @@ class _ReportsPageState extends State<ReportsPage> {
             color: AppColors.primaryColor,
             backgroundColor: isDark ? Colors.grey[800] : Colors.white,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -110,20 +111,28 @@ class _ReportsPageState extends State<ReportsPage> {
                   SizedBox(height: isTablet ? 24 : 16),
                   buildExpandableFiltersContainer(isDark, isTablet),
                   SizedBox(height: isTablet ? 24 : 16),
-                  SizedBox(
-                    height: isTablet
-                        ? context.height * 0.65
-                        : context.height * 0.59,
-                    child: Obx(() {
-                      if (alertController.isLoading.value) {
-                        return Center(
+
+                  // Content section with pagination
+                  Obx(() {
+                    if (alertController.isLoading.value) {
+                      return SizedBox(
+                        height: isTablet
+                            ? context.height * 0.4
+                            : context.height * 0.3,
+                        child: Center(
                           child: CircularProgressIndicator(
                             color: AppColors.primaryColor,
                           ),
-                        );
-                      }
-                      if (alertController.hasError.value) {
-                        return Center(
+                        ),
+                      );
+                    }
+
+                    if (alertController.hasError.value) {
+                      return SizedBox(
+                        height: isTablet
+                            ? context.height * 0.4
+                            : context.height * 0.3,
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -164,10 +173,16 @@ class _ReportsPageState extends State<ReportsPage> {
                               ),
                             ],
                           ),
-                        );
-                      }
-                      if (alertController.alerts.isEmpty) {
-                        return Center(
+                        ),
+                      );
+                    }
+
+                    if (alertController.alerts.isEmpty) {
+                      return SizedBox(
+                        height: isTablet
+                            ? context.height * 0.4
+                            : context.height * 0.3,
+                        child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -224,131 +239,298 @@ class _ReportsPageState extends State<ReportsPage> {
                               ],
                             ],
                           ),
-                        );
-                      }
-
-                      Map<String, dynamic> getStatusData(int status) {
-                        switch (status) {
-                          case 0:
-                            return {
-                              'name': 'initial'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? Colors.red
-                                  : Colors.green,
-                            };
-                          case 1:
-                            return {
-                              'name': 'visited_by_admin'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? Colors.orange
-                                  : Colors.blue,
-                            };
-                          case 2:
-                            return {
-                              'name': 'assigned_to_team'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? const Color.fromARGB(255, 208, 189, 13)
-                                  : homeController.role.value ==
-                                        'ServiceProvider'
-                                  ? Colors.red
-                                  : Colors.orange,
-                            };
-                          case 3:
-                            return {
-                              'name': 'visited_by_team_member'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? const Color.fromARGB(255, 208, 189, 13)
-                                  : homeController.role.value ==
-                                        'ServiceProvider'
-                                  ? const Color.fromARGB(255, 208, 189, 13)
-                                  : Colors.purple,
-                            };
-                          case 4:
-                            return {
-                              'name': 'team_start_processing'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? const Color.fromARGB(255, 208, 189, 13)
-                                  : homeController.role.value ==
-                                        'ServiceProvider'
-                                  ? Colors.orange
-                                  : Colors.teal,
-                            };
-                          case 5:
-                            return {
-                              'name': 'team_finish_processing'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? Colors.orange
-                                  : homeController.role.value ==
-                                        'ServiceProvider'
-                                  ? const Color.fromARGB(255, 208, 189, 13)
-                                  : const Color.fromARGB(255, 208, 189, 13),
-                            };
-                          case 6:
-                            return {
-                              'name': 'admin_close'.tr,
-                              'color': homeController.role.value == 'Admin'
-                                  ? Colors.green
-                                  : homeController.role.value ==
-                                        'ServiceProvider'
-                                  ? Colors.green
-                                  : Colors.red,
-                            };
-                          default:
-                            return {'name': 'Unknown', 'color': Colors.black};
-                        }
-                      }
-
-                      return SingleChildScrollView(
-                        child: isTablet
-                            ? GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: _getCrossAxisCount(
-                                        context,
-                                      ),
-
-                                      crossAxisSpacing: 12,
-                                      mainAxisSpacing: 12,
-                                      childAspectRatio: _isLargeTablet(context)
-                                          ? 1.2
-                                          : 1.0,
-                                    ),
-                                itemCount: alertController.alerts.length,
-                                itemBuilder: (context, index) {
-                                  final alert = alertController.alerts[index];
-                                  final statusData = getStatusData(
-                                    alert.alertStatus,
-                                  );
-                                  return _buildAlertCard(
-                                    alert,
-                                    statusData,
-                                    isDark,
-                                    isTablet,
-                                  );
-                                },
-                              )
-                            : Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: alertController.alerts.map((alert) {
-                                  final statusData = getStatusData(
-                                    alert.alertStatus,
-                                  );
-                                  return _buildAlertCard(
-                                    alert,
-                                    statusData,
-                                    isDark,
-                                    isTablet,
-                                  );
-                                }).toList(),
-                              ),
+                        ),
                       );
-                    }),
+                    }
+
+                    return Column(
+                      children: [
+                        // Grid/List content
+                        _buildAlertsGrid(isDark, isTablet),
+                        ConstantSpace.mediumVerticalSpacer,
+                        // Pagination
+                        _buildPagination(isDark, isTablet),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlertsGrid(bool isDark, bool isTablet) {
+    Map<String, dynamic> getStatusData(int status) {
+      switch (status) {
+        case 0:
+          return {
+            'name': 'initial'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? Colors.red
+                : Colors.green,
+          };
+        case 1:
+          return {
+            'name': 'visited_by_admin'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? Colors.orange
+                : Colors.blue,
+          };
+        case 2:
+          return {
+            'name': 'assigned_to_team'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? const Color.fromARGB(255, 208, 189, 13)
+                : homeController.role.value == 'ServiceProvider'
+                ? Colors.red
+                : Colors.orange,
+          };
+        case 3:
+          return {
+            'name': 'visited_by_team_member'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? const Color.fromARGB(255, 208, 189, 13)
+                : homeController.role.value == 'ServiceProvider'
+                ? const Color.fromARGB(255, 208, 189, 13)
+                : Colors.purple,
+          };
+        case 4:
+          return {
+            'name': 'team_start_processing'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? const Color.fromARGB(255, 208, 189, 13)
+                : homeController.role.value == 'ServiceProvider'
+                ? Colors.orange
+                : Colors.teal,
+          };
+        case 5:
+          return {
+            'name': 'team_finish_processing'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? Colors.orange
+                : homeController.role.value == 'ServiceProvider'
+                ? const Color.fromARGB(255, 208, 189, 13)
+                : const Color.fromARGB(255, 208, 189, 13),
+          };
+        case 6:
+          return {
+            'name': 'admin_close'.tr,
+            'color': homeController.role.value == 'Admin'
+                ? Colors.green
+                : homeController.role.value == 'ServiceProvider'
+                ? Colors.green
+                : Colors.red,
+          };
+        default:
+          return {'name': 'Unknown', 'color': Colors.black};
+      }
+    }
+
+    return isTablet
+        ? GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: _getCrossAxisCount(context),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: _isLargeTablet(context) ? 1.2 : 1.0,
+            ),
+            itemCount: alertController.alerts.length,
+            itemBuilder: (context, index) {
+              final alert = alertController.alerts[index];
+              final statusData = getStatusData(alert.alertStatus);
+              return _buildAlertCard(alert, statusData, isDark, isTablet);
+            },
+          )
+        : Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: alertController.alerts.map((alert) {
+              final statusData = getStatusData(alert.alertStatus);
+              return _buildAlertCard(alert, statusData, isDark, isTablet);
+            }).toList(),
+          );
+  }
+
+  Widget _buildPagination(bool isDark, bool isTablet) {
+    return Obx(() {
+      final currentPage = alertController.currentPage.value;
+      final totalItems = alertController.alerts.length;
+      final hasNextPage = alertController.hasNextPage.value;
+      final hasPreviousPage = currentPage > 1;
+
+      if (totalItems == 0) return SizedBox.shrink();
+
+      return Padding(
+        padding: const EdgeInsetsDirectional.only(bottom: 120),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+           
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 16 : 12,
+                vertical: isTablet ? 12 : 10,
+              ),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.grey[800]?.withOpacity(0.3)
+                    : Colors.grey[50]?.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Previous button
+                  _buildNavButton(
+                    icon: Icons.chevron_left_rounded,
+                    label: 'previous'.tr,
+                    onPressed: hasPreviousPage
+                        ? () => alertController.previousPage()
+                        : null,
+                    isDark: isDark,
+                    isTablet: isTablet,
+                    isPrimary: false,
+                  ),
+
+                  // Current page indicator
+                  Container(
+                    constraints: BoxConstraints(minWidth: isTablet ? 80 : 70),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 20 : 16,
+                      vertical: isTablet ? 12 : 10,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryColor,
+                          AppColors.primaryColor.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      currentPage.toString(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isTablet ? 16 : 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+
+                  // Next button
+                  _buildNavButton(
+                    icon: Icons.chevron_right_rounded,
+                    label: 'next'.tr,
+                    onPressed: hasNextPage
+                        ? () => alertController.nextPage()
+                        : null,
+                    isDark: isDark,
+                    isTablet: isTablet,
+                    isPrimary: true,
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildNavButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+    required bool isDark,
+    required bool isTablet,
+    required bool isPrimary,
+  }) {
+    final isEnabled = onPressed != null;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 16 : 14,
+              vertical: isTablet ? 10 : 8,
+            ),
+            decoration: BoxDecoration(
+              gradient: isEnabled
+                  ? (isPrimary
+                        ? LinearGradient(
+                            colors: [
+                              AppColors.primaryColor.withOpacity(0.1),
+                              AppColors.primaryColor.withOpacity(0.05),
+                            ],
+                          )
+                        : LinearGradient(
+                            colors: [
+                              Colors.grey.withOpacity(0.1),
+                              Colors.grey.withOpacity(0.05),
+                            ],
+                          ))
+                  : null,
+              borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+              border: Border.all(
+                color: isEnabled
+                    ? (isPrimary
+                          ? AppColors.primaryColor.withOpacity(0.3)
+                          : (isDark ? Colors.grey[600]! : Colors.grey[300]!))
+                    : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: isTablet ? 18 : 16,
+                  color: isEnabled
+                      ? (isPrimary
+                            ? AppColors.primaryColor
+                            : (isDark ? Colors.white70 : Colors.black87))
+                      : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                ),
+                if (isTablet) ...[
+                  SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isEnabled
+                          ? (isPrimary
+                                ? AppColors.primaryColor
+                                : (isDark ? Colors.white70 : Colors.black87))
+                          : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -590,229 +772,227 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget buildExpandableFiltersContainer(bool isDark, bool isTablet) {
-  return Container(
-    decoration: BoxDecoration(
-      color: isDark ? Colors.grey[850] : Colors.white,
-      borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
-      border: Border.all(
-        color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
-        width: 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: isDark
-              ? Colors.black.withOpacity(0.3)
-              : Colors.black.withOpacity(0.1),
-          blurRadius: isTablet ? 12 : 8,
-          offset: const Offset(0, 4),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+        border: Border.all(
+          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+          width: 1,
         ),
-      ],
-    ),
-    child: Column(
-      children: [
-        GestureDetector(
-          onTap: () {
-            homeController.toggleFiltersExpansion();
-          },
-          child: Obx(
-            () => Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 20 : 16,
-                vertical: isTablet ? 16 : 12,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
-                borderRadius: homeController.isFiltersExpanded.value
-                    ? BorderRadius.vertical(
-                        top: Radius.circular(isTablet ? 20 : 16),
-                      )
-                    : BorderRadius.circular(isTablet ? 20 : 16),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.filter_list,
-                    color: AppColors.primaryColor,
-                    size: isTablet ? 24 : 20,
-                  ),
-                  SizedBox(width: isTablet ? 12 : 8),
-                  Text(
-                    'filters'.tr,
-                    style: TextStyle(
-                      fontSize: isTablet ? 18 : 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                  const Spacer(),
-                  Obx(() {
-                    int activeFilters = 0;
-                    if (alertController.selectedStatus.value != null)
-                      activeFilters++;
-                    if (alertController.selectedType.value != null)
-                      activeFilters++;
-                    if (alertController.searchQuery.value.isNotEmpty)
-                      activeFilters++;
-                    return activeFilters > 0
-                        ? Container(
-                            margin: EdgeInsets.only(right: isTablet ? 12 : 8),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isTablet ? 10 : 8,
-                              vertical: isTablet ? 6 : 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              borderRadius: BorderRadius.circular(
-                                isTablet ? 16 : 12,
-                              ),
-                            ),
-                            child: Text(
-                              '$activeFilters',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: isTablet ? 14 : 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink();
-                  }),
-                  AnimatedRotation(
-                    turns: homeController.isFiltersExpanded.value ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      Icons.expand_more,
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.1),
+            blurRadius: isTablet ? 12 : 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () {
+              homeController.toggleFiltersExpansion();
+            },
+            child: Obx(
+              () => Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 16 : 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
+                  borderRadius: homeController.isFiltersExpanded.value
+                      ? BorderRadius.vertical(
+                          top: Radius.circular(isTablet ? 20 : 16),
+                        )
+                      : BorderRadius.circular(isTablet ? 20 : 16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.filter_list,
                       color: AppColors.primaryColor,
                       size: isTablet ? 24 : 20,
                     ),
-                  ),
-                ],
+                    SizedBox(width: isTablet ? 12 : 8),
+                    Text(
+                      'filters'.tr,
+                      style: TextStyle(
+                        fontSize: isTablet ? 18 : 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    const Spacer(),
+                    Obx(() {
+                      int activeFilters = 0;
+                      if (alertController.selectedStatus.value != null)
+                        activeFilters++;
+                      if (alertController.selectedType.value != null)
+                        activeFilters++;
+                      if (alertController.searchQuery.value.isNotEmpty)
+                        activeFilters++;
+                      return activeFilters > 0
+                          ? Container(
+                              margin: EdgeInsets.only(right: isTablet ? 12 : 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isTablet ? 10 : 8,
+                                vertical: isTablet ? 6 : 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                borderRadius: BorderRadius.circular(
+                                  isTablet ? 16 : 12,
+                                ),
+                              ),
+                              child: Text(
+                                '$activeFilters',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isTablet ? 14 : 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink();
+                    }),
+                    AnimatedRotation(
+                      turns: homeController.isFiltersExpanded.value ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: AppColors.primaryColor,
+                        size: isTablet ? 24 : 20,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        Obx(
-          () => AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            height: homeController.isFiltersExpanded.value ? null : 0,
-            child: AnimatedOpacity(
-              opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
+          Obx(
+            () => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              child: homeController.isFiltersExpanded.value
-                  ? buildFiltersContent(isDark, isTablet)
-                  : null,
+              height: homeController.isFiltersExpanded.value ? null : 0,
+              child: AnimatedOpacity(
+                opacity: homeController.isFiltersExpanded.value ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: homeController.isFiltersExpanded.value
+                    ? buildFiltersContent(isDark, isTablet)
+                    : null,
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
-
+        ],
+      ),
+    );
+  }
 
   Widget buildFiltersContent(bool isDark, bool isTablet) {
-  return Container(
-    padding: EdgeInsets.all(isTablet ? 20 : 16),
-    decoration: BoxDecoration(
-      color: isDark ? Colors.grey[850] : Colors.white,
-      borderRadius: BorderRadius.vertical(
-        bottom: Radius.circular(isTablet ? 20 : 16),
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Status and Type filters in one row
-        Row(
-          children: [
-            Expanded(
-              child: DropdownFilter(
-                hint: 'filter_by_status'.tr,
-                selectedValue: alertController.selectedStatus.value,
-                items: alertController.statusOptions,
-                onChanged: (value) => alertController.onStatusChanged(value),
-              ),
-            ),
-            SizedBox(width: isTablet ? 16 : 12),
-            Expanded(
-              child: DropdownFilter(
-                hint: 'filter_by_type'.tr,
-                selectedValue: alertController.selectedType.value,
-                items: alertController.typeOptions,
-                onChanged: (value) => alertController.onTypeChanged(value),
-              ),
-            ),
-          ],
+    return Container(
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(isTablet ? 20 : 16),
         ),
-        SizedBox(height: isTablet ? 20 : 16),
-
-        // Admin-only User and Team filters
-        if (alertController.userRole.value == 'Admin') ...[
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status and Type filters in one row
           Row(
             children: [
-              Expanded(child: _buildUserDropdown(isDark, isTablet)),
+              Expanded(
+                child: DropdownFilter(
+                  hint: 'filter_by_status'.tr,
+                  selectedValue: alertController.selectedStatus.value,
+                  items: alertController.statusOptions,
+                  onChanged: (value) => alertController.onStatusChanged(value),
+                ),
+              ),
               SizedBox(width: isTablet ? 16 : 12),
-              Expanded(child: _buildTeamDropdown(isDark, isTablet)),
+              Expanded(
+                child: DropdownFilter(
+                  hint: 'filter_by_type'.tr,
+                  selectedValue: alertController.selectedType.value,
+                  items: alertController.typeOptions,
+                  onChanged: (value) => alertController.onTypeChanged(value),
+                ),
+              ),
             ],
           ),
           SizedBox(height: isTablet ? 20 : 16),
+
+          // Admin-only User and Team filters
+          if (alertController.userRole.value == 'Admin') ...[
+            Row(
+              children: [
+                Expanded(child: _buildUserDropdown(isDark, isTablet)),
+                SizedBox(width: isTablet ? 16 : 12),
+                Expanded(child: _buildTeamDropdown(isDark, isTablet)),
+              ],
+            ),
+            SizedBox(height: isTablet ? 20 : 16),
+          ],
+
+          // Date range section
+          Text(
+            'date_range_filter'.tr,
+            style: TextStyle(
+              fontSize: isTablet ? 16 : 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          SizedBox(height: isTablet ? 12 : 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDatePicker(context, isDark, isTablet, true),
+              ),
+              SizedBox(width: isTablet ? 16 : 12),
+              Expanded(
+                child: _buildDatePicker(context, isDark, isTablet, false),
+              ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 20 : 16),
+
+          // Sort options section
+          Text(
+            'sort_options'.tr,
+            style: TextStyle(
+              fontSize: isTablet ? 16 : 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          SizedBox(height: isTablet ? 12 : 8),
+          Row(
+            children: [
+              Expanded(child: _buildSortDropdown(isDark, isTablet)),
+              SizedBox(width: isTablet ? 16 : 12),
+              Expanded(child: _buildSortDirectionButton(isDark, isTablet)),
+            ],
+          ),
+          SizedBox(height: isTablet ? 24 : 20),
+
+          // Action buttons in one row
+          Row(
+            children: [
+              Expanded(child: _buildApplyButton(isTablet)),
+              SizedBox(width: isTablet ? 16 : 12),
+              Expanded(child: _buildClearButton(isDark, isTablet)),
+            ],
+          ),
         ],
-
-        // Date range section
-        Text(
-          'date_range_filter'.tr,
-          style: TextStyle(
-            fontSize: isTablet ? 16 : 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        SizedBox(height: isTablet ? 12 : 8),
-        Row(
-          children: [
-            Expanded(
-              child: _buildDatePicker(context, isDark, isTablet, true),
-            ),
-            SizedBox(width: isTablet ? 16 : 12),
-            Expanded(
-              child: _buildDatePicker(context, isDark, isTablet, false),
-            ),
-          ],
-        ),
-        SizedBox(height: isTablet ? 20 : 16),
-
-        // Sort options section
-        Text(
-          'sort_options'.tr,
-          style: TextStyle(
-            fontSize: isTablet ? 16 : 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        SizedBox(height: isTablet ? 12 : 8),
-        Row(
-          children: [
-            Expanded(child: _buildSortDropdown(isDark, isTablet)),
-            SizedBox(width: isTablet ? 16 : 12),
-            Expanded(child: _buildSortDirectionButton(isDark, isTablet)),
-          ],
-        ),
-        SizedBox(height: isTablet ? 24 : 20),
-
-        // Action buttons in one row
-        Row(
-          children: [
-            Expanded(child: _buildApplyButton(isTablet)),
-            SizedBox(width: isTablet ? 16 : 12),
-            Expanded(child: _buildClearButton(isDark, isTablet)),
-          ],
-        ),
-      ],
-    ),
-  );
-}
+      ),
+    );
+  }
 
   Widget _buildUserDropdown(bool isDark, bool isTablet) {
     return Obx(
@@ -1041,95 +1221,97 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   Widget _buildSortDirectionButton(bool isDark, bool isTablet) {
-  return Obx(
-    () => GestureDetector(
-      onTap: () => alertController.onSortChanged(
-        alertController.sortBy.value,
-        !alertController.sortDescending.value,
-      ),
-      child: Container(
-        padding: EdgeInsets.all(isTablet ? 16 : 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isDark ? Colors.grey[600]! : AppColors.borderColor,
-          ),
-          borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-          color: alertController.sortDescending.value
-              ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
-              : (isDark ? Colors.grey[800] : Colors.white),
+    return Obx(
+      () => GestureDetector(
+        onTap: () => alertController.onSortChanged(
+          alertController.sortBy.value,
+          !alertController.sortDescending.value,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              alertController.sortDescending.value
-                  ? Icons.arrow_downward
-                  : Icons.arrow_upward,
-              size: isTablet ? 20 : 16,
-              color: alertController.sortDescending.value
-                  ? AppColors.primaryColor
-                  : (isDark ? Colors.grey[400] : Colors.grey),
+        child: Container(
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : AppColors.borderColor,
             ),
-            SizedBox(width: isTablet ? 6 : 4),
-            Text(
-              alertController.sortDescending.value ? 'desc'.tr : 'asc'.tr,
-              style: TextStyle(
-                fontSize: isTablet ? 14 : 12,
+            borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+            color: alertController.sortDescending.value
+                ? AppColors.primaryColor.withOpacity(isDark ? 0.2 : 0.1)
+                : (isDark ? Colors.grey[800] : Colors.white),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                alertController.sortDescending.value
+                    ? Icons.arrow_downward
+                    : Icons.arrow_upward,
+                size: isTablet ? 20 : 16,
                 color: alertController.sortDescending.value
                     ? AppColors.primaryColor
                     : (isDark ? Colors.grey[400] : Colors.grey),
               ),
-            ),
-          ],
+              SizedBox(width: isTablet ? 6 : 4),
+              Text(
+                alertController.sortDescending.value ? 'desc'.tr : 'asc'.tr,
+                style: TextStyle(
+                  fontSize: isTablet ? 14 : 12,
+                  color: alertController.sortDescending.value
+                      ? AppColors.primaryColor
+                      : (isDark ? Colors.grey[400] : Colors.grey),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
   Widget _buildApplyButton(bool isTablet) {
-  return ElevatedButton.icon(
-    onPressed: () => alertController.refreshAlerts(),
-    icon: Icon(Icons.refresh, size: isTablet ? 20 : 18),
-    label: Text(
-      'apply_filters'.tr,
-      style: TextStyle(fontSize: isTablet ? 16 : 14),
-    ),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.primaryColor,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      padding: const EdgeInsets.all(8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+    return ElevatedButton.icon(
+      onPressed: () => alertController.refreshAlerts(),
+      icon: Icon(Icons.refresh, size: isTablet ? 20 : 18),
+      label: Text(
+        'apply_filters'.tr,
+        style: TextStyle(fontSize: isTablet ? 16 : 14),
       ),
-    ),
-  );
-}
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        ),
+      ),
+    );
+  }
 
   Widget _buildClearButton(bool isDark, bool isTablet) {
-  return ElevatedButton.icon(
-    onPressed: () {
-      search.clear();
-      alertController.clearFilters();
-    },
-    icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
-    label: Text(
-      'clear_all_filters'.tr,
-      style: TextStyle(fontSize: isTablet ? 16 : 14),
-    ),
-    style: ElevatedButton.styleFrom(
-      backgroundColor: isDark
-          ? Colors.grey[700]
-          : Colors.grey.withOpacity(0.2),
-      foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
-      elevation: 0,
-      padding: const EdgeInsets.all(8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+    return ElevatedButton.icon(
+      onPressed: () {
+        search.clear();
+        alertController.clearFilters();
+      },
+      icon: Icon(Icons.clear_all, size: isTablet ? 20 : 18),
+      label: Text(
+        'clear_all_filters'.tr,
+        style: TextStyle(fontSize: isTablet ? 16 : 14),
       ),
-    ),
-  );
-}
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isDark
+            ? Colors.grey[700]
+            : Colors.grey.withOpacity(0.2),
+        foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
+        elevation: 0,
+        padding: const EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
+        ),
+      ),
+    );
+  }
+
   Future<void> _selectDate(
     BuildContext context, {
     required bool isFromDate,

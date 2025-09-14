@@ -5,16 +5,15 @@ import 'package:test3/features/home/domain/entities/team_filter_entity.dart';
 import 'package:test3/features/home/domain/repositories/team_repository.dart';
 import '../../domain/entities/team_entity.dart';
 
-
 class TeamsRepositoryImpl implements TeamsRepository {
   final TeamsRemoteDataSource remoteDataSource;
-
-
 
   TeamsRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<String, List<TeamEntity>>> getAllTeams(TeamsFilterEntity filter) async {
+  Future<Either<String, List<TeamEntity>>> getAllTeams(
+    TeamsFilterEntity filter,
+  ) async {
     try {
       final filterModel = TeamsFilterModel(
         name: filter.name,
@@ -22,6 +21,9 @@ class TeamsRepositoryImpl implements TeamsRepository {
         isHouseholdCleaningAndDisinfection: filter.isHouseholdCleaningAndDisinfection,
         isPatientsReferral: filter.isPatientsReferral,
         isSafeAndDignifiedBurial: filter.isSafeAndDignifiedBurial,
+        // اضافه کردن page و pageSize
+        page: filter.page,
+        pageSize: filter.pageSize,
       );
 
       final result = await remoteDataSource.getAllTeams(filterModel);
@@ -29,10 +31,5 @@ class TeamsRepositoryImpl implements TeamsRepository {
     } catch (e) {
       return Left(e.toString());
     }
-
-
-    
   }
-
-
 }

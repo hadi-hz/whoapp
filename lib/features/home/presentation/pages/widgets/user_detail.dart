@@ -650,7 +650,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                       : Colors.grey[300],
                 ),
                 child: controller.isAssigningRole.value
-                    ? const Row(
+                    ?  Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(
@@ -662,7 +662,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                             ),
                           ),
                           SizedBox(width: 12),
-                          Text('assigning_role'),
+                          Text('assigning_role'.tr),
                         ],
                       )
                     : Text('assign_role'.tr),

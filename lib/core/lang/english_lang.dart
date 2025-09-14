@@ -304,21 +304,34 @@ const Map<String, String> en = {
   'notifications_marked_read': "Notifications marked as read",
   'notification_marked_read': "Notification marked as read",
 
+  'reset_instructions': 'Enter your email to receive reset instructions',
+  'email_address': 'Email Address',
+  'enter_email': 'Enter your email',
 
- 
-    'reset_instructions': 'Enter your email to receive reset instructions',
-    'email_address': 'Email Address',
-    'enter_email': 'Enter your email',
-  
-    'enter_valid_email': 'Enter a valid email',
-    'send_reset_link': 'Send Reset Link',
-    'back_to_login': 'Back to Login',
-    
+  'enter_valid_email': 'Enter a valid email',
+  'send_reset_link': 'Send Reset Link',
+  'back_to_login': 'Back to Login',
 
-    'network_error_occurred': 'Network error occurred',
-    'reset_email_sent': 'If the email is Confirmed, you will receive password reset instructions.',
-    'invalid_email': 'Invalid email',
-    'search_users': 'Search Users',
+  'network_error_occurred': 'Network error occurred',
+  'reset_email_sent':
+      'If the email is Confirmed, you will receive password reset instructions.',
+  'invalid_email': 'Invalid email',
+  'search_users': 'Search Users',
   'team_attached_images': 'Team Attached Images',
   'download': 'Download',
+  'edit_profile': 'Edit Profile',
+  'download_pdf_doctor': 'Download Medical Report',
+  'download_pdf_service': 'Download Service Report',
+  'items_per_page': 'Items per page',
+  'showing': 'Showing',
+  'of': 'of',
+  'page': 'Page',
+  'first': 'First',
+  'previous': 'Previous',
+  'next': 'Next',
+  'last': 'Last',
+
+  'setup_app': 'Setup Your App',
+  'system_language_question': 'Do you want to use the system language?',
+  'system_theme_question': 'Do you want to use the system theme?',
 };

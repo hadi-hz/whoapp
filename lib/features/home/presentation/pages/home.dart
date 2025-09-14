@@ -54,8 +54,8 @@ class _HomePageState extends State<HomePage> {
     final filter = AlertFilterEntity(
       userId: role != 'Admin' ? userId : null,
       sortDescending: true,
-      page: 1,
-      pageSize: 150,
+      page: alertController.currentPage.value,
+      pageSize: alertController.pageSize.value,
     );
 
     alertController.selectedUserId.value = filter.userId;

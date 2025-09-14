@@ -24,7 +24,9 @@ class AlertListController extends GetxController {
   var sortBy = 'serverCreateTime'.obs;
   var sortDescending = true.obs;
   var currentPage = 1.obs;
-  var pageSize = 150.obs;
+  var pageSize = 10.obs;
+  var totalCount = 0.obs; // اضافه کردن تعداد کل
+  var hasNextPage = false.obs; // اضافه کردن چک صفحه بعدی
 
   List<Map<String, dynamic>> get statusOptions => [
     {'value': null, 'label': 'all_status'.tr},
@@ -44,6 +46,7 @@ class AlertListController extends GetxController {
     {'value': 2, 'label': 'patient_referral'.tr},
     {'value': 3, 'label': 'safe_burial'.tr},
   ];
+
   @override
   void onInit() {
     super.onInit();
@@ -51,10 +54,11 @@ class AlertListController extends GetxController {
   }
 
   Future<void> loadAlerts() async {
-       final prefs = await SharedPreferences.getInstance();
-      final String? savedUserId = prefs.getString('userId');
-      final String? savedRole = prefs.getString('role');
-      userRole.value = savedRole ?? '' ; 
+    final prefs = await SharedPreferences.getInstance();
+    final String? savedUserId = prefs.getString('userId');
+    final String? savedRole = prefs.getString('role');
+    userRole.value = savedRole ?? '';
+    
     isLoading.value = true;
     hasError.value = false;
     errorMessage.value = '';
@@ -80,10 +84,14 @@ class AlertListController extends GetxController {
         hasError.value = true;
         errorMessage.value = error;
         alerts.clear();
+        hasNextPage.value = false;
       },
       (alertList) {
         hasError.value = false;
         alerts.value = alertList;
+        
+        // اگر تعداد آیتم‌های برگشتی برابر pageSize باشد، احتمال وجود صفحه بعدی هست
+        hasNextPage.value = alertList.length == pageSize.value;
       },
     );
 
@@ -92,51 +100,46 @@ class AlertListController extends GetxController {
 
   void onSearchChanged(String query) {
     searchQuery.value = query;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onStatusChanged(int? status) {
     selectedStatus.value = status;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onTypeChanged(int? type) {
     selectedType.value = type;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onUserIdChanged(String? userId) {
     selectedUserId.value = userId;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onTeamIdChanged(String? teamId) {
     selectedTeamId.value = teamId;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onDateRangeChanged(DateTime? from, DateTime? to) {
     dateFrom.value = from;
     dateTo.value = to;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void onSortChanged(String sortField, bool descending) {
     sortBy.value = sortField;
     sortDescending.value = descending;
-    currentPage.value = 1;
-    loadAlerts();
+    resetToFirstPage();
   }
 
   void nextPage() {
-    currentPage.value++;
-    loadAlerts();
+    if (hasNextPage.value) {
+      currentPage.value++;
+      loadAlerts();
+    }
   }
 
   void previousPage() {
@@ -146,20 +149,25 @@ class AlertListController extends GetxController {
     }
   }
 
-  void clearFilters() {
-    searchQuery.value = '';
-    selectedStatus.value = null;
-    selectedType.value = null;
-   userRole.value == 'Admin' ? selectedUserId.value = null : null;
-    selectedTeamId.value = null;
-    dateFrom.value = null;
-    dateTo.value = null;
+  void resetToFirstPage() {
     currentPage.value = 1;
     loadAlerts();
   }
 
+  void clearFilters() {
+    searchQuery.value = '';
+    selectedStatus.value = null;
+    selectedType.value = null;
+    if (userRole.value == 'Admin') {
+      selectedUserId.value = null;
+      selectedTeamId.value = null;
+    }
+    dateFrom.value = null;
+    dateTo.value = null;
+    resetToFirstPage();
+  }
+
   void refreshAlerts() {
-    currentPage.value = 1;
     loadAlerts();
   }
 
@@ -177,5 +185,12 @@ class AlertListController extends GetxController {
       orElse: () => {'label': 'unknown'.tr},
     );
     return typeOption['label'] as String;
+  }
+
+  // متد کمکی برای نمایش اطلاعات صفحه‌بندی
+  String getPaginationInfo() {
+    final startItem = ((currentPage.value - 1) * pageSize.value) + 1;
+    final endItem = startItem + alerts.length - 1;
+    return '$startItem-$endItem';
   }
 }

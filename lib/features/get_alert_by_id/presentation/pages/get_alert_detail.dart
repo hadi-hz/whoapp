@@ -7,7 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test3/core/utils/map_utils.dart';
 import 'package:test3/features/auth/presentation/controller/auth_controller.dart';
+import 'package:test3/features/get_alert_by_id/data/datasource/generate_pdf_datasource.dart';
+import 'package:test3/features/get_alert_by_id/data/repositories/generate_pdf_repository_impl.dart';
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart';
+import 'package:test3/features/get_alert_by_id/domain/repositories/generate_pdf_repository.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/generate_pdf_usecase.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart';
 import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart';
@@ -25,8 +28,11 @@ import 'package:test3/features/home/domain/usecase/team_start_processing.dart';
 import 'package:test3/features/home/presentation/controller/admin_close_alert_controller.dart';
 import 'package:test3/features/home/presentation/controller/team_start_processing_controller.dart';
 import '../../../../core/const/const.dart';
-
 import 'dart:io';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:intl/intl.dart';
 
 class AlertDetailPage extends StatefulWidget {
   final String alertId;
@@ -40,7 +46,6 @@ class AlertDetailPage extends StatefulWidget {
 
 class _AlertDetailPageState extends State<AlertDetailPage> {
   final AlertDetailController controller = Get.find<AlertDetailController>();
- 
 
   void _closeAlert(String alertId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -123,13 +128,21 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
 
   @override
   void initState() {
+    if (!Get.isRegistered<ReportRemoteDataSource>()) {
+      Get.lazyPut<ReportRemoteDataSource>(() => ReportRemoteDataSource());
+    }
+
+    // Register repository implementation
+    if (!Get.isRegistered<ReportRepository>()) {
+      Get.lazyPut<ReportRepository>(() => ReportRepositoryImpl(Get.find()));
+    }
+
     if (!Get.isRegistered<GeneratePdfReportUseCase>()) {
       Get.lazyPut<GeneratePdfReportUseCase>(
         () => GeneratePdfReportUseCase(Get.find()),
       );
     }
 
-    // Then initialize ReportController
     if (!Get.isRegistered<ReportController>()) {
       Get.lazyPut<ReportController>(() => ReportController(Get.find()));
     }
@@ -228,7 +241,12 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             await controller.fetchAlertDetail(widget.alertId);
           },
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsetsDirectional.only(
+              bottom: 54,
+              end: 16,
+              start: 16,
+              top: 16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -255,16 +273,23 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 alert.alertStatus < 2 && controller.userRole.value == 'Admin'
                     ? _buildTeamAssignmentButton(alertDetail)
                     : const SizedBox.shrink(),
-                const SizedBox(height: 16),
+                // ConstantSpace.mediumVerticalSpacer,
                 _buildServiceProviderButton(),
-                const SizedBox(height: 16),
+                // controller.userRole.value == 'Admin'
+                //     ? ConstantSpace.mediumVerticalSpacer
+                //     : SizedBox(),
                 controller.userRole.value == 'Admin'
                     ? _buildAdminDescriptionSection()
                     : SizedBox(),
-                const SizedBox(height: 16),
+                ConstantSpace.mediumVerticalSpacer,
                 _buildTeamMemberDescriptionSection(),
-                const SizedBox(height: 16),
-                _buildAdminActionButtons(),
+
+                // controller.userRole.value == 'Admin'
+                //   ? ConstantSpace.mediumVerticalSpacer
+                //   : SizedBox(),
+                controller.userRole.value == 'Admin'
+                    ? _buildAdminActionButtons()
+                    : _buildPdfButtons(),
               ],
             ),
           ),
@@ -680,9 +705,18 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text(
-              'select_team'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Icon(Icons.groups_rounded, color: AppColors.primaryColor),
+                ConstantSpace.smallHorizontalSpacer,
+                Text(
+                  'select_team'.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             Obx(() {
@@ -1516,6 +1550,289 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPdfButtons() {
+    if (controller.alertDetail.value == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Obx(() {
+      if (controller.userRole.value == 'Doctor') {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 16),
+          child: ElevatedButton.icon(
+            onPressed: () => _generateAndShowPdf(isDoctor: true),
+            icon: const Icon(Icons.picture_as_pdf, size: 20),
+            label: Text('download_pdf_doctor'.tr),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        );
+      } else if (controller.userRole.value == 'ServiceProvider') {
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 16),
+          child: ElevatedButton.icon(
+            onPressed: () => _generateAndShowPdf(isDoctor: false),
+            icon: const Icon(Icons.picture_as_pdf, size: 20),
+            label: Text('download_pdf_service'.tr),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return const SizedBox.shrink();
+    });
+  }
+
+  // اضافه کن به بالای کلاس _AlertDetailPageState
+  Future<void> _generateAndShowPdf({required bool isDoctor}) async {
+    final alert = controller.alertDetail.value!.alert;
+    final doctor = controller.alertDetail.value!.doctor;
+
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return [
+            // Header
+            pw.Container(
+              padding: const pw.EdgeInsets.only(bottom: 20),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(width: 2, color: PdfColors.blue),
+                ),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    isDoctor
+                        ? 'Medical Alert Report'
+                        : 'Service Provider Report',
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.blue,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    'Track ID: ${alert.trackId}',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.grey),
+                  ),
+                  pw.Text(
+                    'Generated: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
+                    style: pw.TextStyle(fontSize: 12, color: PdfColors.grey),
+                  ),
+                ],
+              ),
+            ),
+
+            pw.SizedBox(height: 20),
+
+            // Alert Status
+            _buildPdfSection('Alert Status', [
+              _buildPdfRow(
+                'Status',
+                controller.getStatusName(alert.alertStatus),
+              ),
+              _buildPdfRow(
+                'Alert Type',
+                controller.getAlertTypeName(alert.alertType),
+              ),
+              _buildPdfRow(
+                'Created Date',
+                _formatDateTime(alert.serverCreateTime),
+              ),
+              _buildPdfRow(
+                'Last Update',
+                _formatDateTime(alert.lastUpdateTime),
+              ),
+            ]),
+
+            pw.SizedBox(height: 15),
+
+            // Patient Information
+            _buildPdfSection('Patient Information', [
+              _buildPdfRow('Patient Name', alert.patientName),
+              _buildPdfRow('Description', alert.alertDescriptionByDoctor),
+            ]),
+
+            pw.SizedBox(height: 15),
+
+            // Doctor Information
+            _buildPdfSection('Doctor Information', [
+              _buildPdfRow('Name', '${doctor.name} ${doctor.lastname}'),
+              _buildPdfRow('Email', doctor.email),
+            ]),
+
+            pw.SizedBox(height: 15),
+
+            // Location Information
+            _buildPdfSection('Location Information', [
+              _buildPdfRow(
+                'Selected Location',
+                '${alert.latitude}, ${alert.longitude}',
+              ),
+              _buildPdfRow(
+                'GPS Location',
+                '${alert.latitudeGPS}, ${alert.longitudeGPS}',
+              ),
+              if (alert.locationLabel?.isNotEmpty == true)
+                _buildPdfRow('Location Label', alert.locationLabel!),
+              if (alert.locationDescription?.isNotEmpty == true)
+                _buildPdfRow(
+                  'Location Description',
+                  alert.locationDescription!,
+                ),
+            ]),
+
+            // Admin Description (if exists)
+            if (alert.alertDescriptionByAdmin.isNotEmpty) ...[
+              pw.SizedBox(height: 15),
+              _buildPdfSection('Admin Notes', [
+                pw.Text(
+                  alert.alertDescriptionByAdmin,
+                  style: const pw.TextStyle(fontSize: 12),
+                ),
+              ]),
+            ],
+
+            // Service Provider Description (if exists)
+            if (alert.alertDescriptionByServiceProvider.isNotEmpty) ...[
+              pw.SizedBox(height: 15),
+              _buildPdfSection('Service Provider Notes', [
+                pw.Text(
+                  alert.alertDescriptionByServiceProvider,
+                  style: const pw.TextStyle(fontSize: 12),
+                ),
+              ]),
+            ],
+
+            // Team Information (if exists)
+            if (controller.alertDetail.value!.teamMembers.isNotEmpty) ...[
+              pw.SizedBox(height: 15),
+              _buildPdfSection('Team Information', [
+                pw.Text(
+                  'Team Members:',
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                ...controller.alertDetail.value!.teamMembers.map(
+                  (member) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(left: 16, bottom: 4),
+                    child: pw.Text(
+                      '• ${member.name} ${member.lastname} (${member.email})',
+                      style: const pw.TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
+
+            // Footer
+            pw.SizedBox(height: 30),
+            pw.Container(
+              padding: const pw.EdgeInsets.only(top: 20),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  top: pw.BorderSide(width: 1, color: PdfColors.grey),
+                ),
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'This document was generated automatically',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey,
+                    fontStyle: pw.FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
+          ];
+        },
+      ),
+    );
+
+    // نمایش PDF
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+      name: 'Alert_Report_${alert.trackId}.pdf',
+    );
+  }
+
+  pw.Widget _buildPdfSection(String title, List<pw.Widget> children) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(16),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800,
+            ),
+          ),
+          pw.SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 6),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            width: 140,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 12,
+                color: PdfColors.grey700,
+              ),
+            ),
+          ),
+          pw.Expanded(
+            child: pw.Text(value, style: const pw.TextStyle(fontSize: 12)),
+          ),
+        ],
       ),
     );
   }
