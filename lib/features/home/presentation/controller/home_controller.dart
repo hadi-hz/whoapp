@@ -39,7 +39,7 @@ class HomeController extends GetxController {
   var isFiltersExpandedTeam = false.obs;
 
   var currentPageTeam = 1.obs;
-  var pageSizeTeam = 10.obs;
+  var pageSizeTeam = 1000.obs;
   var hasNextPageTeam = false.obs;
 
   List<TeamEntity> get healthcareTeams =>
@@ -420,11 +420,11 @@ class HomeController extends GetxController {
         );
       },
       (teamsList) {
-        // محدود کردن به pageSize در frontend
+      
         final limitedList = teamsList.take(pageSizeTeam.value).toList();
         teams.value = limitedList;
 
-        // اگر تعداد کل آیتم‌های برگشتی بیشتر از pageSize باشد، صفحه بعدی وجود دارد
+      
         hasNextPageTeam.value = teamsList.length > pageSizeTeam.value;
 
         applyLocalFilters();

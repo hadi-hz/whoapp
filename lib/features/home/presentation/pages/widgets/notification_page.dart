@@ -6,6 +6,7 @@ import 'package:test3/core/const/const.dart';
 import 'package:test3/features/get_alert_by_id/presentation/pages/get_alert_detail.dart';
 import 'package:test3/features/home/presentation/controller/notification_controller.dart';
 import 'package:test3/features/home/presentation/controller/notification_read_controller.dart';
+import 'package:test3/features/home/presentation/pages/widgets/team_detail_screen.dart';
 import 'package:test3/features/home/presentation/pages/widgets/user_detail.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -382,6 +383,8 @@ class _NotificationPageState extends State<NotificationPage>
     } else if (notification.alertId != null &&
         notification.alertId.isNotEmpty) {
       Get.to(() => AlertDetailPage(alertId: notification.alertId));
+    } else if (notification.teamId != null && notification.teamId.isNotEmpty) {
+      Get.to(TeamDetailsPage(teamId: notification.teamId));
     }
   }
 
@@ -519,6 +522,10 @@ class _NotificationPageState extends State<NotificationPage>
         icon = Icons.mark_email_read;
         color = Colors.indigo;
         break;
+      case 8: // Added To Team
+        icon = Icons.groups;
+        color = Colors.indigo;
+        break;
       default:
         icon = Icons.notifications;
         color = AppColors.primaryColor;
@@ -529,7 +536,7 @@ class _NotificationPageState extends State<NotificationPage>
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
 
-        shape: BoxShape.circle , 
+        shape: BoxShape.circle,
       ),
       child: Icon(icon, color: color, size: 18),
     );

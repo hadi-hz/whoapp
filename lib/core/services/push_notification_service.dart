@@ -136,7 +136,8 @@ class PushNotificationService {
         Get.to(() => AlertDetailPage(alertId: alertId, alertType: 0));
       } else if (type == 'register_user' && userId != null) {
         Get.to(() => UserDetailScreen(userId: userId));
-      } else if (type == 'team_details' && teamId != null) {
+      } else if (type == 'add_to_team' && teamId != null) {
+        print('teamId ============> ${teamId}');
         Get.to(() => TeamDetailsPage(teamId: teamId));
       }
     } catch (e) {

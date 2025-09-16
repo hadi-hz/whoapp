@@ -499,54 +499,74 @@ class ChartsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFunnelChart(dynamic funnelData, bool isDark, bool isTablet) {
-    return SizedBox(
-      height: isTablet ? 400 : 350,
-      child: SfCartesianChart(
-        title: ChartTitle(
-          text: 'total_alerts'.tr + ': ${funnelData.total}',
-          textStyle: TextStyle(
-            fontSize: isTablet ? 16 : 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white70 : Colors.black87,
-          ),
-        ),
-        primaryXAxis: CategoryAxis(
-          labelStyle: TextStyle(
-            color: isDark ? Colors.white70 : Colors.black87,
-            fontSize: isTablet ? 12 : 10,
-          ),
-          labelRotation: -45,
-        ),
-        primaryYAxis: NumericAxis(
-          labelStyle: TextStyle(
-            color: isDark ? Colors.white70 : Colors.black87,
-            fontSize: isTablet ? 12 : 10,
-          ),
-        ),
-        series: <CartesianSeries>[
-          ColumnSeries<dynamic, String>(
-            dataSource: funnelData.steps,
-            xValueMapper: (data, _) => data.status,
-            yValueMapper: (data, _) => data.count,
-            dataLabelSettings: DataLabelSettings(
-              isVisible: true,
-              textStyle: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: isTablet ? 12 : 10,
-              ),
-            ),
-            enableTooltip: true,
-            pointColorMapper: (data, index) => _getChartColor(index),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ],
-        backgroundColor: Colors.transparent,
-      ),
-    );
+  String getStatusTranslationKey(String serverStatus) {
+  switch (serverStatus) {
+    case 'Initial':
+      return 'initial';
+    case 'Visited By Admin':
+      return 'visited_by_admin';
+    case 'Assigned To Team':
+      return 'assigned_to_team';
+    case 'Visited By Team Member':
+      return 'visited_by_team_member';
+    case 'Team Start Processing':
+      return 'team_start_processing';
+    case 'Team Finish Processing':
+      return 'team_finish_processing';
+    case 'Admin Close':
+      return 'admin_close';
+    default:
+      return serverStatus.toLowerCase().replaceAll(' ', '_');
   }
+}
 
+Widget _buildFunnelChart(dynamic funnelData, bool isDark, bool isTablet) {
+  return SizedBox(
+    height: isTablet ? 400 : 350,
+    child: SfCartesianChart(
+      title: ChartTitle(
+        text: 'total_alerts'.tr + ': ${funnelData.total}',
+        textStyle: TextStyle(
+          fontSize: isTablet ? 16 : 14,
+          fontWeight: FontWeight.w500,
+          color: isDark ? Colors.white70 : Colors.black87,
+        ),
+      ),
+      primaryXAxis: CategoryAxis(
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.black87,
+          fontSize: isTablet ? 12 : 10,
+        ),
+        labelRotation: -45,
+      ),
+      primaryYAxis: NumericAxis(
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.black87,
+          fontSize: isTablet ? 12 : 10,
+        ),
+      ),
+      series: <CartesianSeries>[
+        ColumnSeries<dynamic, String>(
+          dataSource: funnelData.steps,
+          xValueMapper: (data, _) => getStatusTranslationKey(data.status).tr,
+          yValueMapper: (data, _) => data.count,
+          dataLabelSettings: DataLabelSettings(
+            isVisible: true,
+            textStyle: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: isTablet ? 12 : 10,
+            ),
+          ),
+          enableTooltip: true,
+          pointColorMapper: (data, index) => _getChartColor(index),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ],
+      backgroundColor: Colors.transparent,
+    ),
+  );
+}
   Widget _buildBarChart(dynamic barData, bool isDark, bool isTablet) {
     return SizedBox(
       height: isTablet ? 350 : 300,

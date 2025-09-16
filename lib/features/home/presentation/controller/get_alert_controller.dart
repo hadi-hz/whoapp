@@ -24,7 +24,7 @@ class AlertListController extends GetxController {
   var sortBy = 'serverCreateTime'.obs;
   var sortDescending = true.obs;
   var currentPage = 1.obs;
-  var pageSize = 10.obs;
+  var pageSize = (-1).obs;
   var totalCount = 0.obs; // اضافه کردن تعداد کل
   var hasNextPage = false.obs; // اضافه کردن چک صفحه بعدی
 
@@ -58,7 +58,7 @@ class AlertListController extends GetxController {
     final String? savedUserId = prefs.getString('userId');
     final String? savedRole = prefs.getString('role');
     userRole.value = savedRole ?? '';
-    
+
     isLoading.value = true;
     hasError.value = false;
     errorMessage.value = '';
@@ -89,7 +89,7 @@ class AlertListController extends GetxController {
       (alertList) {
         hasError.value = false;
         alerts.value = alertList;
-        
+
         // اگر تعداد آیتم‌های برگشتی برابر pageSize باشد، احتمال وجود صفحه بعدی هست
         hasNextPage.value = alertList.length == pageSize.value;
       },

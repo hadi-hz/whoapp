@@ -31,7 +31,7 @@ class AdminCloseAlertController extends GetxController {
         (response) {
           Get.snackbar(
             'success'.tr,
-            response.message,
+            'Report Closed',
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );

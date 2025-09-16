@@ -145,7 +145,7 @@ void main() async {
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await PushNotificationService.initialize();
-  PushNotificationService.processPendingNavigation();
+  // PushNotificationService.processPendingNavigation();
 
   final prefs = await SharedPreferences.getInstance();
   final hasToken = prefs.getString('token') != null;

@@ -249,7 +249,7 @@ class _ReportsPageState extends State<ReportsPage> {
                         _buildAlertsGrid(isDark, isTablet),
                         ConstantSpace.mediumVerticalSpacer,
                         // Pagination
-                        _buildPagination(isDark, isTablet),
+                        // _buildPagination(isDark, isTablet),
                       ],
                     );
                   }),
@@ -356,187 +356,187 @@ class _ReportsPageState extends State<ReportsPage> {
           );
   }
 
-  Widget _buildPagination(bool isDark, bool isTablet) {
-    return Obx(() {
-      final currentPage = alertController.currentPage.value;
-      final totalItems = alertController.alerts.length;
-      final hasNextPage = alertController.hasNextPage.value;
-      final hasPreviousPage = currentPage > 1;
+  // Widget _buildPagination(bool isDark, bool isTablet) {
+  //   return Obx(() {
+  //     final currentPage = alertController.currentPage.value;
+  //     final totalItems = alertController.alerts.length;
+  //     final hasNextPage = alertController.hasNextPage.value;
+  //     final hasPreviousPage = currentPage > 1;
 
-      if (totalItems == 0) return SizedBox.shrink();
+  //     if (totalItems == 0) return SizedBox.shrink();
 
-      return Padding(
-        padding: const EdgeInsetsDirectional.only(bottom: 120),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-           
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 16 : 12,
-                vertical: isTablet ? 12 : 10,
-              ),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.grey[800]?.withOpacity(0.3)
-                    : Colors.grey[50]?.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Previous button
-                  _buildNavButton(
-                    icon: Icons.chevron_left_rounded,
-                    label: 'previous'.tr,
-                    onPressed: hasPreviousPage
-                        ? () => alertController.previousPage()
-                        : null,
-                    isDark: isDark,
-                    isTablet: isTablet,
-                    isPrimary: false,
-                  ),
+  //     return Padding(
+  //       padding: const EdgeInsetsDirectional.only(bottom: 120),
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
 
-                  // Current page indicator
-                  Container(
-                    constraints: BoxConstraints(minWidth: isTablet ? 80 : 70),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 20 : 16,
-                      vertical: isTablet ? 12 : 10,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.primaryColor,
-                          AppColors.primaryColor.withOpacity(0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          spreadRadius: 0,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      currentPage.toString(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: isTablet ? 16 : 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+  //           Container(
+  //             padding: EdgeInsets.symmetric(
+  //               horizontal: isTablet ? 16 : 12,
+  //               vertical: isTablet ? 12 : 10,
+  //             ),
+  //             decoration: BoxDecoration(
+  //               color: isDark
+  //                   ? Colors.grey[800]?.withOpacity(0.3)
+  //                   : Colors.grey[50]?.withOpacity(0.5),
+  //               borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
+  //             ),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 // Previous button
+  //                 _buildNavButton(
+  //                   icon: Icons.chevron_left_rounded,
+  //                   label: 'previous'.tr,
+  //                   onPressed: hasPreviousPage
+  //                       ? () => alertController.previousPage()
+  //                       : null,
+  //                   isDark: isDark,
+  //                   isTablet: isTablet,
+  //                   isPrimary: false,
+  //                 ),
 
-                  // Next button
-                  _buildNavButton(
-                    icon: Icons.chevron_right_rounded,
-                    label: 'next'.tr,
-                    onPressed: hasNextPage
-                        ? () => alertController.nextPage()
-                        : null,
-                    isDark: isDark,
-                    isTablet: isTablet,
-                    isPrimary: true,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    });
-  }
+  //                 // Current page indicator
+  //                 Container(
+  //                   constraints: BoxConstraints(minWidth: isTablet ? 80 : 70),
+  //                   padding: EdgeInsets.symmetric(
+  //                     horizontal: isTablet ? 20 : 16,
+  //                     vertical: isTablet ? 12 : 10,
+  //                   ),
+  //                   decoration: BoxDecoration(
+  //                     gradient: LinearGradient(
+  //                       colors: [
+  //                         AppColors.primaryColor,
+  //                         AppColors.primaryColor.withOpacity(0.8),
+  //                       ],
+  //                       begin: Alignment.topLeft,
+  //                       end: Alignment.bottomRight,
+  //                     ),
+  //                     borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
+  //                     boxShadow: [
+  //                       BoxShadow(
+  //                         color: AppColors.primaryColor.withOpacity(0.3),
+  //                         blurRadius: 8,
+  //                         spreadRadius: 0,
+  //                         offset: const Offset(0, 2),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   child: Text(
+  //                     currentPage.toString(),
+  //                     textAlign: TextAlign.center,
+  //                     style: TextStyle(
+  //                       fontSize: isTablet ? 16 : 14,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.white,
+  //                     ),
+  //                   ),
+  //                 ),
 
-  Widget _buildNavButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    required bool isDark,
-    required bool isTablet,
-    required bool isPrimary,
-  }) {
-    final isEnabled = onPressed != null;
+  //                 // Next button
+  //                 _buildNavButton(
+  //                   icon: Icons.chevron_right_rounded,
+  //                   label: 'next'.tr,
+  //                   onPressed: hasNextPage
+  //                       ? () => alertController.nextPage()
+  //                       : null,
+  //                   isDark: isDark,
+  //                   isTablet: isTablet,
+  //                   isPrimary: true,
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   });
+  // }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 16 : 14,
-              vertical: isTablet ? 10 : 8,
-            ),
-            decoration: BoxDecoration(
-              gradient: isEnabled
-                  ? (isPrimary
-                        ? LinearGradient(
-                            colors: [
-                              AppColors.primaryColor.withOpacity(0.1),
-                              AppColors.primaryColor.withOpacity(0.05),
-                            ],
-                          )
-                        : LinearGradient(
-                            colors: [
-                              Colors.grey.withOpacity(0.1),
-                              Colors.grey.withOpacity(0.05),
-                            ],
-                          ))
-                  : null,
-              borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
-              border: Border.all(
-                color: isEnabled
-                    ? (isPrimary
-                          ? AppColors.primaryColor.withOpacity(0.3)
-                          : (isDark ? Colors.grey[600]! : Colors.grey[300]!))
-                    : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: isTablet ? 18 : 16,
-                  color: isEnabled
-                      ? (isPrimary
-                            ? AppColors.primaryColor
-                            : (isDark ? Colors.white70 : Colors.black87))
-                      : (isDark ? Colors.grey[600] : Colors.grey[400]),
-                ),
-                if (isTablet) ...[
-                  SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: isEnabled
-                          ? (isPrimary
-                                ? AppColors.primaryColor
-                                : (isDark ? Colors.white70 : Colors.black87))
-                          : (isDark ? Colors.grey[600] : Colors.grey[400]),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildNavButton({
+  //   required IconData icon,
+  //   required String label,
+  //   required VoidCallback? onPressed,
+  //   required bool isDark,
+  //   required bool isTablet,
+  //   required bool isPrimary,
+  // }) {
+  //   final isEnabled = onPressed != null;
+
+  //   return AnimatedContainer(
+  //     duration: const Duration(milliseconds: 200),
+  //     child: Material(
+  //       color: Colors.transparent,
+  //       borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+  //       child: InkWell(
+  //         onTap: onPressed,
+  //         borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+  //         child: Container(
+  //           padding: EdgeInsets.symmetric(
+  //             horizontal: isTablet ? 16 : 14,
+  //             vertical: isTablet ? 10 : 8,
+  //           ),
+  //           decoration: BoxDecoration(
+  //             gradient: isEnabled
+  //                 ? (isPrimary
+  //                       ? LinearGradient(
+  //                           colors: [
+  //                             AppColors.primaryColor.withOpacity(0.1),
+  //                             AppColors.primaryColor.withOpacity(0.05),
+  //                           ],
+  //                         )
+  //                       : LinearGradient(
+  //                           colors: [
+  //                             Colors.grey.withOpacity(0.1),
+  //                             Colors.grey.withOpacity(0.05),
+  //                           ],
+  //                         ))
+  //                 : null,
+  //             borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+  //             border: Border.all(
+  //               color: isEnabled
+  //                   ? (isPrimary
+  //                         ? AppColors.primaryColor.withOpacity(0.3)
+  //                         : (isDark ? Colors.grey[600]! : Colors.grey[300]!))
+  //                   : (isDark ? Colors.grey[700]! : Colors.grey[200]!),
+  //               width: 1,
+  //             ),
+  //           ),
+  //           child: Row(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Icon(
+  //                 icon,
+  //                 size: isTablet ? 18 : 16,
+  //                 color: isEnabled
+  //                     ? (isPrimary
+  //                           ? AppColors.primaryColor
+  //                           : (isDark ? Colors.white70 : Colors.black87))
+  //                     : (isDark ? Colors.grey[600] : Colors.grey[400]),
+  //               ),
+  //               if (isTablet) ...[
+  //                 SizedBox(width: 6),
+  //                 Text(
+  //                   label,
+  //                   style: TextStyle(
+  //                     fontSize: 13,
+  //                     fontWeight: FontWeight.w500,
+  //                     color: isEnabled
+  //                         ? (isPrimary
+  //                               ? AppColors.primaryColor
+  //                               : (isDark ? Colors.white70 : Colors.black87))
+  //                         : (isDark ? Colors.grey[600] : Colors.grey[400]),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildAlertCard(alert, statusData, bool isDark, bool isTablet) {
     final cardWidth = isTablet ? null : _getCardWidth(context);

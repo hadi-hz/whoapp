@@ -776,6 +776,8 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                           teamId: controller.selectedTeam.value!.id,
                           userId: savedUserId ?? '',
                         );
+                        controller.alertDetail.value = null;
+                        await controller.fetchAlertDetail(widget.alertId);
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
@@ -1560,7 +1562,9 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
     }
 
     return Obx(() {
-      if (controller.userRole.value == 'Doctor') {
+      final alert = controller.alertDetail.value?.alert;
+      if (controller.userRole.value == 'Admin' ||
+          controller.userRole.value == 'Doctor' && alert?.alertStatus == 6) {
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 16),
@@ -1578,7 +1582,9 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
             ),
           ),
         );
-      } else if (controller.userRole.value == 'ServiceProvider') {
+      } else if (controller.userRole.value == 'Admin' ||
+          controller.userRole.value == 'ServiceProvider' &&
+              alert?.alertStatus == 6) {
         return Container(
           width: double.infinity,
           margin: const EdgeInsets.only(bottom: 16),
@@ -1695,10 +1701,7 @@ class _AlertDetailPageState extends State<AlertDetailPage> {
                 'Selected Location',
                 '${alert.latitude}, ${alert.longitude}',
               ),
-              _buildPdfRow(
-                'GPS Location',
-                '${alert.latitudeGPS}, ${alert.longitudeGPS}',
-              ),
+
               if (alert.locationLabel?.isNotEmpty == true)
                 _buildPdfRow('Location Label', alert.locationLabel!),
               if (alert.locationDescription?.isNotEmpty == true)

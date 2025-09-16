@@ -1,6 +1,7 @@
 class NotificationEntity {
   final String forUserId;
   final String? alertId;
+  final String? teamId;
   final String? relateToUserId;
   final String title;
   final String message;
@@ -14,6 +15,7 @@ class NotificationEntity {
   NotificationEntity({
     required this.forUserId,
     this.alertId,
+    this.teamId,
     this.relateToUserId,
     required this.title,
     required this.message,

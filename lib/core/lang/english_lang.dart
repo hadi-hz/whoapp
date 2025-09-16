@@ -349,4 +349,5 @@ const Map<String, String> en = {
   'loading_chart': 'Loading Chart...',
   'chart_error': 'Chart Error',
   'no_data_available': 'No Data Available',
+  'Report_Closed':'Report Closed'
 };

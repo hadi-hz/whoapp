@@ -95,7 +95,7 @@ class UsersScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          _buildPagination(isDark, context),
+                          // _buildPagination(isDark, context),
                         ],
                       );
                     }
@@ -138,7 +138,7 @@ class UsersScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          _buildPagination(isDark, context),
+                          // _buildPagination(isDark, context),
                         ],
                       );
                     }
@@ -192,7 +192,7 @@ class UsersScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          _buildPagination(isDark, context),
+                          // _buildPagination(isDark, context),
                         ],
                       );
                     }
@@ -210,7 +210,7 @@ class UsersScreen extends StatelessWidget {
                             },
                           ),
                         ),
-                        _buildPagination(isDark, context),
+                        // _buildPagination(isDark, context),
                       ],
                     );
                   }),

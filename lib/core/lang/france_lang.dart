@@ -348,4 +348,5 @@ const Map<String, String> fr = {
   'loading_chart': 'Chargement du Graphique...',
   'chart_error': 'Erreur de Graphique',
   'no_data_available': 'Aucune Donnée Disponible',
+  'Report_Closed':'Rapport clôturé'
 };

@@ -70,7 +70,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito: ^5.4.0 
-  build_runner: ^2.8.0 
+  build_runner: ^2.8.0
+  patrol: ^3.17.0 
   flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:

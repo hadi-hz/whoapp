@@ -3,21 +3,19 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i14;
+import 'dart:async' as _i9;
 
 import 'package:dartz/dartz.dart' as _i3;
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart' as _i16;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:test3/features/get_alert_by_id/domain/entities/assign_team.dart'
-    as _i19;
+    as _i14;
 import 'package:test3/features/get_alert_by_id/domain/entities/get_alert-by_id.dart'
-    as _i15;
+    as _i10;
 import 'package:test3/features/get_alert_by_id/domain/entities/team_finish_processing.dart'
     as _i7;
 import 'package:test3/features/get_alert_by_id/domain/entities/teams.dart'
-    as _i17;
-import 'package:test3/features/get_alert_by_id/domain/entities/update_by_admin.dart'
-    as _i9;
+    as _i12;
 import 'package:test3/features/get_alert_by_id/domain/repositories/assign_team_repository.dart'
     as _i5;
 import 'package:test3/features/get_alert_by_id/domain/repositories/get_alert_by_id_repository.dart'
@@ -26,32 +24,14 @@ import 'package:test3/features/get_alert_by_id/domain/repositories/get_team_by_a
     as _i4;
 import 'package:test3/features/get_alert_by_id/domain/repositories/team_finish_precessing.dart'
     as _i6;
-import 'package:test3/features/get_alert_by_id/domain/repositories/update_by_admin.dart'
-    as _i8;
 import 'package:test3/features/get_alert_by_id/domain/usecase/assign_team_usecase.dart'
-    as _i18;
-import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart'
     as _i13;
+import 'package:test3/features/get_alert_by_id/domain/usecase/get_alert_by_id_usecase.dart'
+    as _i8;
 import 'package:test3/features/get_alert_by_id/domain/usecase/get_team_by_alert_type.dart'
-    as _i16;
-import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart'
-    as _i20;
-import 'package:test3/features/get_alert_by_id/domain/usecase/update_by_admin.dart'
-    as _i21;
-import 'package:test3/features/home/domain/entities/admin_close_alert.dart'
-    as _i24;
-import 'package:test3/features/home/domain/entities/admin_close_alert_response.dart'
-    as _i25;
-import 'package:test3/features/home/domain/entities/team_start_processing.dart'
     as _i11;
-import 'package:test3/features/home/domain/repositories/admin_close_alert.dart'
-    as _i12;
-import 'package:test3/features/home/domain/repositories/team_start_processing_repository.dart'
-    as _i10;
-import 'package:test3/features/home/domain/usecase/admin_close_alert_usecase.dart'
-    as _i23;
-import 'package:test3/features/home/domain/usecase/team_start_processing.dart'
-    as _i22;
+import 'package:test3/features/get_alert_by_id/domain/usecase/team_finish_processing.dart'
+    as _i15;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -105,45 +85,11 @@ class _FakeTeamFinishProcessingEntity_5 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeUpdateAlertByAdminRepository_6 extends _i1.SmartFake
-    implements _i8.UpdateAlertByAdminRepository {
-  _FakeUpdateAlertByAdminRepository_6(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(parent, parentInvocation);
-}
-
-class _FakeUpdateAlertByAdminResponse_7 extends _i1.SmartFake
-    implements _i9.UpdateAlertByAdminResponse {
-  _FakeUpdateAlertByAdminResponse_7(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeTeamStartProcessingRepository_8 extends _i1.SmartFake
-    implements _i10.TeamStartProcessingRepository {
-  _FakeTeamStartProcessingRepository_8(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(parent, parentInvocation);
-}
-
-class _FakeTeamStartProcessingResponse_9 extends _i1.SmartFake
-    implements _i11.TeamStartProcessingResponse {
-  _FakeTeamStartProcessingResponse_9(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
-class _FakeAdminCloseAlertRepository_10 extends _i1.SmartFake
-    implements _i12.AdminCloseAlertRepository {
-  _FakeAdminCloseAlertRepository_10(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
-}
-
 /// A class which mocks [GetAlertDetailUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGetAlertDetailUseCase extends _i1.Mock
-    implements _i13.GetAlertDetailUseCase {
+    implements _i8.GetAlertDetailUseCase {
   MockGetAlertDetailUseCase() {
     _i1.throwOnMissingStub(this);
   }
@@ -160,28 +106,28 @@ class MockGetAlertDetailUseCase extends _i1.Mock
           as _i2.AlertDetailRepository);
 
   @override
-  _i14.Future<_i3.Either<String, _i15.AlertDetailEntity>> call(
+  _i9.Future<_i3.Either<String, _i10.AlertDetailEntity>> call(
     String? alertId,
     String? currentUserId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#call, [alertId, currentUserId]),
             returnValue:
-                _i14.Future<_i3.Either<String, _i15.AlertDetailEntity>>.value(
-                  _FakeEither_1<String, _i15.AlertDetailEntity>(
+                _i9.Future<_i3.Either<String, _i10.AlertDetailEntity>>.value(
+                  _FakeEither_1<String, _i10.AlertDetailEntity>(
                     this,
                     Invocation.method(#call, [alertId, currentUserId]),
                   ),
                 ),
           )
-          as _i14.Future<_i3.Either<String, _i15.AlertDetailEntity>>);
+          as _i9.Future<_i3.Either<String, _i10.AlertDetailEntity>>);
 }
 
 /// A class which mocks [GetTeamByAlertType].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGetTeamByAlertType extends _i1.Mock
-    implements _i16.GetTeamByAlertType {
+    implements _i11.GetTeamByAlertType {
   MockGetTeamByAlertType() {
     _i1.throwOnMissingStub(this);
   }
@@ -198,26 +144,24 @@ class MockGetTeamByAlertType extends _i1.Mock
           as _i4.TeamRepository);
 
   @override
-  _i14.Future<_i3.Either<String, List<_i17.TeamsEntity>>> call(
-    int? alertType,
-  ) =>
+  _i9.Future<_i3.Either<String, List<_i12.TeamsEntity>>> call(int? alertType) =>
       (super.noSuchMethod(
             Invocation.method(#call, [alertType]),
             returnValue:
-                _i14.Future<_i3.Either<String, List<_i17.TeamsEntity>>>.value(
-                  _FakeEither_1<String, List<_i17.TeamsEntity>>(
+                _i9.Future<_i3.Either<String, List<_i12.TeamsEntity>>>.value(
+                  _FakeEither_1<String, List<_i12.TeamsEntity>>(
                     this,
                     Invocation.method(#call, [alertType]),
                   ),
                 ),
           )
-          as _i14.Future<_i3.Either<String, List<_i17.TeamsEntity>>>);
+          as _i9.Future<_i3.Either<String, List<_i12.TeamsEntity>>>);
 }
 
 /// A class which mocks [AssignTeamUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAssignTeamUseCase extends _i1.Mock implements _i18.AssignTeamUseCase {
+class MockAssignTeamUseCase extends _i1.Mock implements _i13.AssignTeamUseCase {
   MockAssignTeamUseCase() {
     _i1.throwOnMissingStub(this);
   }
@@ -234,7 +178,7 @@ class MockAssignTeamUseCase extends _i1.Mock implements _i18.AssignTeamUseCase {
           as _i5.AssignTeamRepository);
 
   @override
-  _i14.Future<_i3.Either<String, _i19.AssignTeamEntity>> call({
+  _i9.Future<_i3.Either<String, _i14.AssignTeamEntity>> call({
     required String? alertId,
     required String? teamId,
     required String? userId,
@@ -246,8 +190,8 @@ class MockAssignTeamUseCase extends _i1.Mock implements _i18.AssignTeamUseCase {
               #userId: userId,
             }),
             returnValue:
-                _i14.Future<_i3.Either<String, _i19.AssignTeamEntity>>.value(
-                  _FakeEither_1<String, _i19.AssignTeamEntity>(
+                _i9.Future<_i3.Either<String, _i14.AssignTeamEntity>>.value(
+                  _FakeEither_1<String, _i14.AssignTeamEntity>(
                     this,
                     Invocation.method(#call, [], {
                       #alertId: alertId,
@@ -257,14 +201,14 @@ class MockAssignTeamUseCase extends _i1.Mock implements _i18.AssignTeamUseCase {
                   ),
                 ),
           )
-          as _i14.Future<_i3.Either<String, _i19.AssignTeamEntity>>);
+          as _i9.Future<_i3.Either<String, _i14.AssignTeamEntity>>);
 }
 
 /// A class which mocks [TeamFinishProcessingUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockTeamFinishProcessingUseCase extends _i1.Mock
-    implements _i20.TeamFinishProcessingUseCase {
+    implements _i15.TeamFinishProcessingUseCase {
   MockTeamFinishProcessingUseCase() {
     _i1.throwOnMissingStub(this);
   }
@@ -281,11 +225,11 @@ class MockTeamFinishProcessingUseCase extends _i1.Mock
           as _i6.TeamFinishProcessingRepository);
 
   @override
-  _i14.Future<_i7.TeamFinishProcessingEntity> call({
+  _i9.Future<_i7.TeamFinishProcessingEntity> call({
     required String? alertId,
     required String? userId,
     required String? description,
-    List<XFile>? files,
+    List<_i16.XFile>? files,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {
@@ -294,7 +238,7 @@ class MockTeamFinishProcessingUseCase extends _i1.Mock
               #description: description,
               #files: files,
             }),
-            returnValue: _i14.Future<_i7.TeamFinishProcessingEntity>.value(
+            returnValue: _i9.Future<_i7.TeamFinishProcessingEntity>.value(
               _FakeTeamFinishProcessingEntity_5(
                 this,
                 Invocation.method(#call, [], {
@@ -306,83 +250,5 @@ class MockTeamFinishProcessingUseCase extends _i1.Mock
               ),
             ),
           )
-          as _i14.Future<_i7.TeamFinishProcessingEntity>);
-}
-
-/// A class which mocks [UpdateAlertByAdminUseCase].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockUpdateAlertByAdminUseCase extends _i1.Mock
-    implements _i21.UpdateAlertByAdminUseCase {
-  MockUpdateAlertByAdminUseCase() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i8.UpdateAlertByAdminRepository get repository =>
-      (super.noSuchMethod(
-            Invocation.getter(#repository),
-            returnValue: _FakeUpdateAlertByAdminRepository_6(
-              this,
-              Invocation.getter(#repository),
-            ),
-          )
-          as _i8.UpdateAlertByAdminRepository);
-
-  @override
-  _i14.Future<_i9.UpdateAlertByAdminResponse> call(
-    _i9.UpdateAlertByAdminRequest? request,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#call, [request]),
-            returnValue: _i14.Future<_i9.UpdateAlertByAdminResponse>.value(
-              _FakeUpdateAlertByAdminResponse_7(
-                this,
-                Invocation.method(#call, [request]),
-              ),
-            ),
-          )
-          as _i14.Future<_i9.UpdateAlertByAdminResponse>);
-}
-
-/// A class which mocks [TeamStartProcessingUseCase].
-///
-/// See the documentation for Mockito's code generation for more information.
-
-/// A class which mocks [CloseAlertUseCase].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockCloseAlertUseCase extends _i1.Mock implements _i23.CloseAlertUseCase {
-  MockCloseAlertUseCase() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i12.AdminCloseAlertRepository get repository =>
-      (super.noSuchMethod(
-            Invocation.getter(#repository),
-            returnValue: _FakeAdminCloseAlertRepository_10(
-              this,
-              Invocation.getter(#repository),
-            ),
-          )
-          as _i12.AdminCloseAlertRepository);
-
-  @override
-  _i14.Future<_i3.Either<String, _i24.AdminCloseAlertResponse>> call(
-    _i25.AdminCloseAlertRequest? request,
-  ) =>
-      (super.noSuchMethod(
-            Invocation.method(#call, [request]),
-            returnValue:
-                _i14.Future<
-                  _i3.Either<String, _i24.AdminCloseAlertResponse>
-                >.value(
-                  _FakeEither_1<String, _i24.AdminCloseAlertResponse>(
-                    this,
-                    Invocation.method(#call, [request]),
-                  ),
-                ),
-          )
-          as _i14.Future<_i3.Either<String, _i24.AdminCloseAlertResponse>>);
+          as _i9.Future<_i7.TeamFinishProcessingEntity>);
 }

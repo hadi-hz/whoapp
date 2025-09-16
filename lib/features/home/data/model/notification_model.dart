@@ -3,6 +3,7 @@ import 'package:test3/features/home/domain/entities/notification_entity.dart';
 class NotificationModel {
   final String forUserId;
   final String? alertId;
+  final String? teamId;
   final String? relateToUserId;
   final String title;
   final String message;
@@ -16,6 +17,7 @@ class NotificationModel {
   NotificationModel({
     required this.forUserId,
     this.alertId,
+    this.teamId,
     this.relateToUserId,
     required this.title,
     required this.message,
@@ -31,6 +33,7 @@ class NotificationModel {
     return NotificationModel(
       forUserId: json['forUserId'] ?? '',
       alertId: json['alertId'],
+      teamId: json['teamId'],
       relateToUserId: json['relateToUserId'],
       title: json['title'] ?? '',
       message: json['message'] ?? '',
@@ -47,6 +50,7 @@ class NotificationModel {
     return NotificationEntity(
       forUserId: forUserId,
       alertId: alertId,
+      teamId: teamId,
       relateToUserId: relateToUserId,
       title: title,
       message: message,
