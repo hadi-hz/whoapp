@@ -60,11 +60,11 @@ void main() {
     expect(find.text('Team A'), findsOneWidget);
     expect(find.text('Description A'), findsOneWidget);
 
-    // services
+
     expect(find.byIcon(Icons.check_circle), findsNWidgets(2));
     expect(find.byIcon(Icons.cancel), findsNWidgets(2));
 
-    // members
+
     expect(find.text('John Doe'), findsOneWidget);
     expect(find.text('Jane Smith'), findsOneWidget);
     expect(find.byIcon(Icons.local_police_rounded), findsOneWidget);
